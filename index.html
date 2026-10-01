@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>一閃 - ISSEN - 棒人間侍デュエル</title>
+
+  <!-- PWA・全画面対応 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0a0c">
+
+  <!-- ライブラリ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: #0a0a0c;
+      color: #f8fafc;
+      font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      overflow: hidden;
+      user-select: none;
+      touch-action: none;
+      padding: 6px;
+    }
+
+    #ui-bar {
+      width: 100%;
+      max-width: 720px;
+      background: #141419;
+      padding: 8px 16px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      border: 1px solid #27272a;
+    }
+    .logo { font-size: 16px; font-weight: bold; letter-spacing: 2px; color: #ef4444; }
+    .logo span { color: #f8fafc; font-size: 12px; margin-left: 6px; font-family: sans-serif; }
+    #status-text { font-size: 12px; font-weight: bold; color: #facc15; font-family: sans-serif; }
+
+    #canvas-container {
+      border: 2px solid #3f3f46;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 0 30px rgba(239, 68, 68, 0.15);
+      position: relative;
+    }
+
+    /* スマホ用操作パッド（スマホ接続時に画面下に大きく表示） */
+    #mobile-controller {
+      display: none;
+      width: 100%;
+      max-width: 720px;
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 10px;
+    }
+    .ctrl-group { display: flex; gap: 10px; }
+    .btn-touch {
+      background: #27272a;
+      color: #fff;
+      border: 2px solid #52525b;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      padding: 16px 20px;
+      touch-action: manipulation;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .btn-touch:active { background: #52525b; transform: scale(0.95); }
+    .btn-slash {
+      background: #991b1b;
+      border-color: #ef4444;
+      color: #fff;
+      padding: 16px 28px;
+    }
+    .btn-parry {
+      background: #1e3a8a;
+      border-color: #3b82f6;
+      color: #fff;
+      padding: 16px 24px;
+    }
+
+    /* QRコード・招待モーダル */
+    #qr-modal {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(10, 10, 12, 0.95);
+      border: 2px solid #ef4444;
+      border-radius: 10px;
+      padding: 18px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 0 50px rgba(0,0,0,0.9);
+      z-index: 100;
+      text-align: center;
+    }
+    #qrcode { background: #fff; padding: 6px; border-radius: 4px; }
+    .action-btn {
+      background: #dc2626;
+      color: white;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: sans-serif;
+    }
+    .action-btn:hover { background: #b91c1c; }
+
+    /* 決着モーダル */
+    #gameover-modal {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(10, 10, 12, 0.95);
+      border: 2px solid #eab308;
+      border-radius: 8px;
+      padding: 20px 30px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      z-index: 100;
+      text-align: center;
+    }
+    #winner-text { font-size: 32px; font-weight: bold; letter-spacing: 4px; }
+    #guide-text { font-size: 12px; color: #a1a1aa; margin-top: 6px; font-family: sans-serif; }
+  </style>
+</head>
+<body>
+
+  <div id="ui-bar">
+    <div class="logo">一 閃<span>ISSEN - 侍DUEL</span></div>
+    <div id="status-text">通信初期化中...</div>
+  </div>
+
+  <div id="canvas-container"></div>
+  <div id="guide-text">PC操作: <strong>A/D</strong> 移動 | <strong>J (or Z)</strong> 一閃斬り | <strong>K (or X)</strong> 見切りパリィ</div>
+
+  <!-- スマホ用タッチコントローラー -->
+  <div id="mobile-controller">
+    <div class="ctrl-group">
+      <button class="btn-touch" id="btn-left">◀</button>
+      <button class="btn-touch" id="btn-right">▶</button>
+    </div>
+    <div class="ctrl-group">
+      <button class="btn-touch btn-parry" id="btn-parry">見切</button>
+      <button class="btn-touch btn-slash" id="btn-slash">一閃</button>
+    </div>
+  </div>
+
+  <!-- QR招待モーダル -->
+  <div id="qr-modal" style="display: none;">
+    <h3 style="color:#ef4444; font-size: 16px; letter-spacing: 2px;">対戦相手を招待</h3>
+    <div id="qrcode"></div>
+    <button class="action-btn" id="copy-url-btn">対戦URLをコピー</button>
+    <div style="font-size: 11px; color:#a1a1aa; font-family: sans-serif;">カメラをかざすとスマホが刀になります</div>
+  </div>
+
+  <!-- 決着画面 -->
+  <div id="gameover-modal">
+    <div id="winner-text">勝者 決す</div>
+    <div id="round-score" style="font-size: 14px; color:#cbd5e1; font-family: sans-serif;"></div>
+    <button class="action-btn" id="rematch-btn">再戦する</button>
+  </div>
+
+  <script>
+    // ========================================================
+    // 音響効果 (Web Audio API)
+    // ========================================================
+    let audioCtx = null;
+    function getAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function soundSlash() {
+      let ctx = getAudio();
+      let osc = ctx.createOscillator();
+      let gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(800, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(); osc.stop(ctx.currentTime + 0.15);
+    }
+
+    function soundParry() {
+      let ctx = getAudio();
+      let osc = ctx.createOscillator();
+      let gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(1400, ctx.currentTime);
+      osc.frequency.setValueAtTime(2200, ctx.currentTime + 0.05);
+      gain.gain.setValueAtTime(0.5, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.3);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(); osc.stop(ctx.currentTime + 0.3);
+    }
+
+    function soundKill() {
+      let ctx = getAudio();
+      let osc = ctx.createOscillator();
+      let gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(150, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.4);
+      gain.gain.setValueAtTime(0.8, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(); osc.stop(ctx.currentTime + 0.4);
+    }
+
+    // ========================================================
+    // ゲームパラメータ & 演出
+    // ========================================================
+    const GAME_W = 700;
+    const GAME_H = 340;
+    const FLOOR_Y = 280;
+
+    let role = "unknown";
+    let conn = null;
+    let peer = null;
+
+    let shakeFrames = 0;
+    let hitStopFrames = 0;
+    let slowMoTimer = 0;
+    let particles = [];
+    let slashes = [];
+
+    // プレイヤーオブジェクト
+    function createPlayer(x, dir, color, scarfColor) {
+      return {
+        x: x,
+        y: FLOOR_Y,
+        dir: dir, // 1: 右向き, -1: 左向き
+        color: color,
+        scarfColor: scarfColor,
+        state: "idle", // idle, moving, dashing, slash, parry, stunned, dead
+        timer: 0,
+        score: 0,
+        vx: 0,
+        isParrySuccess: false
+      };
+    }
+
+    let p1 = createPlayer(180, 1, '#f8fafc', '#ef4444'); // ホスト (赤スカーフ)
+    let p2 = createPlayer(520, -1, '#f8fafc', '#38bdf8'); // ゲスト (青スカーフ)
+    let isGameOver = false;
+
+    // スマホ側入力フラグ
+    let inputLeft = false, inputRight = false;
+
+    function setup() {
+      let canvas = createCanvas(GAME_W, GAME_H);
+      canvas.parent('canvas-container');
+      initNetwork();
+      setupMobileControls();
+    }
+
+    function draw() {
+      // 演出処理：ヒットストップ
+      if (hitStopFrames > 0) {
+        hitStopFrames--;
+        return;
+      }
+
+      // スローモーション処理
+      if (slowMoTimer > 0) {
+        slowMoTimer--;
+        if (frameCount % 3 !== 0) return; // 3フレームに1回だけ更新
+      }
+
+      // 画面揺れ演出
+      push();
+      if (shakeFrames > 0) {
+        translate(random(-7, 7), random(-7, 7));
+        shakeFrames--;
+      }
+
+      // 背景（夕暮れの荒野 / 水墨画風）
+      background(15, 15, 20);
+      drawBackground();
+
+      // 入力更新
+      handleInput();
+
+      // ホスト側でゲームロジック＆判定を一括管理
+      if (role === "host") {
+        updatePlayer(p1, p2);
+        updatePlayer(p2, p1);
+        checkCombat(p1, p2);
+        checkCombat(p2, p1);
+
+        // 状態をゲストへ送信
+        if (conn && conn.open) {
+          conn.send({
+            t: 'sync',
+            p1: serializeP(p1),
+            p2: serializeP(p2),
+            slashes: slashes,
+            shake: shakeFrames > 0
+          });
+        }
+      }
+
+      // パーティクル＆エフェクト更新
+      updateEffects();
+
+      // 棒人間描画
+      drawStickman(p1);
+      drawStickman(p2);
+
+      // UI スコア描画
+      drawScoreUI();
+
+      pop();
+    }
+
+    function serializeP(p) {
+      return { x: Math.round(p.x), dir: p.dir, state: p.state, score: p.score };
+    }
+
+    // ========================================================
+    // アクション入力 & 操作ロジック
+    // ========================================================
+    function handleInput() {
+      let my = (role === "guest") ? p2 : p1;
+      if (my.state === "dead" || my.state === "stunned" || isGameOver) return;
+
+      let left = keyIsDown(65) || keyIsDown(LEFT_ARROW) || inputLeft;
+      let right = keyIsDown(68) || keyIsDown(RIGHT_ARROW) || inputRight;
+
+      if (my.state === "idle" || my.state === "moving") {
+        if (left) {
+          my.x -= 4;
+          my.dir = -1;
+          my.state = "moving";
+        } else if (right) {
+          my.x += 4;
+          my.dir = 1;
+          my.state = "moving";
+        } else {
+          my.state = "idle";
+        }
+        my.x = constrain(my.x, 50, GAME_W - 50);
+      }
+
+      // ゲスト側は入力をホストへ即座に送信
+      if (role === "guest" && conn && conn.open) {
+        conn.send({
+          t: 'input',
+          left: left,
+          right: right
+        });
+      }
+    }
+
+    function triggerSlash(player) {
+      if (player.state === "idle" || player.state === "moving") {
+        player.state = "slash";
+        player.timer = 18; // 攻撃持続フレーム
+        soundSlash();
+        // 斬撃光跡
+        slashes.push({
+          x: player.x,
+          y: player.y - 45,
+          dir: player.dir,
+          life: 14
+        });
+        // 攻撃時の前進ダッシュ
+        player.vx = player.dir * 12;
+      }
+    }
+
+    function triggerParry(player) {
+      if (player.state === "idle" || player.state === "moving") {
+        player.state = "parry";
+        player.timer = 20; // パリィ受付時間
+      }
+    }
+
+    // キーボード入力（J/K or Z/X）
+    function keyPressed() {
+      if (isGameOver) return;
+      let my = (role === "guest") ? p2 : p1;
+
+      if (keyCode === 74 || keyCode === 90) { // J or Z
+        if (role === "host") triggerSlash(p1);
+        else if (role === "guest" && conn) conn.send({ t: 'action', a: 'slash' });
+      }
+      if (keyCode === 75 || keyCode === 88) { // K or X
+        if (role === "host") triggerParry(p1);
+        else if (role === "guest" && conn) conn.send({ t: 'action', a: 'parry' });
+      }
+    }
+
+    // スマホボタン割り当て
+    function setupMobileControls() {
+      const bind = (id, onDown, onUp) => {
+        let el = document.getElementById(id);
+        el.addEventListener('touchstart', (e) => { e.preventDefault(); onDown(); });
+        el.addEventListener('touchend', (e) => { e.preventDefault(); onUp(); });
+        el.addEventListener('mousedown', onDown);
+        el.addEventListener('mouseup', onUp);
+      };
+
+      bind('btn-left', () => inputLeft = true, () => inputLeft = false);
+      bind('btn-right', () => inputRight = true, () => inputRight = false);
+
+      document.getElementById('btn-slash').onclick = () => {
+        if (role === "host") triggerSlash(p1);
+        else if (role === "guest" && conn) conn.send({ t: 'action', a: 'slash' });
+      };
+      document.getElementById('btn-parry').onclick = () => {
+        if (role === "host") triggerParry(p1);
+        else if (role === "guest" && conn) conn.send({ t: 'action', a: 'parry' });
+      };
+    }
+
+    // ========================================================
+    // 物理＆戦闘判定（ホスト実行）
+    // ========================================================
+    function updatePlayer(p, opponent) {
+      if (p.timer > 0) {
+        p.timer--;
+        if (p.state === "slash") {
+          p.x += p.vx;
+          p.vx *= 0.85;
+          p.x = constrain(p.x, 50, GAME_W - 50);
+        }
+        if (p.timer <= 0) {
+          p.state = "idle";
+        }
+      }
+    }
+
+    function checkCombat(attacker, defender) {
+      if (attacker.state !== "slash" || attacker.timer < 8) return;
+      if (defender.state === "dead") return;
+
+      // 斬撃の間合い（相手との距離）
+      let distBetween = (defender.x - attacker.x) * attacker.dir;
+      if (distBetween > 0 && distBetween < 95) {
+        // --- 判定1: パリィ（見切り成功） ---
+        if (defender.state === "parry") {
+          attacker.state = "stunned";
+          attacker.timer = 50; // 攻撃側が長い硬直
+          attacker.vx = -attacker.dir * 8; // 後ろによろめく
+          soundParry();
+          shakeFrames = 15;
+          hitStopFrames = 6;
+          createSparks((attacker.x + defender.x) / 2, FLOOR_Y - 45);
+          return;
+        }
+
+        // --- 判定2: 一刀両断（斬撃ヒット・キル） ---
+        if (defender.state !== "stunned" && defender.state !== "dead") {
+          defender.state = "dead";
+          attacker.score++;
+          soundKill();
+          shakeFrames = 25;
+          hitStopFrames = 12;
+          slowMoTimer = 45; // トドメ演出
+          createBlood(defender.x, FLOOR_Y - 45, attacker.dir);
+
+          setTimeout(() => {
+            if (attacker.score >= 3) {
+              endGame();
+            } else {
+              resetRound();
+            }
+          }, 1800);
+        }
+      }
+    }
+
+    function resetRound() {
+      p1.x = 180; p1.dir = 1; p1.state = "idle"; p1.timer = 0;
+      p2.x = 520; p2.dir = -1; p2.state = "idle"; p2.timer = 0;
+    }
+
+    function endGame() {
+      isGameOver = true;
+      let winText = "";
+      if (p1.score >= 3) winText = (role === "host") ? "見事！ 貴殿の勝利" : "無念... 敗北";
+      else winText = (role === "guest") ? "見事！ 貴殿の勝利" : "無念... 敗北";
+
+      document.getElementById('winner-text').innerText = winText;
+      document.getElementById('winner-text').style.color = winText.includes("勝利") ? "#4ade80" : "#ef4444";
+      document.getElementById('round-score').innerText = `最終戦績: ${p1.score} 本 - ${p2.score} 本`;
+      document.getElementById('gameover-modal').style.display = 'flex';
+    }
+
+    document.getElementById('rematch-btn').onclick = () => {
+      p1.score = 0; p2.score = 0; isGameOver = false;
+      document.getElementById('gameover-modal').style.display = 'none';
+      resetRound();
+      if (role === "host" && conn) conn.send({ t: 'rematch' });
+    };
+
+    // ========================================================
+    // 描画エンジン (墨絵風グラフィック & 棒人間)
+    // ========================================================
+    function drawBackground() {
+      noStroke();
+      // 赤い満月
+      fill(185, 28, 28, 40);
+      ellipse(width / 2, 110, 160, 160);
+
+      // 床（大地）
+      stroke(82, 82, 91);
+      strokeWeight(3);
+      line(30, FLOOR_Y, width - 30, FLOOR_Y);
+    }
+
+    function drawStickman(p) {
+      push();
+      translate(p.x, p.y);
+      scale(p.dir, 1);
+
+      stroke(p.color);
+      strokeWeight(4);
+      strokeCap(ROUND);
+      noFill();
+
+      let headY = -70;
+      let bodyTopY = -55;
+      let hipY = -28;
+
+      // 状態に応じたポーズ
+      if (p.state === "dead") {
+        // 倒れたポーズ
+        rotate(HALF_PI * 0.9);
+        ellipse(0, -20, 16, 16);
+        line(0, -10, 0, 30);
+      } else if (p.state === "parry") {
+        // 刀を立てて防御する構え
+        ellipse(0, headY, 18, 18);
+        line(0, bodyTopY, 0, hipY);
+        // 足
+        line(0, hipY, -10, 0);
+        line(0, hipY, 12, 0);
+        // 腕（青い光を帯びる）
+        stroke('#38bdf8');
+        line(0, -45, 14, -48);
+        strokeWeight(5);
+        line(14, -20, 14, -75); // 立てた刀
+      } else if (p.state === "slash") {
+        // 踏み込み一閃ポーズ
+        ellipse(10, headY + 10, 18, 18);
+        line(5, bodyTopY + 10, -5, hipY + 5);
+        // 前後開脚
+        line(-5, hipY + 5, -24, 0);
+        line(-5, hipY + 5, 26, 0);
+        // 腕と振り抜いた刀
+        stroke('#ef4444');
+        line(5, -35, 30, -35);
+        strokeWeight(4);
+        line(30, -35, 55, -25);
+      } else if (p.state === "stunned") {
+        // 気絶・よろめき
+        ellipse(-8, headY + 5, 18, 18);
+        line(-6, bodyTopY, -2, hipY);
+        line(-2, hipY, -14, 0);
+        line(-2, hipY, 6, 0);
+        // 頭の上に星
+        fill('#facc15'); noStroke();
+        ellipse(random(-12, -4), headY - 12, 4, 4);
+      } else {
+        // 通常立ち／移動
+        let bob = sin(frameCount * 0.15) * 2;
+        ellipse(0, headY + bob, 18, 18);
+        line(0, bodyTopY + bob, 0, hipY);
+
+        // 足のアニメーション
+        if (p.state === "moving") {
+          let legSwing = sin(frameCount * 0.3) * 12;
+          line(0, hipY, legSwing, 0);
+          line(0, hipY, -legSwing, 0);
+        } else {
+          line(0, hipY, -8, 0);
+          line(0, hipY, 8, 0);
+        }
+
+        // 腰に差した刀
+        stroke(161, 161, 170);
+        strokeWeight(3);
+        line(-6, -32 + bob, 16, -24 + bob);
+      }
+
+      // マフラー（なびく布）
+      stroke(p.scarfColor);
+      strokeWeight(4);
+      let wave = sin(frameCount * 0.2) * 5;
+      line(0, bodyTopY + 2, -18, bodyTopY + 8 + wave);
+      line(-18, bodyTopY + 8 + wave, -30, bodyTopY + 6 + wave * 1.5);
+
+      pop();
+    }
+
+    function drawScoreUI() {
+      textAlign(CENTER, TOP);
+      textSize(22);
+      noStroke();
+
+      // P1 (赤)
+      fill('#ef4444');
+      text(`壱P [赤] : ${"●".repeat(p1.score)}${"○".repeat(3 - p1.score)}`, width / 2 - 160, 20);
+
+      // P2 (青)
+      fill('#38bdf8');
+      text(`弐P [青] : ${"●".repeat(p2.score)}${"○".repeat(3 - p2.score)}`, width / 2 + 160, 20);
+    }
+
+    // ========================================================
+    // エフェクト（火花・血しぶき・斬撃波）
+    // ========================================================
+    function createSparks(x, y) {
+      for (let i = 0; i < 20; i++) {
+        let angle = random(TWO_PI);
+        let speed = random(4, 12);
+        particles.push({
+          x: x, y: y,
+          vx: cos(angle) * speed,
+          vy: sin(angle) * speed,
+          life: 18,
+          color: '#facc15'
+        });
+      }
+    }
+
+    function createBlood(x, y, dir) {
+      for (let i = 0; i < 35; i++) {
+        let angle = random(-PI/3, PI/3) + (dir > 0 ? 0 : PI);
+        let speed = random(5, 15);
+        particles.push({
+          x: x, y: y,
+          vx: cos(angle) * speed,
+          vy: sin(angle) * speed - random(1, 4),
+          life: 30,
+          color: '#dc2626'
+        });
+      }
+    }
+
+    function updateEffects() {
+      // 斬撃光跡
+      for (let i = slashes.length - 1; i >= 0; i--) {
+        let s = slashes[i];
+        push();
+        stroke(254, 240, 138, s.life * 18);
+        strokeWeight(s.life * 0.8);
+        noFill();
+        arc(s.x + s.dir * 30, s.y, 110, 80, -HALF_PI, HALF_PI);
+        pop();
+        s.life--;
+        if (s.life <= 0) slashes.splice(i, 1);
+      }
+
+      // 粒子
+      for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.4; // 重力
+        noStroke();
+        fill(p.color);
+        ellipse(p.x, p.y, p.life * 0.25);
+        p.life--;
+        if (p.life <= 0) particles.splice(i, 1);
+      }
+    }
+
+    // ========================================================
+    // ネットワーク同期 (WebRTC + STUN)
+    // ========================================================
+    function initNetwork() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetRoom = urlParams.get('room');
+
+      peer = new Peer({
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+          ]
+        }
+      });
+
+      peer.on('open', (myId) => {
+        if (targetRoom) {
+          // ゲスト側（スマホ等）
+          role = "guest";
+          document.getElementById('status-text').innerText = "対戦相手へ接続中...";
+          document.getElementById('mobile-controller').style.display = 'flex';
+          conn = peer.connect(targetRoom, { reliable: false });
+          setupGuest();
+        } else {
+          // ホスト側（PC等）
+          role = "host";
+          document.getElementById('status-text').innerText = "対戦相手を待機中...";
+          const joinUrl = window.location.href.split('?')[0] + '?room=' + myId;
+
+          new QRCode(document.getElementById("qrcode"), {
+            text: joinUrl, width: 140, height: 140
+          });
+          document.getElementById('qr-modal').style.display = 'flex';
+
+          document.getElementById('copy-url-btn').onclick = () => {
+            navigator.clipboard.writeText(joinUrl).then(() => alert("対戦URLをコピーしました！"));
+          };
+
+          peer.on('connection', (c) => {
+            conn = c;
+            setupHost();
+          });
+        }
+      });
+    }
+
+    function setupHost() {
+      conn.on('open', () => {
+        document.getElementById('qr-modal').style.display = 'none';
+        document.getElementById('status-text').innerText = "● 決闘中 (貴殿: 壱P 赤)";
+        document.getElementById('status-text').style.color = "#4ade80";
+      });
+
+      conn.on('data', (d) => {
+        if (d.t === 'input') {
+          if (p2.state === "idle" || p2.state === "moving") {
+            if (d.left) { p2.x -= 4; p2.dir = -1; p2.state = "moving"; }
+            else if (d.right) { p2.x += 4; p2.dir = 1; p2.state = "moving"; }
+            else { p2.state = "idle"; }
+            p2.x = constrain(p2.x, 50, GAME_W - 50);
+          }
+        } else if (d.t === 'action') {
+          if (d.a === 'slash') triggerSlash(p2);
+          if (d.a === 'parry') triggerParry(p2);
+        }
+      });
+    }
+
+    function setupGuest() {
+      conn.on('open', () => {
+        document.getElementById('status-text').innerText = "● 決闘中 (貴殿: 弐P 青)";
+        document.getElementById('status-text').style.color = "#4ade80";
+      });
+
+      conn.on('data', (d) => {
+        if (d.t === 'sync') {
+          p1.x = d.p1.x; p1.dir = d.p1.dir; p1.state = d.p1.state; p1.score = d.p1.score;
+          p2.x = d.p2.x; p2.dir = d.p2.dir; p2.state = d.p2.state; p2.score = d.p2.score;
+          if (d.shake) shakeFrames = 5;
+        } else if (d.t === 'rematch') {
+          p1.score = 0; p2.score = 0; isGameOver = false;
+          document.getElementById('gameover-modal').style.display = 'none';
+          resetRound();
+        }
+      });
+    }
+  </script>
+</body>
+</html>
