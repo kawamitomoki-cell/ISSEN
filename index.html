@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>一閃 極 - ISSEN KIWAMI -</title>
+  <title>STICK BRAWL - 棒人間バースト -</title>
 
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#0a0a0c">
+  <meta name="theme-color" content="#0b0f19">
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
@@ -16,9 +16,9 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
-      background: #0a0a0c;
+      background: #0b0f19;
       color: #f8fafc;
-      font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -32,33 +32,33 @@
 
     #ui-bar {
       width: 100%;
-      max-width: 720px;
-      background: #141419;
+      max-width: 760px;
+      background: #1e293b;
       padding: 8px 16px;
-      border-radius: 6px;
+      border-radius: 8px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 6px;
-      border: 1px solid #27272a;
+      border: 1px solid #334155;
     }
-    .logo { font-size: 16px; font-weight: bold; letter-spacing: 2px; color: #ef4444; }
-    .logo span { color: #f8fafc; font-size: 12px; margin-left: 6px; font-family: sans-serif; }
-    #status-text { font-size: 12px; font-weight: bold; color: #facc15; font-family: sans-serif; }
+    .logo { font-size: 16px; font-weight: 900; letter-spacing: 1px; color: #f43f5e; }
+    .logo span { color: #38bdf8; }
+    #status-text { font-size: 12px; font-weight: bold; color: #facc15; }
 
     #canvas-container {
-      border: 2px solid #3f3f46;
-      border-radius: 6px;
+      border: 2px solid #38bdf8;
+      border-radius: 8px;
       overflow: hidden;
-      box-shadow: 0 0 35px rgba(239, 68, 68, 0.2);
+      box-shadow: 0 0 30px rgba(56, 189, 248, 0.25);
       position: relative;
     }
 
-    /* スマホ操作ボタン群 */
+    /* スマホ用操作パッド */
     #mobile-controller {
       display: none;
       width: 100%;
-      max-width: 720px;
+      max-width: 760px;
       margin-top: 8px;
       justify-content: space-between;
       gap: 8px;
@@ -66,32 +66,31 @@
     }
     .ctrl-group { display: flex; gap: 6px; }
     .btn-touch {
-      background: #27272a;
+      background: #334155;
       color: #fff;
-      border: 2px solid #52525b;
+      border: 2px solid #64748b;
       border-radius: 8px;
       font-size: 14px;
       font-weight: bold;
-      padding: 14px 16px;
+      padding: 14px 18px;
       touch-action: manipulation;
       cursor: pointer;
       user-select: none;
       -webkit-user-select: none;
     }
-    .btn-touch:active { background: #52525b; transform: scale(0.95); }
-    .btn-slash { background: #991b1b; border-color: #ef4444; }
-    .btn-parry { background: #1e3a8a; border-color: #3b82f6; }
-    .btn-kick  { background: #854d0e; border-color: #eab308; }
-    .btn-ult   { background: #581c87; border-color: #a855f7; }
+    .btn-touch:active { background: #475569; transform: scale(0.95); }
+    .btn-attack { background: #e11d48; border-color: #fb7185; }
+    .btn-step   { background: #2563eb; border-color: #60a5fa; }
+    .btn-beam   { background: #7c3aed; border-color: #c084fc; }
 
-    /* モーダル基本スタイル */
+    /* モーダル */
     .modal {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(10, 10, 12, 0.95);
-      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: 12px;
       padding: 22px 28px;
       display: flex;
       flex-direction: column;
@@ -101,36 +100,33 @@
       z-index: 100;
       text-align: center;
     }
-
     .modal-btn {
-      background: #dc2626;
+      background: #e11d48;
       color: white;
       border: none;
       padding: 10px 24px;
-      border-radius: 4px;
+      border-radius: 6px;
       font-weight: bold;
       cursor: pointer;
       font-size: 14px;
-      letter-spacing: 1px;
       width: 100%;
       transition: background 0.2s;
     }
-    .modal-btn:hover { background: #b91c1c; }
-    .modal-btn.secondary { background: #27272a; border: 1px solid #52525b; }
-    .modal-btn.secondary:hover { background: #3f3f46; }
+    .modal-btn:hover { background: #be123c; }
+    .modal-btn.secondary { background: #334155; border: 1px solid #64748b; }
 
-    #guide-text { font-size: 11px; color: #a1a1aa; margin-top: 6px; font-family: sans-serif; text-align: center; }
+    #guide-text { font-size: 11px; color: #94a3b8; margin-top: 6px; text-align: center; }
   </style>
 </head>
 <body>
 
   <div id="ui-bar">
-    <div class="logo">一 閃<span>極 - KIWAMI -</span></div>
-    <div id="status-text">対戦モードを選択してください</div>
+    <div class="logo">STICK <span>BURST</span></div>
+    <div id="status-text">対戦モードを選択</div>
   </div>
 
   <div id="canvas-container"></div>
-  <div id="guide-text">操作: <strong>A/D</strong> 移動 | <strong>J</strong> 斬撃 | <strong>K</strong> 見切り(パリィ) | <strong>L</strong> 崩し蹴り | <strong>U</strong> 奥義</div>
+  <div id="guide-text">操作: <strong>A/D</strong> 移動 | <strong>J</strong> 攻撃コンボ(連打可) | <strong>K</strong> 回避ステップ | <strong>L</strong> 気功波</div>
 
   <!-- スマホ用コントローラー -->
   <div id="mobile-controller">
@@ -139,42 +135,41 @@
       <button class="btn-touch" id="btn-right">▶</button>
     </div>
     <div class="ctrl-group">
-      <button class="btn-touch btn-kick" id="btn-kick">崩し</button>
-      <button class="btn-touch btn-parry" id="btn-parry">見切</button>
-      <button class="btn-touch btn-slash" id="btn-slash">一閃</button>
-      <button class="btn-touch btn-ult" id="btn-ult">奥義</button>
+      <button class="btn-touch btn-step" id="btn-step">回避</button>
+      <button class="btn-touch btn-beam" id="btn-beam">気功波</button>
+      <button class="btn-touch btn-attack" id="btn-attack">攻撃</button>
     </div>
   </div>
 
-  <!-- タイトル & モード選択画面 -->
-  <div class="modal" id="mode-modal">
-    <h2 style="color:#ef4444; font-size: 26px; letter-spacing: 4px;">一 閃 極</h2>
-    <p style="font-size: 12px; color: #a1a1aa; font-family: sans-serif;">― 研ぎ澄まされた刃が交錯する瞬刻 ―</p>
-    <div style="display:flex; flex-direction:column; gap:10px; width:220px; margin-top:10px;">
-      <button class="modal-btn" id="start-cpu-btn">一人で修練 (CPU戦)</button>
-      <button class="modal-btn secondary" id="start-online-btn">二人で決闘 (オンライン)</button>
+  <!-- モード選択モーダル -->
+  <div class="modal" id="mode-modal" style="border: 2px solid #f43f5e;">
+    <h2 style="color:#f43f5e; font-size: 26px; font-weight: 900;">STICK BURST</h2>
+    <p style="font-size: 12px; color: #94a3b8;">コンボを叩き込め！超爽快スティック乱闘</p>
+    <div style="display:flex; flex-direction:column; gap:10px; width:220px; margin-top:8px;">
+      <button class="modal-btn" id="start-cpu-btn">一人でプレイ (VS CPU)</button>
+      <button class="modal-btn secondary" id="start-online-btn">オンライン対戦 (QR/URL)</button>
     </div>
   </div>
 
-  <!-- QR招待画面 -->
-  <div class="modal" id="qr-modal" style="display: none; border: 2px solid #ef4444;">
-    <h3 style="color:#ef4444; font-size: 16px;">対戦相手を招待</h3>
+  <!-- QR招待モーダル -->
+  <div class="modal" id="qr-modal" style="display: none; border: 2px solid #38bdf8;">
+    <h3 style="color:#38bdf8; font-size: 16px;">対戦相手を招待</h3>
     <div id="qrcode" style="background:#fff; padding:6px; border-radius:4px;"></div>
     <button class="modal-btn" id="copy-url-btn">対戦URLをコピー</button>
-    <div style="font-size: 11px; color:#a1a1aa; font-family: sans-serif;">カメラをかざすとスマホが刀になります</div>
+    <div style="font-size: 11px; color:#94a3b8;">スマホで読み取ると即座に対戦開始</div>
   </div>
 
-  <!-- 決着画面 -->
-  <div class="modal" id="gameover-modal" style="display: none; border: 2px solid #eab308;">
-    <h2 id="winner-text" style="font-size: 30px; letter-spacing: 4px;">勝負あり</h2>
-    <div id="round-score" style="font-size: 14px; color:#cbd5e1; font-family: sans-serif;"></div>
+  <!-- 決着モーダル -->
+  <div class="modal" id="gameover-modal" style="display: none; border: 2px solid #facc15;">
+    <h2 id="winner-text" style="font-size: 30px; font-weight: 900;">K.O.</h2>
+    <div id="round-info" style="font-size: 14px; color:#cbd5e1;"></div>
     <button class="modal-btn" id="rematch-btn">再戦する</button>
     <button class="modal-btn secondary" id="title-return-btn">モード選択へ戻る</button>
   </div>
 
   <script>
     // ========================================================
-    // サウンドエンジン (Web Audio API)
+    // サウンド (Web Audio API)
     // ========================================================
     let audioCtx = null;
     function getAudio() {
@@ -183,128 +178,87 @@
       return audioCtx;
     }
 
-    function soundSlash() {
+    function soundHit(type) {
       let ctx = getAudio();
       let osc = ctx.createOscillator();
       let gain = ctx.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(850, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.16);
-      gain.gain.setValueAtTime(0.35, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.16);
+      let now = ctx.currentTime;
+      if (type === 1) { // 弱パンチ
+        osc.frequency.setValueAtTime(350, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.1);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.1);
+        osc.start(now); osc.stop(now + 0.1);
+      } else if (type === 2) { // 強キック (吹っ飛ばし)
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(200, now);
+        osc.frequency.exponentialRampToValueAtTime(40, now + 0.25);
+        gain.gain.setValueAtTime(0.6, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.25);
+        osc.start(now); osc.stop(now + 0.25);
+      } else if (type === 'beam') { // 気功波
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(150, now + 0.35);
+        gain.gain.setValueAtTime(0.5, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.35);
+        osc.start(now); osc.stop(now + 0.35);
+      }
       osc.connect(gain); gain.connect(ctx.destination);
-      osc.start(); osc.stop(ctx.currentTime + 0.16);
-    }
-
-    function soundKick() {
-      let ctx = getAudio();
-      let osc = ctx.createOscillator();
-      let gain = ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(250, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 0.2);
-      gain.gain.setValueAtTime(0.5, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.2);
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.start(); osc.stop(ctx.currentTime + 0.2);
-    }
-
-    function soundParry() {
-      let ctx = getAudio();
-      let osc = ctx.createOscillator();
-      let gain = ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(1500, ctx.currentTime);
-      osc.frequency.setValueAtTime(2400, ctx.currentTime + 0.04);
-      gain.gain.setValueAtTime(0.6, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.35);
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.start(); osc.stop(ctx.currentTime + 0.35);
-    }
-
-    function soundUlt() {
-      let ctx = getAudio();
-      let osc = ctx.createOscillator();
-      let gain = ctx.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(120, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(1800, ctx.currentTime + 0.3);
-      gain.gain.setValueAtTime(0.4, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.3);
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.start(); osc.stop(ctx.currentTime + 0.3);
-    }
-
-    function soundKill() {
-      let ctx = getAudio();
-      let osc = ctx.createOscillator();
-      let gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(160, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.5);
-      gain.gain.setValueAtTime(0.9, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.start(); osc.stop(ctx.currentTime + 0.5);
     }
 
     // ========================================================
-    // ゲームパラメータ & 設計
+    // ゲーム設定
     // ========================================================
-    const GAME_W = 700;
-    const GAME_H = 340;
-    const FLOOR_Y = 275;
+    const GAME_W = 740;
+    const GAME_H = 360;
+    const FLOOR_Y = 290;
 
-    let gameMode = "none"; // "cpu", "online", "none"
-    let role = "unknown";  // "host", "guest", "offline"
+    let gameMode = "none";
+    let role = "unknown";
     let conn = null;
     let peer = null;
 
     let shakeFrames = 0;
     let hitStopFrames = 0;
-    let slowMoTimer = 0;
-    let darkScreenFrames = 0;
     let particles = [];
-    let slashes = [];
-    let ghosts = []; // 残像
+    let projectiles = [];
+    let isGameOver = false;
 
-    function createPlayer(x, dir, scarfColor, name) {
+    function createFighter(x, dir, color, name) {
       return {
         x: x,
         y: FLOOR_Y,
         dir: dir,
-        scarfColor: scarfColor,
+        color: color,
         name: name,
-        state: "idle", // idle, moving, slash, parry, kick, ult, stunned, dead
+        hp: 100,
+        maxHp: 100,
+        energy: 100, // 気功波用ゲージ
+        state: "idle", // idle, move, attack1, attack2, attack3, step, beam, hit, dead
         timer: 0,
-        score: 0,
-        gauge: 0, // 0 - 100
-        vx: 0
+        comboStep: 0,
+        vx: 0,
+        invincible: 0
       };
     }
 
-    let p1 = createPlayer(180, 1, '#ef4444', '壱P (赤)');
-    let p2 = createPlayer(520, -1, '#38bdf8', '弐P (青)');
-    let isGameOver = false;
+    let p1 = createFighter(180, 1, '#f43f5e', 'P1 (赤)');
+    let p2 = createFighter(560, -1, '#38bdf8', 'P2 (青)');
 
-    // スマホ入力フラグ
     let inputLeft = false, inputRight = false;
-
-    // CPU思考用タイマー
-    let cpuThinkTimer = 0;
-    let cpuAction = "idle";
+    let cpuTimer = 0;
 
     function setup() {
       let canvas = createCanvas(GAME_W, GAME_H);
       canvas.parent('canvas-container');
-      setupUIEvents();
-      setupMobileControls();
+      setupUI();
+      setupMobile();
 
-      // URLに ?room= があれば自動でゲスト参加
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('room')) {
         document.getElementById('mode-modal').style.display = 'none';
-        initNetworkOnline();
+        initOnline();
       }
     }
 
@@ -314,127 +268,125 @@
         return;
       }
 
-      if (slowMoTimer > 0) {
-        slowMoTimer--;
-        if (frameCount % 3 !== 0) return;
-      }
-
       push();
       if (shakeFrames > 0) {
-        translate(random(-8, 8), random(-8, 8));
+        translate(random(-7, 7), random(-7, 7));
         shakeFrames--;
       }
 
-      // 暗転演出（奥義発動時）
-      if (darkScreenFrames > 0) {
-        background(5, 5, 8);
-        darkScreenFrames--;
-      } else {
-        background(15, 15, 20);
-        drawStage();
-      }
+      // サイバーアリーナ背景
+      background(15, 23, 42);
+      drawArena();
 
       if (gameMode !== "none") {
-        handleInput();
+        handleMovement();
 
         if (gameMode === "cpu") {
           updateCPU();
-          updatePlayer(p1);
-          updatePlayer(p2);
-          checkCombat(p1, p2);
-          checkCombat(p2, p1);
+          updateFighter(p1);
+          updateFighter(p2);
+          checkHitboxes(p1, p2);
+          checkHitboxes(p2, p1);
         } else if (role === "host") {
-          updatePlayer(p1);
-          updatePlayer(p2);
-          checkCombat(p1, p2);
-          checkCombat(p2, p1);
+          updateFighter(p1);
+          updateFighter(p2);
+          checkHitboxes(p1, p2);
+          checkHitboxes(p2, p1);
 
           if (conn && conn.open) {
             conn.send({
               t: 'sync',
-              p1: serializeP(p1),
-              p2: serializeP(p2),
-              slashes: slashes,
-              shake: shakeFrames > 0,
-              dark: darkScreenFrames > 0
+              p1: packFighter(p1),
+              p2: packFighter(p2),
+              projs: projectiles,
+              shake: shakeFrames > 0
             });
           }
         }
       }
 
-      updateEffects();
+      updateProjectiles();
+      updateParticles();
 
-      drawGhosts();
-      drawStickman(p1);
-      drawStickman(p2);
+      drawFighter(p1);
+      drawFighter(p2);
 
-      drawBattleUI();
+      drawHUD();
 
       pop();
     }
 
-    function serializeP(p) {
-      return { x: Math.round(p.x), dir: p.dir, state: p.state, score: p.score, gauge: p.gauge };
+    function packFighter(f) {
+      return { x: Math.round(f.x), dir: f.dir, hp: f.hp, energy: f.energy, state: f.state };
     }
 
     // ========================================================
-    // 入力・アクション・3すくみ判定
+    // 移動 ＆ コンボアクション
     // ========================================================
-    function handleInput() {
+    function handleMovement() {
       let my = (role === "guest") ? p2 : p1;
-      if (my.state === "dead" || my.state === "stunned" || isGameOver) return;
+      if (my.state === "dead" || my.state === "hit" || isGameOver) return;
 
-      let left = keyIsDown(65) || keyIsDown(LEFT_ARROW) || inputLeft;
-      let right = keyIsDown(68) || keyIsDown(RIGHT_ARROW) || inputRight;
+      // 行動可能な状態
+      if (my.state === "idle" || my.state === "move") {
+        let left = keyIsDown(65) || keyIsDown(LEFT_ARROW) || inputLeft;
+        let right = keyIsDown(68) || keyIsDown(RIGHT_ARROW) || inputRight;
 
-      if (my.state === "idle" || my.state === "moving") {
         if (left) {
-          my.x -= 4; my.dir = -1; my.state = "moving";
-          addGhost(my);
+          my.x -= 5.5; my.dir = -1; my.state = "move";
         } else if (right) {
-          my.x += 4; my.dir = 1; my.state = "moving";
-          addGhost(my);
+          my.x += 5.5; my.dir = 1; my.state = "move";
         } else {
           my.state = "idle";
         }
-        my.x = constrain(my.x, 50, GAME_W - 50);
+        my.x = constrain(my.x, 40, GAME_W - 40);
       }
 
+      // 気力の自動回復
+      if (my.energy < 100 && frameCount % 3 === 0) my.energy++;
+
       if (role === "guest" && conn && conn.open) {
-        conn.send({ t: 'input', left: left, right: right });
+        conn.send({ t: 'input', l: keyIsDown(65) || inputLeft, r: keyIsDown(68) || inputRight });
       }
     }
 
-    function triggerAction(player, action) {
-      if (player.state === "dead" || player.state === "stunned" || isGameOver) return;
-      if (player.state !== "idle" && player.state !== "moving") return;
+    function performAction(f, act) {
+      if (f.state === "dead" || f.state === "hit" || isGameOver) return;
 
-      if (action === "slash") {
-        player.state = "slash";
-        player.timer = 18;
-        player.vx = player.dir * 13;
-        soundSlash();
-        slashes.push({ x: player.x, y: player.y - 45, dir: player.dir, life: 14, color: '#fef08a' });
-        addGhost(player);
-      } else if (action === "parry") {
-        player.state = "parry";
-        player.timer = 20;
-      } else if (action === "kick") {
-        player.state = "kick";
-        player.timer = 22;
-        player.vx = player.dir * 6;
-        soundKick();
-        addGhost(player);
-      } else if (action === "ult") {
-        if (player.gauge >= 100) {
-          player.gauge = 0;
-          player.state = "ult";
-          player.timer = 26;
-          player.vx = player.dir * 24; // 超長距離ダッシュ
-          soundUlt();
-          darkScreenFrames = 25;
-          shakeFrames = 20;
-          slashes.push({ x: player.x, y: player.y - 45, dir: player.dir, life: 25, color: '#c084fc', wide: true });
+      if (act === "attack") {
+        // 3段コンボ入力
+        if (f.state === "idle" || f.state === "move") {
+          f.state = "attack1"; f.timer = 12; f.comboStep = 1; f.vx = f.dir * 4;
+        } else if (f.state === "attack1" && f.timer <= 6) {
+          f.state = "attack2"; f.timer = 14; f.comboStep = 2; f.vx = f.dir * 5;
+        } else if (f.state === "attack2" && f.timer <= 7) {
+          f.state = "attack3"; f.timer = 20; f.comboStep = 3; f.vx = f.dir * 10; // フィニッシュ突進
+        }
+      } else if (act === "step") {
+        // 回避ステップ (無敵)
+        if (f.state === "idle" || f.state === "move") {
+          f.state = "step";
+          f.timer = 16;
+          f.invincible = 16;
+          f.vx = f.dir * 12;
+          createDust(f.x, FLOOR_Y);
+        }
+      } else if (act === "beam") {
+        // 気功波
+        if ((f.state === "idle" || f.state === "move") && f.energy >= 40) {
+          f.energy -= 40;
+          f.state = "beam";
+          f.timer = 24;
+          soundHit('beam');
+          projectiles.push({
+            x: f.x + f.dir * 30,
+            y: FLOOR_Y - 45,
+            vx: f.dir * 14,
+            owner: f.name,
+            color: f.color,
+            life: 60
+          });
+          shakeFrames = 8;
         }
       }
     }
@@ -442,371 +394,312 @@
     function keyPressed() {
       let my = (role === "guest") ? p2 : p1;
       let act = null;
-      if (keyCode === 74) act = "slash"; // J
-      if (keyCode === 75) act = "parry"; // K
-      if (keyCode === 76) act = "kick";  // L
-      if (keyCode === 85) act = "ult";   // U
+      if (keyCode === 74) act = "attack"; // J: 攻撃
+      if (keyCode === 75) act = "step";   // K: 回避
+      if (keyCode === 76) act = "beam";   // L: ビーム
 
       if (act) {
-        if (role === "guest") conn && conn.send({ t: 'action', a: act });
-        else triggerAction(p1, act);
+        if (role === "guest") conn && conn.send({ t: 'act', a: act });
+        else performAction(p1, act);
       }
     }
 
     // ========================================================
-    // 戦闘判定（3すくみロジック）
+    // 物理＆当たり判定
     // ========================================================
-    function updatePlayer(p) {
-      if (p.timer > 0) {
-        p.timer--;
-        if (p.state === "slash" || p.state === "kick" || p.state === "ult") {
-          p.x += p.vx;
-          p.vx *= 0.85;
-          p.x = constrain(p.x, 50, GAME_W - 50);
+    function updateFighter(f) {
+      if (f.invincible > 0) f.invincible--;
+
+      if (f.timer > 0) {
+        f.timer--;
+        f.x += f.vx;
+        f.vx *= 0.82;
+        f.x = constrain(f.x, 40, GAME_W - 40);
+        if (f.timer <= 0) {
+          if (f.state !== "dead") f.state = "idle";
         }
-        if (p.timer <= 0) p.state = "idle";
       }
     }
 
-    function checkCombat(att, def) {
-      if (def.state === "dead") return;
+    function checkHitboxes(att, def) {
+      if (def.state === "dead" || def.invincible > 0) return;
+
       let dist = (def.x - att.x) * att.dir;
+      let inRange = dist > 0 && dist < 70;
 
-      // 1. 奥義（全技に勝つ必殺技）
-      if (att.state === "ult" && att.timer > 8 && dist > 0 && dist < 150) {
-        killPlayer(att, def, true);
-        return;
+      // コンボ1段目
+      if (att.state === "attack1" && att.timer === 8 && inRange) {
+        applyDamage(att, def, 8, 1, att.dir * 4, 8);
       }
-
-      // 2. 斬撃の当たり判定
-      if (att.state === "slash" && att.timer >= 8 && att.timer <= 15) {
-        if (dist > 0 && dist < 95) {
-          // 【見切りに弾かれる】
-          if (def.state === "parry") {
-            att.state = "stunned";
-            att.timer = 50;
-            att.vx = -att.dir * 8;
-            def.gauge = min(100, def.gauge + 35); // パリィ成功で奥義ゲージ大幅増
-            soundParry();
-            shakeFrames = 15;
-            hitStopFrames = 6;
-            createSparks((att.x + def.x) / 2, FLOOR_Y - 45);
-            return;
-          }
-          // 【相打ち鍔迫り合い】
-          if (def.state === "slash") {
-            att.state = "stunned"; att.timer = 20; att.vx = -att.dir * 6;
-            def.state = "stunned"; def.timer = 20; def.vx = -def.dir * 6;
-            soundParry();
-            shakeFrames = 12;
-            createSparks((att.x + def.x) / 2, FLOOR_Y - 45);
-            return;
-          }
-          // 【一刀両断】
-          killPlayer(att, def, false);
-          return;
-        }
+      // コンボ2段目
+      if (att.state === "attack2" && att.timer === 9 && inRange) {
+        applyDamage(att, def, 12, 1, att.dir * 6, 10);
       }
-
-      // 3. 崩し蹴りの当たり判定
-      if (att.state === "kick" && att.timer >= 10 && att.timer <= 18) {
-        if (dist > 0 && dist < 75) {
-          if (def.state === "parry") {
-            // パリィ構えを蹴り崩して大スタン！
-            def.state = "stunned";
-            def.timer = 65;
-            def.vx = att.dir * 9;
-            soundKick();
-            shakeFrames = 12;
-            hitStopFrames = 5;
-            att.gauge = min(100, att.gauge + 25);
-            return;
-          }
-        }
+      // コンボ3段目 (大吹っ飛ばし！)
+      if (att.state === "attack3" && att.timer === 14 && inRange) {
+        applyDamage(att, def, 20, 2, att.dir * 16, 22);
       }
     }
 
-    function killPlayer(att, def, isUlt) {
-      def.state = "dead";
-      att.score++;
-      soundKill();
-      shakeFrames = isUlt ? 35 : 22;
-      hitStopFrames = isUlt ? 16 : 10;
-      slowMoTimer = 45;
-      createBlood(def.x, FLOOR_Y - 45, att.dir);
+    function applyDamage(att, def, dmg, hitType, knockbackX, hitTime) {
+      def.hp = max(0, def.hp - dmg);
+      def.state = "hit";
+      def.timer = hitTime;
+      def.vx = knockbackX;
+      soundHit(hitType);
+      shakeFrames = hitType === 2 ? 18 : 6;
+      hitStopFrames = hitType === 2 ? 6 : 2;
+      createImpactSparks((att.x + def.x) / 2, FLOOR_Y - 45, def.color);
 
-      setTimeout(() => {
-        if (att.score >= 3) endGame();
-        else resetRound();
-      }, 1600);
+      if (def.hp <= 0) {
+        def.state = "dead";
+        def.timer = 999;
+        def.vx = knockbackX * 1.5;
+        shakeFrames = 25;
+        setTimeout(endMatch, 1000);
+      }
     }
 
-    function resetRound() {
-      p1.x = 180; p1.dir = 1; p1.state = "idle"; p1.timer = 0;
-      p2.x = 520; p2.dir = -1; p2.state = "idle"; p2.timer = 0;
+    function updateProjectiles() {
+      for (let i = projectiles.length - 1; i >= 0; i--) {
+        let p = projectiles[i];
+        p.x += p.vx;
+        p.life--;
+
+        // 当たり判定 (ホスト側で計算)
+        if (role !== "guest") {
+          let targets = [p1, p2];
+          for (let target of targets) {
+            if (target.name !== p.owner && target.state !== "dead" && target.invincible <= 0) {
+              if (abs(p.x - target.x) < 30) {
+                applyDamage({ x: p.x, dir: p.vx > 0 ? 1 : -1 }, target, 15, 2, (p.vx > 0 ? 1 : -1) * 12, 16);
+                p.life = 0;
+                break;
+              }
+            }
+          }
+        }
+
+        if (p.life <= 0 || p.x < 0 || p.x > GAME_W) projectiles.splice(i, 1);
+      }
     }
 
     // ========================================================
-    // CPU思考ロジック (修練モード)
+    // CPU思考ロジック
     // ========================================================
     function updateCPU() {
-      if (p2.state === "dead" || p2.state === "stunned" || isGameOver) return;
-      cpuThinkTimer--;
+      if (p2.state === "dead" || isGameOver) return;
+      cpuTimer--;
 
       let dist = p1.x - p2.x;
       p2.dir = dist > 0 ? 1 : -1;
       let absDist = abs(dist);
 
-      if (cpuThinkTimer <= 0) {
-        cpuThinkTimer = floor(random(15, 35));
+      if (cpuTimer <= 0) {
+        cpuTimer = floor(random(10, 25));
 
-        // プレイヤーの行動へのリアクション
-        if (p1.state === "slash" && absDist < 120) {
-          // 相手が斬ってきたら70%でパリィを試みる
-          if (random() < 0.7) triggerAction(p2, "parry");
-        } else if (p1.state === "parry" && absDist < 90) {
-          // 相手が構えていたら崩し蹴りを入れる
-          triggerAction(p2, "kick");
-        } else if (p2.gauge >= 100 && absDist < 200) {
-          // 奥義
-          triggerAction(p2, "ult");
+        // プレイヤーが攻撃中なら確率で回避ステップ
+        if (p1.state.includes("attack") && absDist < 100) {
+          if (random() < 0.6) performAction(p2, "step");
+        } else if (absDist > 240 && p2.energy >= 40 && random() < 0.4) {
+          // 遠距離なら気功波
+          performAction(p2, "beam");
+        } else if (absDist < 65) {
+          // 近距離なら攻撃連打
+          performAction(p2, "attack");
         } else {
-          // 距離に応じた立ち回り
-          if (absDist > 140) {
-            p2.x += p2.dir * 4; p2.state = "moving";
-            addGhost(p2);
-          } else if (absDist < 85) {
-            if (random() < 0.5) triggerAction(p2, "slash");
-            else triggerAction(p2, "kick");
-          } else {
-            if (random() < 0.3) triggerAction(p2, "slash");
-            else p2.state = "idle";
-          }
+          // 距離を詰める
+          p2.x += p2.dir * 5; p2.state = "move";
         }
-        p2.x = constrain(p2.x, 50, GAME_W - 50);
+        p2.x = constrain(p2.x, 40, GAME_W - 40);
       }
     }
 
     // ========================================================
     // 描画エンジン
     // ========================================================
-    function drawStage() {
-      noStroke();
-      fill(185, 28, 28, 40);
-      ellipse(width / 2, 110, 160, 160); // 紅い月
-
-      stroke(82, 82, 91);
+    function drawArena() {
+      // 床のグリッドライン
+      stroke(30, 41, 59);
+      strokeWeight(2);
+      for (let x = 0; x < width; x += 30) {
+        line(x, FLOOR_Y, x, height);
+      }
+      stroke('#38bdf8');
       strokeWeight(3);
-      line(30, FLOOR_Y, width - 30, FLOOR_Y); // 足場
+      line(20, FLOOR_Y, width - 20, FLOOR_Y);
     }
 
-    function addGhost(p) {
-      if (frameCount % 2 === 0) {
-        ghosts.push({ x: p.x, dir: p.dir, state: p.state, scarfColor: p.scarfColor, life: 10 });
-      }
-    }
-
-    function drawGhosts() {
-      for (let i = ghosts.length - 1; i >= 0; i--) {
-        let g = ghosts[i];
-        push();
-        translate(g.x, FLOOR_Y);
-        scale(g.dir, 1);
-        stroke(255, 255, 255, g.life * 15);
-        strokeWeight(3);
-        noFill();
-        ellipse(0, -70, 18, 18);
-        line(0, -55, 0, -28);
-        pop();
-        g.life--;
-        if (g.life <= 0) ghosts.splice(i, 1);
-      }
-    }
-
-    function drawStickman(p) {
+    function drawFighter(f) {
       push();
-      translate(p.x, p.y);
-      scale(p.dir, 1);
+      translate(f.x, f.y);
+      scale(f.dir, 1);
 
-      stroke(248, 250, 252);
+      stroke(f.color);
       strokeWeight(4);
       strokeCap(ROUND);
       noFill();
 
-      let headY = -70;
-      let bodyTopY = -55;
-      let hipY = -28;
+      // 無敵中の点滅
+      if (f.invincible > 0 && frameCount % 4 < 2) {
+        pop();
+        return;
+      }
 
-      if (p.state === "dead") {
-        rotate(HALF_PI * 0.9);
-        ellipse(0, -20, 16, 16);
-        line(0, -10, 0, 30);
-      } else if (p.state === "parry") {
-        ellipse(0, headY, 18, 18);
-        line(0, bodyTopY, 0, hipY);
-        line(0, hipY, -10, 0); line(0, hipY, 12, 0);
-        stroke('#38bdf8');
-        line(0, -45, 14, -48);
-        strokeWeight(5); line(14, -20, 14, -75);
-      } else if (p.state === "kick") {
-        ellipse(-5, headY + 5, 18, 18);
-        line(-5, bodyTopY, 0, hipY);
-        line(0, hipY, -15, 0);
-        stroke('#eab308');
-        line(0, hipY, 28, -25); // 前蹴り
-      } else if (p.state === "slash" || p.state === "ult") {
-        ellipse(10, headY + 10, 18, 18);
-        line(5, bodyTopY + 10, -5, hipY + 5);
-        line(-5, hipY + 5, -24, 0); line(-5, hipY + 5, 26, 0);
-        stroke(p.state === "ult" ? '#c084fc' : '#ef4444');
-        line(5, -35, 30, -35);
-        strokeWeight(5); line(30, -35, 60, -25);
-      } else if (p.state === "stunned") {
-        ellipse(-8, headY + 5, 18, 18);
-        line(-6, bodyTopY, -2, hipY);
+      let headY = -65, bodyTop = -50, hipY = -24;
+
+      if (f.state === "dead") {
+        rotate(HALF_PI);
+        ellipse(0, -15, 16, 16);
+        line(0, -7, 0, 25);
+      } else if (f.state === "hit") {
+        // のけぞり
+        ellipse(-8, headY + 5, 16, 16);
+        line(-6, bodyTop, -2, hipY);
         line(-2, hipY, -14, 0); line(-2, hipY, 6, 0);
-        fill('#facc15'); noStroke();
-        ellipse(random(-12, -4), headY - 12, 4, 4);
+      } else if (f.state === "step") {
+        // 残像スライディングポーズ
+        ellipse(10, headY + 25, 16, 16);
+        line(5, bodyTop + 25, -10, hipY + 15);
+        line(-10, hipY + 15, 20, 0);
+      } else if (f.state === "attack1") {
+        // 弱ジャブ
+        ellipse(0, headY, 16, 16); line(0, bodyTop, 0, hipY);
+        line(0, hipY, -8, 0); line(0, hipY, 8, 0);
+        strokeWeight(5); line(0, -40, 26, -40); // パンチ突き出し
+      } else if (f.state === "attack2") {
+        // 強ストレート
+        ellipse(5, headY + 3, 16, 16); line(3, bodyTop + 3, 0, hipY);
+        line(0, hipY, -12, 0); line(0, hipY, 14, 0);
+        strokeWeight(5); line(0, -38, 34, -38);
+      } else if (f.state === "attack3") {
+        // ぶっ飛ばし回転キック
+        ellipse(0, headY, 16, 16); line(0, bodyTop, 0, hipY);
+        strokeWeight(6); line(0, hipY, 36, -30); // 豪快なハイキック
+      } else if (f.state === "beam") {
+        // かめはめ波ポーズ
+        ellipse(-5, headY + 5, 16, 16); line(-5, bodyTop + 5, 0, hipY);
+        line(0, hipY, -10, 0); line(0, hipY, 10, 0);
+        line(-5, -35, 18, -35);
       } else {
-        let bob = sin(frameCount * 0.15) * 2;
-        ellipse(0, headY + bob, 18, 18);
-        line(0, bodyTopY + bob, 0, hipY);
-        if (p.state === "moving") {
-          let leg = sin(frameCount * 0.3) * 12;
+        // 通常立ち／走り
+        let bob = sin(frameCount * 0.2) * 2;
+        ellipse(0, headY + bob, 16, 16);
+        line(0, bodyTop + bob, 0, hipY);
+        if (f.state === "move") {
+          let leg = sin(frameCount * 0.35) * 14;
           line(0, hipY, leg, 0); line(0, hipY, -leg, 0);
         } else {
           line(0, hipY, -8, 0); line(0, hipY, 8, 0);
+          line(0, -40, 10, -32); // 構え手
         }
-        stroke(161, 161, 170); strokeWeight(3);
-        line(-6, -32 + bob, 16, -24 + bob);
       }
-
-      // マフラー
-      stroke(p.scarfColor);
-      strokeWeight(4);
-      let wave = sin(frameCount * 0.2) * 5;
-      line(0, bodyTopY + 2, -18, bodyTopY + 8 + wave);
-      line(-18, bodyTopY + 8 + wave, -30, bodyTopY + 6 + wave * 1.5);
 
       pop();
     }
 
-    function drawBattleUI() {
-      textAlign(CENTER, TOP);
-      textSize(20);
-      noStroke();
+    function drawHUD() {
+      // P1 HPバー (左上)
+      drawBar(30, 25, 200, 14, p1.hp, p1.maxHp, '#f43f5e', p1.name);
+      drawEnergyBar(30, 44, 120, 6, p1.energy, '#c084fc');
 
-      // P1 UI
-      fill('#ef4444');
-      text(`${p1.name} : ${"●".repeat(p1.score)}${"○".repeat(3 - p1.score)}`, width / 2 - 160, 15);
-      drawGauge(width / 2 - 230, 42, p1.gauge);
+      // P2 HPバー (右上)
+      drawBar(width - 230, 25, 200, 14, p2.hp, p2.maxHp, '#38bdf8', p2.name);
+      drawEnergyBar(width - 150, 44, 120, 6, p2.energy, '#c084fc');
 
-      // P2 UI
-      fill('#38bdf8');
-      text(`${p2.name} : ${"●".repeat(p2.score)}${"○".repeat(3 - p2.score)}`, width / 2 + 160, 15);
-      drawGauge(width / 2 + 90, 42, p2.gauge);
+      // 弾描画
+      for (let p of projectiles) {
+        fill(p.color);
+        noStroke();
+        ellipse(p.x, p.y, 16, 16);
+        // 光彩
+        fill(255, 255, 255, 120);
+        ellipse(p.x, p.y, 8, 8);
+      }
     }
 
-    function drawGauge(x, y, val) {
-      stroke('#3f3f46');
-      strokeWeight(1);
-      fill('#18181b');
-      rect(x, y, 140, 8, 4);
-      noStroke();
-      fill(val >= 100 ? '#a855f7' : '#38bdf8');
-      rect(x, y, (val / 100) * 140, 8, 4);
+    function drawBar(x, y, w, h, val, maxVal, col, label) {
+      fill('#1e293b'); stroke('#475569'); strokeWeight(1);
+      rect(x, y, w, h, 4);
+      noStroke(); fill(col);
+      rect(x, y, (val / maxVal) * w, h, 4);
+      fill('#fff'); textSize(11); textStyle(BOLD); textAlign(LEFT, BOTTOM);
+      text(label, x, y - 3);
+    }
+
+    function drawEnergyBar(x, y, w, h, val, col) {
+      fill('#0f172a'); noStroke();
+      rect(x, y, w, h, 2);
+      fill(col);
+      rect(x, y, (val / 100) * w, h, 2);
     }
 
     // ========================================================
-    // エフェクト更新
+    // エフェクト
     // ========================================================
-    function createSparks(x, y) {
-      for (let i = 0; i < 22; i++) {
+    function createImpactSparks(x, y, col) {
+      for (let i = 0; i < 18; i++) {
         let a = random(TWO_PI);
-        let s = random(5, 14);
-        particles.push({ x: x, y: y, vx: cos(a) * s, vy: sin(a) * s, life: 18, color: '#facc15' });
+        let s = random(4, 12);
+        particles.push({ x: x, y: y, vx: cos(a) * s, vy: sin(a) * s, life: 14, col: col });
       }
     }
 
-    function createBlood(x, y, dir) {
-      for (let i = 0; i < 35; i++) {
-        let a = random(-PI/3, PI/3) + (dir > 0 ? 0 : PI);
-        let s = random(6, 16);
-        particles.push({ x: x, y: y, vx: cos(a) * s, vy: sin(a) * s - random(1, 4), life: 30, color: '#dc2626' });
+    function createDust(x, y) {
+      for (let i = 0; i < 8; i++) {
+        particles.push({ x: x, y: y - 5, vx: random(-2, 2), vy: random(-1, -3), life: 12, col: '#64748b' });
       }
     }
 
-    function updateEffects() {
-      for (let i = slashes.length - 1; i >= 0; i--) {
-        let s = slashes[i];
-        push();
-        stroke(s.color);
-        strokeWeight(s.life * (s.wide ? 1.6 : 0.9));
-        noFill();
-        arc(s.x + s.dir * 30, s.y, s.wide ? 180 : 110, 80, -HALF_PI, HALF_PI);
-        pop();
-        s.life--;
-        if (s.life <= 0) slashes.splice(i, 1);
-      }
-
+    function updateParticles() {
       for (let i = particles.length - 1; i >= 0; i--) {
         let p = particles[i];
-        p.x += p.vx; p.y += p.vy; p.vy += 0.4;
-        noStroke(); fill(p.color);
-        ellipse(p.x, p.y, p.life * 0.25);
+        p.x += p.vx; p.y += p.vy;
+        noStroke(); fill(p.col);
+        ellipse(p.x, p.y, p.life * 0.4);
         p.life--;
         if (p.life <= 0) particles.splice(i, 1);
       }
     }
 
     // ========================================================
-    // モード切替 ＆ ネットワーク
+    // UI ＆ ネットワーク
     // ========================================================
-    function setupUIEvents() {
-      // CPU戦開始
+    function setupUI() {
       document.getElementById('start-cpu-btn').onclick = () => {
-        gameMode = "cpu";
-        role = "offline";
-        p2.name = "CPU (青)";
+        gameMode = "cpu"; role = "offline"; p2.name = "CPU (青)";
         document.getElementById('mode-modal').style.display = 'none';
-        document.getElementById('status-text').innerText = "● 修練中 (VS CPU)";
-        document.getElementById('status-text').style.color = "#4ade80";
+        document.getElementById('status-text').innerText = "● バトル中 (VS CPU)";
       };
 
-      // オンライン戦開始
       document.getElementById('start-online-btn').onclick = () => {
         gameMode = "online";
         document.getElementById('mode-modal').style.display = 'none';
-        initNetworkOnline();
+        initOnline();
       };
 
-      // タイトルへ戻る
       document.getElementById('title-return-btn').onclick = () => {
         window.location.href = window.location.href.split('?')[0];
       };
     }
 
-    function endGame() {
+    function endMatch() {
       isGameOver = true;
-      let winText = "";
-      if (p1.score >= 3) winText = (role === "guest") ? "無念... 敗北" : "見事！ 貴殿の勝利";
-      else winText = (role === "guest") ? "見事！ 貴殿の勝利" : "無念... 敗北";
-
+      let winText = (p1.hp > p2.hp) ? `${p1.name} WIN!` : `${p2.name} WIN!`;
       document.getElementById('winner-text').innerText = winText;
-      document.getElementById('winner-text').style.color = winText.includes("勝利") ? "#4ade80" : "#ef4444";
-      document.getElementById('round-score').innerText = `最終戦績: ${p1.score} 本 - ${p2.score} 本`;
       document.getElementById('gameover-modal').style.display = 'flex';
     }
 
     document.getElementById('rematch-btn').onclick = () => {
-      p1.score = 0; p2.score = 0; p1.gauge = 0; p2.gauge = 0;
+      p1.hp = 100; p2.hp = 100; p1.energy = 100; p2.energy = 100;
+      p1.state = "idle"; p2.state = "idle";
+      p1.x = 180; p2.x = 560;
       isGameOver = false;
       document.getElementById('gameover-modal').style.display = 'none';
-      resetRound();
       if (role === "host" && conn) conn.send({ t: 'rematch' });
     };
 
-    function initNetworkOnline() {
+    function initOnline() {
       const urlParams = new URLSearchParams(window.location.search);
       const targetRoom = urlParams.get('room');
 
@@ -814,20 +707,17 @@
         config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] }
       });
 
-      peer.on('open', (myId) => {
+      peer.on('open', (id) => {
         if (targetRoom) {
-          role = "guest";
-          gameMode = "online";
+          role = "guest"; gameMode = "online";
           document.getElementById('status-text').innerText = "対戦部屋へ接続中...";
           document.getElementById('mobile-controller').style.display = 'flex';
           conn = peer.connect(targetRoom, { reliable: false });
           setupGuest();
         } else {
-          role = "host";
-          gameMode = "online";
-          document.getElementById('status-text').innerText = "対戦相手を待機中...";
-          const joinUrl = window.location.href.split('?')[0] + '?room=' + myId;
-
+          role = "host"; gameMode = "online";
+          document.getElementById('status-text').innerText = "待機中...";
+          const joinUrl = window.location.href.split('?')[0] + '?room=' + id;
           new QRCode(document.getElementById("qrcode"), { text: joinUrl, width: 140, height: 140 });
           document.getElementById('qr-modal').style.display = 'flex';
 
@@ -846,46 +736,41 @@
     function setupHost() {
       conn.on('open', () => {
         document.getElementById('qr-modal').style.display = 'none';
-        document.getElementById('status-text').innerText = "● 決闘中 (貴殿: 壱P 赤)";
-        document.getElementById('status-text').style.color = "#4ade80";
+        document.getElementById('status-text').innerText = "● 対戦中 (貴方: 赤)";
       });
-
       conn.on('data', (d) => {
         if (d.t === 'input') {
-          if (p2.state === "idle" || p2.state === "moving") {
-            if (d.left) { p2.x -= 4; p2.dir = -1; p2.state = "moving"; addGhost(p2); }
-            else if (d.right) { p2.x += 4; p2.dir = 1; p2.state = "moving"; addGhost(p2); }
-            else { p2.state = "idle"; }
-            p2.x = constrain(p2.x, 50, GAME_W - 50);
+          if (p2.state === "idle" || p2.state === "move") {
+            if (d.l) { p2.x -= 5.5; p2.dir = -1; p2.state = "move"; }
+            else if (d.r) { p2.x += 5.5; p2.dir = 1; p2.state = "move"; }
+            else p2.state = "idle";
+            p2.x = constrain(p2.x, 40, GAME_W - 40);
           }
-        } else if (d.t === 'action') {
-          triggerAction(p2, d.a);
+        } else if (d.t === 'act') {
+          performAction(p2, d.a);
         }
       });
     }
 
     function setupGuest() {
       conn.on('open', () => {
-        document.getElementById('status-text').innerText = "● 決闘中 (貴殿: 弐P 青)";
-        document.getElementById('status-text').style.color = "#4ade80";
+        document.getElementById('status-text').innerText = "● 対戦中 (貴方: 青)";
       });
-
       conn.on('data', (d) => {
         if (d.t === 'sync') {
-          p1.x = d.p1.x; p1.dir = d.p1.dir; p1.state = d.p1.state; p1.score = d.p1.score; p1.gauge = d.p1.gauge;
-          p2.x = d.p2.x; p2.dir = d.p2.dir; p2.state = d.p2.state; p2.score = d.p2.score; p2.gauge = d.p2.gauge;
+          p1.x = d.p1.x; p1.dir = d.p1.dir; p1.hp = d.p1.hp; p1.energy = d.p1.energy; p1.state = d.p1.state;
+          p2.x = d.p2.x; p2.dir = d.p2.dir; p2.hp = d.p2.hp; p2.energy = d.p2.energy; p2.state = d.p2.state;
+          projectiles = d.projs;
           if (d.shake) shakeFrames = 5;
-          if (d.dark) darkScreenFrames = 5;
         } else if (d.t === 'rematch') {
-          p1.score = 0; p2.score = 0; p1.gauge = 0; p2.gauge = 0;
+          p1.hp = 100; p2.hp = 100; p1.state = "idle"; p2.state = "idle";
           isGameOver = false;
           document.getElementById('gameover-modal').style.display = 'none';
-          resetRound();
         }
       });
     }
 
-    function setupMobileControls() {
+    function setupMobile() {
       const bind = (id, onDown, onUp) => {
         let el = document.getElementById(id);
         el.addEventListener('touchstart', (e) => { e.preventDefault(); onDown(); });
@@ -893,19 +778,17 @@
         el.addEventListener('mousedown', onDown);
         el.addEventListener('mouseup', onUp);
       };
-
       bind('btn-left', () => inputLeft = true, () => inputLeft = false);
       bind('btn-right', () => inputRight = true, () => inputRight = false);
 
       const trigger = (act) => {
-        if (role === "guest") conn && conn.send({ t: 'action', a: act });
-        else triggerAction(p1, act);
+        if (role === "guest") conn && conn.send({ t: 'act', a: act });
+        else performAction(p1, act);
       };
 
-      document.getElementById('btn-slash').onclick = () => trigger('slash');
-      document.getElementById('btn-parry').onclick = () => trigger('parry');
-      document.getElementById('btn-kick').onclick  = () => trigger('kick');
-      document.getElementById('btn-ult').onclick   = () => trigger('ult');
+      document.getElementById('btn-attack').onclick = () => trigger('attack');
+      document.getElementById('btn-step').onclick   = () => trigger('step');
+      document.getElementById('btn-beam').onclick   = () => trigger('beam');
     }
   </script>
 </body>
