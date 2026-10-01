@@ -1,795 +1,320 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>STICK BRAWL - 棒人間バースト -</title>
-
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#0b0f19">
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      background: #0b0f19;
-      color: #f8fafc;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      overflow: hidden;
-      user-select: none;
-      touch-action: none;
-      padding: 6px;
-    }
-
-    #ui-bar {
-      width: 100%;
-      max-width: 760px;
-      background: #1e293b;
-      padding: 8px 16px;
-      border-radius: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-      border: 1px solid #334155;
-    }
-    .logo { font-size: 16px; font-weight: 900; letter-spacing: 1px; color: #f43f5e; }
-    .logo span { color: #38bdf8; }
-    #status-text { font-size: 12px; font-weight: bold; color: #facc15; }
-
-    #canvas-container {
-      border: 2px solid #38bdf8;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 0 30px rgba(56, 189, 248, 0.25);
-      position: relative;
-    }
-
-    /* スマホ用操作パッド */
-    #mobile-controller {
-      display: none;
-      width: 100%;
-      max-width: 760px;
-      margin-top: 8px;
-      justify-content: space-between;
-      gap: 8px;
-      padding: 0 6px;
-    }
-    .ctrl-group { display: flex; gap: 6px; }
-    .btn-touch {
-      background: #334155;
-      color: #fff;
-      border: 2px solid #64748b;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: bold;
-      padding: 14px 18px;
-      touch-action: manipulation;
-      cursor: pointer;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    .btn-touch:active { background: #475569; transform: scale(0.95); }
-    .btn-attack { background: #e11d48; border-color: #fb7185; }
-    .btn-step   { background: #2563eb; border-color: #60a5fa; }
-    .btn-beam   { background: #7c3aed; border-color: #c084fc; }
-
-    /* モーダル */
-    .modal {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(15, 23, 42, 0.96);
-      border-radius: 12px;
-      padding: 22px 28px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      box-shadow: 0 0 50px rgba(0,0,0,0.9);
-      z-index: 100;
-      text-align: center;
-    }
-    .modal-btn {
-      background: #e11d48;
-      color: white;
-      border: none;
-      padding: 10px 24px;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 14px;
-      width: 100%;
-      transition: background 0.2s;
-    }
-    .modal-btn:hover { background: #be123c; }
-    .modal-btn.secondary { background: #334155; border: 1px solid #64748b; }
-
-    #guide-text { font-size: 11px; color: #94a3b8; margin-top: 6px; text-align: center; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>STICK BRAWL 通信テスト</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: #1d2a33; color: #eef3f6;
+    font-family: "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+    height: 100%; overflow: hidden; user-select: none; -webkit-user-select: none; touch-action: none;
+  }
+  body { display: flex; flex-direction: column; align-items: center; padding: env(safe-area-inset-top) 8px env(safe-area-inset-bottom); }
+  #bar { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; padding: 8px 4px; gap: 8px; }
+  #title { font-weight: 900; font-size: 18px; letter-spacing: 0.5px; }
+  #status { font-size: 13px; color: #ffd166; }
+  #qr-toggle { background: none; border: 1px solid #5b7383; color: #eef3f6; border-radius: 6px; padding: 4px 10px; font-size: 13px; }
+  #wrap { width: 100%; max-width: 800px; border-radius: 10px; overflow: hidden; border: 3px solid #0d1418; }
+  #wrap canvas { width: 100% !important; height: auto !important; display: block; }
+  #pad { width: 100%; max-width: 800px; display: flex; justify-content: space-between; margin-top: 12px; gap: 12px; }
+  #pad .grp { display: flex; gap: 12px; }
+  #pad button {
+    width: 76px; height: 76px; border-radius: 50%; border: 3px solid #0d1418;
+    background: #e8eef2; color: #1d2a33; font-size: 22px; font-weight: 900;
+    touch-action: none;
+  }
+  #pad button.on { background: #ffd166; transform: scale(0.94); }
+  #pad #btn-j { width: 96px; height: 96px; font-size: 18px; }
+  #lobby {
+    position: fixed; inset: 0; background: rgba(13, 20, 24, 0.88);
+    display: none; align-items: center; justify-content: center; z-index: 10;
+  }
+  #lobby .card { background: #eef3f6; color: #1d2a33; border-radius: 14px; padding: 20px; text-align: center; width: 290px; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+  #room-code { font-size: 34px; font-weight: 900; letter-spacing: 4px; }
+  #lobby button { width: 100%; padding: 10px; border-radius: 8px; border: none; font-weight: 700; font-size: 15px; }
+  #copy-btn { background: #1d2a33; color: #fff; }
+  #close-btn { background: #ffd166; color: #1d2a33; }
+  #err { display: none; position: fixed; inset: 0; background: #1d2a33; padding: 24px; font-size: 15px; line-height: 1.7; z-index: 20; }
+</style>
 </head>
 <body>
-
-  <div id="ui-bar">
-    <div class="logo">STICK <span>BURST</span></div>
-    <div id="status-text">対戦モードを選択</div>
+<div id="bar">
+  <div id="title">STICK BRAWL</div>
+  <div id="status">接続中...</div>
+  <button id="qr-toggle" style="display:none">招待</button>
+</div>
+<div id="wrap"></div>
+<div id="pad">
+  <div class="grp">
+    <button id="btn-l">◀</button>
+    <button id="btn-r">▶</button>
   </div>
+  <button id="btn-j">ジャンプ</button>
+</div>
 
-  <div id="canvas-container"></div>
-  <div id="guide-text">操作: <strong>A/D</strong> 移動 | <strong>J</strong> 攻撃コンボ(連打可) | <strong>K</strong> 回避ステップ | <strong>L</strong> 気功波</div>
-
-  <!-- スマホ用コントローラー -->
-  <div id="mobile-controller">
-    <div class="ctrl-group">
-      <button class="btn-touch" id="btn-left">◀</button>
-      <button class="btn-touch" id="btn-right">▶</button>
-    </div>
-    <div class="ctrl-group">
-      <button class="btn-touch btn-step" id="btn-step">回避</button>
-      <button class="btn-touch btn-beam" id="btn-beam">気功波</button>
-      <button class="btn-touch btn-attack" id="btn-attack">攻撃</button>
-    </div>
+<div id="lobby">
+  <div class="card">
+    <div>この部屋に招待</div>
+    <div id="room-code"></div>
+    <div id="qrcode"></div>
+    <button id="copy-btn">参加URLをコピー</button>
+    <button id="close-btn">ゲーム画面に戻る</button>
   </div>
+</div>
+<div id="err"></div>
 
-  <!-- モード選択モーダル -->
-  <div class="modal" id="mode-modal" style="border: 2px solid #f43f5e;">
-    <h2 style="color:#f43f5e; font-size: 26px; font-weight: 900;">STICK BURST</h2>
-    <p style="font-size: 12px; color: #94a3b8;">コンボを叩き込め！超爽快スティック乱闘</p>
-    <div style="display:flex; flex-direction:column; gap:10px; width:220px; margin-top:8px;">
-      <button class="modal-btn" id="start-cpu-btn">一人でプレイ (VS CPU)</button>
-      <button class="modal-btn secondary" id="start-online-btn">オンライン対戦 (QR/URL)</button>
-    </div>
-  </div>
+<script>
+// ========================================================
+// ① Firebaseの設定
+// ========================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyDLH7pGNXYELET_MTW5EQRJr1XJNE5HZR8",
+  authDomain: "stick-fight-bac45.firebaseapp.com",
+  databaseURL: "https://stick-fight-bac45-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "stick-fight-bac45",
+  storageBucket: "stick-fight-bac45.firebasestorage.app",
+  messagingSenderId: "464565244587",
+  appId: "1:464565244587:web:1c671b1e1bf47888ebddee"
+};
 
-  <!-- QR招待モーダル -->
-  <div class="modal" id="qr-modal" style="display: none; border: 2px solid #38bdf8;">
-    <h3 style="color:#38bdf8; font-size: 16px;">対戦相手を招待</h3>
-    <div id="qrcode" style="background:#fff; padding:6px; border-radius:4px;"></div>
-    <button class="modal-btn" id="copy-url-btn">対戦URLをコピー</button>
-    <div style="font-size: 11px; color:#94a3b8;">スマホで読み取ると即座に対戦開始</div>
-  </div>
+let db;
+try {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.database();
+} catch (e) {
+  const el = document.getElementById('err');
+  el.style.display = 'block';
+  el.innerText = "Firebaseの設定が読み込めませんでした。\n\n" + e.message;
+}
 
-  <!-- 決着モーダル -->
-  <div class="modal" id="gameover-modal" style="display: none; border: 2px solid #facc15;">
-    <h2 id="winner-text" style="font-size: 30px; font-weight: 900;">K.O.</h2>
-    <div id="round-info" style="font-size: 14px; color:#cbd5e1;"></div>
-    <button class="modal-btn" id="rematch-btn">再戦する</button>
-    <button class="modal-btn secondary" id="title-return-btn">モード選択へ戻る</button>
-  </div>
+// ========================================================
+// ② 部屋とプレイヤーID
+// ========================================================
+const W = 800, H = 450;
+const params = new URLSearchParams(location.search);
+let roomId = params.get('room');
+const isHost = !roomId;
+if (isHost) roomId = Math.random().toString(36).slice(2, 7).toUpperCase();
+const myId = Math.random().toString(36).slice(2, 10);
+const roomRef = db ? db.ref('rooms/' + roomId) : null;
 
-  <script>
-    // ========================================================
-    // サウンド (Web Audio API)
-    // ========================================================
-    let audioCtx = null;
-    function getAudio() {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      return audioCtx;
-    }
+const COLORS = ['#e63946', '#1f8ef1', '#f4a261', '#2a9d8f', '#9b5de5', '#ef476f', '#06d6a0', '#3d405b'];
+const platforms = [
+  { x: 90,  y: 390, w: 620, h: 22 },
+  { x: 170, y: 280, w: 150, h: 14 },
+  { x: 480, y: 280, w: 150, h: 14 },
+  { x: 325, y: 175, w: 150, h: 14 }
+];
 
-    function soundHit(type) {
-      let ctx = getAudio();
-      let osc = ctx.createOscillator();
-      let gain = ctx.createGain();
-      let now = ctx.currentTime;
-      if (type === 1) { // 弱パンチ
-        osc.frequency.setValueAtTime(350, now);
-        osc.frequency.exponentialRampToValueAtTime(80, now + 0.1);
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.linearRampToValueAtTime(0, now + 0.1);
-        osc.start(now); osc.stop(now + 0.1);
-      } else if (type === 2) { // 強キック (吹っ飛ばし)
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(200, now);
-        osc.frequency.exponentialRampToValueAtTime(40, now + 0.25);
-        gain.gain.setValueAtTime(0.6, now);
-        gain.gain.linearRampToValueAtTime(0, now + 0.25);
-        osc.start(now); osc.stop(now + 0.25);
-      } else if (type === 'beam') { // 気功波
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(600, now);
-        osc.frequency.exponentialRampToValueAtTime(150, now + 0.35);
-        gain.gain.setValueAtTime(0.5, now);
-        gain.gain.linearRampToValueAtTime(0, now + 0.35);
-        osc.start(now); osc.stop(now + 0.35);
-      }
-      osc.connect(gain); gain.connect(ctx.destination);
-    }
+let input = { l: false, r: false, j: false };
+let lastSent = '';
+let players = {};      // 画面に描くプレイヤー
+let targets = {};      // ゲスト：ホストから届いた最新位置
+let hostInputs = {};   // ホスト：全員の入力
+let colorCount = 0;
+let updatesPerSec = 0, updateCounter = 0;
 
-    // ========================================================
-    // ゲーム設定
-    // ========================================================
-    const GAME_W = 740;
-    const GAME_H = 360;
-    const FLOOR_Y = 290;
+// ========================================================
+// ③ p5.js 本体
+// ========================================================
+function setup() {
+  const c = createCanvas(W, H);
+  c.parent('wrap');
+  if (!db) return;
 
-    let gameMode = "none";
-    let role = "unknown";
-    let conn = null;
-    let peer = null;
+  // 自分の入力置き場を作り、切断時は自動で消す
+  const myInputRef = roomRef.child('inputs/' + myId);
+  myInputRef.set(input);
+  myInputRef.onDisconnect().remove();
 
-    let shakeFrames = 0;
-    let hitStopFrames = 0;
-    let particles = [];
-    let projectiles = [];
-    let isGameOver = false;
-
-    function createFighter(x, dir, color, name) {
-      return {
-        x: x,
-        y: FLOOR_Y,
-        dir: dir,
-        color: color,
-        name: name,
-        hp: 100,
-        maxHp: 100,
-        energy: 100, // 気功波用ゲージ
-        state: "idle", // idle, move, attack1, attack2, attack3, step, beam, hit, dead
-        timer: 0,
-        comboStep: 0,
-        vx: 0,
-        invincible: 0
-      };
-    }
-
-    let p1 = createFighter(180, 1, '#f43f5e', 'P1 (赤)');
-    let p2 = createFighter(560, -1, '#38bdf8', 'P2 (青)');
-
-    let inputLeft = false, inputRight = false;
-    let cpuTimer = 0;
-
-    function setup() {
-      let canvas = createCanvas(GAME_W, GAME_H);
-      canvas.parent('canvas-container');
-      setupUI();
-      setupMobile();
-
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('room')) {
-        document.getElementById('mode-modal').style.display = 'none';
-        initOnline();
-      }
-    }
-
-    function draw() {
-      if (hitStopFrames > 0) {
-        hitStopFrames--;
+  if (isHost) {
+    roomRef.child('host').set(myId);
+    roomRef.onDisconnect().remove();   // ホストが落ちたら部屋ごと消す
+    roomRef.child('inputs').on('value', s => { hostInputs = s.val() || {}; });
+    setInterval(sendState, 50);        // 1秒に20回、全員の位置を配信
+    showLobby();
+    document.getElementById('qr-toggle').style.display = 'block';
+  } else {
+    roomRef.child('state').on('value', s => {
+      const v = s.val();
+      if (v === null) {
+        setStatus('ホストが見つかりません', '#ff6b6b');
         return;
       }
+      targets = v;
+      updateCounter++;
+    });
+  }
+  setInterval(() => { updatesPerSec = updateCounter; updateCounter = 0; }, 1000);
+}
 
-      push();
-      if (shakeFrames > 0) {
-        translate(random(-7, 7), random(-7, 7));
-        shakeFrames--;
-      }
+function draw() {
+  background('#cfe3ee');
+  readKeyboard();
+  sendInputIfChanged();
 
-      // サイバーアリーナ背景
-      background(15, 23, 42);
-      drawArena();
+  if (isHost) simulate();
+  else interpolate();
 
-      if (gameMode !== "none") {
-        handleMovement();
+  // ステージ
+  noStroke();
+  fill('#24323c');
+  for (const p of platforms) rect(p.x, p.y, p.w, p.h, 4);
 
-        if (gameMode === "cpu") {
-          updateCPU();
-          updateFighter(p1);
-          updateFighter(p2);
-          checkHitboxes(p1, p2);
-          checkHitboxes(p2, p1);
-        } else if (role === "host") {
-          updateFighter(p1);
-          updateFighter(p2);
-          checkHitboxes(p1, p2);
-          checkHitboxes(p2, p1);
+  // プレイヤー
+  for (const id in players) drawStick(players[id], id === myId);
 
-          if (conn && conn.open) {
-            conn.send({
-              t: 'sync',
-              p1: packFighter(p1),
-              p2: packFighter(p2),
-              projs: projectiles,
-              shake: shakeFrames > 0
-            });
-          }
-        }
-      }
+  // ステータス
+  const n = Object.keys(players).length;
+  if (isHost) setStatus(`ホスト ・ 部屋 ${roomId} ・ ${n}人`, '#7ee081');
+  else if (n > 0) setStatus(`参加中 ・ ${n}人 ・ 受信 ${updatesPerSec}回/秒`, '#7ee081');
+}
 
-      updateProjectiles();
-      updateParticles();
-
-      drawFighter(p1);
-      drawFighter(p2);
-
-      drawHUD();
-
-      pop();
+// ========================================================
+// ④ ホスト：物理計算
+// ========================================================
+function simulate() {
+  for (const id in hostInputs) {
+    if (!players[id]) {
+      players[id] = { x: 220 + (colorCount % 4) * 120, y: 100, vx: 0, vy: 0, g: false, f: 1, c: COLORS[colorCount % COLORS.length] };
+      colorCount++;
     }
+  }
+  for (const id in players) if (!hostInputs[id]) delete players[id];
 
-    function packFighter(f) {
-      return { x: Math.round(f.x), dir: f.dir, hp: f.hp, energy: f.energy, state: f.state };
-    }
+  for (const id in players) {
+    const p = players[id];
+    const inp = hostInputs[id] || {};
+    const dir = (inp.r ? 1 : 0) - (inp.l ? 1 : 0);
 
-    // ========================================================
-    // 移動 ＆ コンボアクション
-    // ========================================================
-    function handleMovement() {
-      let my = (role === "guest") ? p2 : p1;
-      if (my.state === "dead" || my.state === "hit" || isGameOver) return;
+    p.vx += dir * 0.9;
+    p.vx *= 0.82;
+    if (dir !== 0) p.f = dir;
+    p.vy += 0.6;
+    if (inp.j && p.g) { p.vy = -12.5; p.g = false; }
 
-      // 行動可能な状態
-      if (my.state === "idle" || my.state === "move") {
-        let left = keyIsDown(65) || keyIsDown(LEFT_ARROW) || inputLeft;
-        let right = keyIsDown(68) || keyIsDown(RIGHT_ARROW) || inputRight;
+    const prevY = p.y;
+    p.x += p.vx;
+    p.y += p.vy;
+    p.g = false;
 
-        if (left) {
-          my.x -= 5.5; my.dir = -1; my.state = "move";
-        } else if (right) {
-          my.x += 5.5; my.dir = 1; my.state = "move";
-        } else {
-          my.state = "idle";
-        }
-        my.x = constrain(my.x, 40, GAME_W - 40);
-      }
-
-      // 気力の自動回復
-      if (my.energy < 100 && frameCount % 3 === 0) my.energy++;
-
-      if (role === "guest" && conn && conn.open) {
-        conn.send({ t: 'input', l: keyIsDown(65) || inputLeft, r: keyIsDown(68) || inputRight });
+    for (const pl of platforms) {
+      if (p.vy >= 0 && p.x > pl.x && p.x < pl.x + pl.w && prevY <= pl.y && p.y >= pl.y) {
+        p.y = pl.y; p.vy = 0; p.g = true;
       }
     }
+    if (p.y > H + 150) { p.x = W / 2; p.y = 60; p.vx = 0; p.vy = 0; }
+  }
+}
 
-    function performAction(f, act) {
-      if (f.state === "dead" || f.state === "hit" || isGameOver) return;
+function sendState() {
+  const out = {};
+  for (const id in players) {
+    const p = players[id];
+    out[id] = { x: Math.round(p.x), y: Math.round(p.y), vx: Math.round(p.vx * 10) / 10, g: p.g ? 1 : 0, f: p.f, c: p.c };
+  }
+  roomRef.child('state').set(out);
+}
 
-      if (act === "attack") {
-        // 3段コンボ入力
-        if (f.state === "idle" || f.state === "move") {
-          f.state = "attack1"; f.timer = 12; f.comboStep = 1; f.vx = f.dir * 4;
-        } else if (f.state === "attack1" && f.timer <= 6) {
-          f.state = "attack2"; f.timer = 14; f.comboStep = 2; f.vx = f.dir * 5;
-        } else if (f.state === "attack2" && f.timer <= 7) {
-          f.state = "attack3"; f.timer = 20; f.comboStep = 3; f.vx = f.dir * 10; // フィニッシュ突進
-        }
-      } else if (act === "step") {
-        // 回避ステップ (無敵)
-        if (f.state === "idle" || f.state === "move") {
-          f.state = "step";
-          f.timer = 16;
-          f.invincible = 16;
-          f.vx = f.dir * 12;
-          createDust(f.x, FLOOR_Y);
-        }
-      } else if (act === "beam") {
-        // 気功波
-        if ((f.state === "idle" || f.state === "move") && f.energy >= 40) {
-          f.energy -= 40;
-          f.state = "beam";
-          f.timer = 24;
-          soundHit('beam');
-          projectiles.push({
-            x: f.x + f.dir * 30,
-            y: FLOOR_Y - 45,
-            vx: f.dir * 14,
-            owner: f.name,
-            color: f.color,
-            life: 60
-          });
-          shakeFrames = 8;
-        }
-      }
-    }
+// ========================================================
+// ⑤ ゲスト：補間（カクつき防止）
+// ========================================================
+function interpolate() {
+  for (const id in targets) {
+    const t = targets[id];
+    if (!players[id]) players[id] = { ...t };
+    const p = players[id];
+    p.x = lerp(p.x, t.x, 0.35);
+    p.y = lerp(p.y, t.y, 0.35);
+    p.vx = t.vx; p.g = t.g; p.f = t.f; p.c = t.c;
+  }
+  for (const id in players) if (!targets[id]) delete players[id];
+}
 
-    function keyPressed() {
-      let my = (role === "guest") ? p2 : p1;
-      let act = null;
-      if (keyCode === 74) act = "attack"; // J: 攻撃
-      if (keyCode === 75) act = "step";   // K: 回避
-      if (keyCode === 76) act = "beam";   // L: ビーム
+// ========================================================
+// ⑥ 棒人間の描画（足元が p.y）
+// ========================================================
+function drawStick(p, isMe) {
+  const x = p.x, y = p.y;
+  const walk = p.g ? sin(frameCount * 0.35) * min(abs(p.vx), 4) * 3 : 6;
+  stroke(p.c);
+  strokeWeight(5);
+  strokeCap(ROUND);
+  noFill();
+  line(x, y - 44, x, y - 20);
+  line(x, y - 20, x - 8 + walk, y);
+  line(x, y - 20, x + 8 - walk, y);
+  line(x, y - 38, x + p.f * 16, y - 30 - walk * 0.5);
+  line(x, y - 38, x - p.f * 12, y - 28);
+  fill(p.c);
+  noStroke();
+  circle(x, y - 54, 20);
+  if (isMe) {
+    fill('#24323c');
+    triangle(x - 6, y - 78, x + 6, y - 78, x, y - 70);
+  }
+}
 
-      if (act) {
-        if (role === "guest") conn && conn.send({ t: 'act', a: act });
-        else performAction(p1, act);
-      }
-    }
+// ========================================================
+// ⑦ 入力（キーボード＋タッチ）
+// ========================================================
+const touch = { l: false, r: false, j: false };
 
-    // ========================================================
-    // 物理＆当たり判定
-    // ========================================================
-    function updateFighter(f) {
-      if (f.invincible > 0) f.invincible--;
+function readKeyboard() {
+  input.l = touch.l || keyIsDown(65) || keyIsDown(LEFT_ARROW);
+  input.r = touch.r || keyIsDown(68) || keyIsDown(RIGHT_ARROW);
+  input.j = touch.j || keyIsDown(87) || keyIsDown(UP_ARROW) || keyIsDown(32);
+}
 
-      if (f.timer > 0) {
-        f.timer--;
-        f.x += f.vx;
-        f.vx *= 0.82;
-        f.x = constrain(f.x, 40, GAME_W - 40);
-        if (f.timer <= 0) {
-          if (f.state !== "dead") f.state = "idle";
-        }
-      }
-    }
+function sendInputIfChanged() {
+  if (!roomRef) return;
+  const s = JSON.stringify(input);
+  if (s !== lastSent) {
+    lastSent = s;
+    roomRef.child('inputs/' + myId).set(input);
+  }
+}
 
-    function checkHitboxes(att, def) {
-      if (def.state === "dead" || def.invincible > 0) return;
+function bindButton(id, key) {
+  const b = document.getElementById(id);
+  const on = e => { e.preventDefault(); touch[key] = true; b.classList.add('on'); };
+  const off = e => { e.preventDefault(); touch[key] = false; b.classList.remove('on'); };
+  b.addEventListener('pointerdown', on);
+  b.addEventListener('pointerup', off);
+  b.addEventListener('pointercancel', off);
+  b.addEventListener('pointerleave', off);
+}
+bindButton('btn-l', 'l');
+bindButton('btn-r', 'r');
+bindButton('btn-j', 'j');
 
-      let dist = (def.x - att.x) * att.dir;
-      let inRange = dist > 0 && dist < 70;
+// ========================================================
+// ⑧ 招待画面
+// ========================================================
+function showLobby() {
+  const url = location.href.split('?')[0] + '?room=' + roomId;
+  document.getElementById('room-code').innerText = roomId;
+  const q = document.getElementById('qrcode');
+  if (!q.hasChildNodes()) new QRCode(q, { text: url, width: 160, height: 160 });
+  document.getElementById('lobby').style.display = 'flex';
+  document.getElementById('copy-btn').onclick = () => {
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => alert('参加URLをコピーしました'));
+    else prompt('このURLを送ってください', url);
+  };
+}
+document.getElementById('close-btn').onclick = () => { document.getElementById('lobby').style.display = 'none'; };
+document.getElementById('qr-toggle').onclick = showLobby;
 
-      // コンボ1段目
-      if (att.state === "attack1" && att.timer === 8 && inRange) {
-        applyDamage(att, def, 8, 1, att.dir * 4, 8);
-      }
-      // コンボ2段目
-      if (att.state === "attack2" && att.timer === 9 && inRange) {
-        applyDamage(att, def, 12, 1, att.dir * 6, 10);
-      }
-      // コンボ3段目 (大吹っ飛ばし！)
-      if (att.state === "attack3" && att.timer === 14 && inRange) {
-        applyDamage(att, def, 20, 2, att.dir * 16, 22);
-      }
-    }
-
-    function applyDamage(att, def, dmg, hitType, knockbackX, hitTime) {
-      def.hp = max(0, def.hp - dmg);
-      def.state = "hit";
-      def.timer = hitTime;
-      def.vx = knockbackX;
-      soundHit(hitType);
-      shakeFrames = hitType === 2 ? 18 : 6;
-      hitStopFrames = hitType === 2 ? 6 : 2;
-      createImpactSparks((att.x + def.x) / 2, FLOOR_Y - 45, def.color);
-
-      if (def.hp <= 0) {
-        def.state = "dead";
-        def.timer = 999;
-        def.vx = knockbackX * 1.5;
-        shakeFrames = 25;
-        setTimeout(endMatch, 1000);
-      }
-    }
-
-    function updateProjectiles() {
-      for (let i = projectiles.length - 1; i >= 0; i--) {
-        let p = projectiles[i];
-        p.x += p.vx;
-        p.life--;
-
-        // 当たり判定 (ホスト側で計算)
-        if (role !== "guest") {
-          let targets = [p1, p2];
-          for (let target of targets) {
-            if (target.name !== p.owner && target.state !== "dead" && target.invincible <= 0) {
-              if (abs(p.x - target.x) < 30) {
-                applyDamage({ x: p.x, dir: p.vx > 0 ? 1 : -1 }, target, 15, 2, (p.vx > 0 ? 1 : -1) * 12, 16);
-                p.life = 0;
-                break;
-              }
-            }
-          }
-        }
-
-        if (p.life <= 0 || p.x < 0 || p.x > GAME_W) projectiles.splice(i, 1);
-      }
-    }
-
-    // ========================================================
-    // CPU思考ロジック
-    // ========================================================
-    function updateCPU() {
-      if (p2.state === "dead" || isGameOver) return;
-      cpuTimer--;
-
-      let dist = p1.x - p2.x;
-      p2.dir = dist > 0 ? 1 : -1;
-      let absDist = abs(dist);
-
-      if (cpuTimer <= 0) {
-        cpuTimer = floor(random(10, 25));
-
-        // プレイヤーが攻撃中なら確率で回避ステップ
-        if (p1.state.includes("attack") && absDist < 100) {
-          if (random() < 0.6) performAction(p2, "step");
-        } else if (absDist > 240 && p2.energy >= 40 && random() < 0.4) {
-          // 遠距離なら気功波
-          performAction(p2, "beam");
-        } else if (absDist < 65) {
-          // 近距離なら攻撃連打
-          performAction(p2, "attack");
-        } else {
-          // 距離を詰める
-          p2.x += p2.dir * 5; p2.state = "move";
-        }
-        p2.x = constrain(p2.x, 40, GAME_W - 40);
-      }
-    }
-
-    // ========================================================
-    // 描画エンジン
-    // ========================================================
-    function drawArena() {
-      // 床のグリッドライン
-      stroke(30, 41, 59);
-      strokeWeight(2);
-      for (let x = 0; x < width; x += 30) {
-        line(x, FLOOR_Y, x, height);
-      }
-      stroke('#38bdf8');
-      strokeWeight(3);
-      line(20, FLOOR_Y, width - 20, FLOOR_Y);
-    }
-
-    function drawFighter(f) {
-      push();
-      translate(f.x, f.y);
-      scale(f.dir, 1);
-
-      stroke(f.color);
-      strokeWeight(4);
-      strokeCap(ROUND);
-      noFill();
-
-      // 無敵中の点滅
-      if (f.invincible > 0 && frameCount % 4 < 2) {
-        pop();
-        return;
-      }
-
-      let headY = -65, bodyTop = -50, hipY = -24;
-
-      if (f.state === "dead") {
-        rotate(HALF_PI);
-        ellipse(0, -15, 16, 16);
-        line(0, -7, 0, 25);
-      } else if (f.state === "hit") {
-        // のけぞり
-        ellipse(-8, headY + 5, 16, 16);
-        line(-6, bodyTop, -2, hipY);
-        line(-2, hipY, -14, 0); line(-2, hipY, 6, 0);
-      } else if (f.state === "step") {
-        // 残像スライディングポーズ
-        ellipse(10, headY + 25, 16, 16);
-        line(5, bodyTop + 25, -10, hipY + 15);
-        line(-10, hipY + 15, 20, 0);
-      } else if (f.state === "attack1") {
-        // 弱ジャブ
-        ellipse(0, headY, 16, 16); line(0, bodyTop, 0, hipY);
-        line(0, hipY, -8, 0); line(0, hipY, 8, 0);
-        strokeWeight(5); line(0, -40, 26, -40); // パンチ突き出し
-      } else if (f.state === "attack2") {
-        // 強ストレート
-        ellipse(5, headY + 3, 16, 16); line(3, bodyTop + 3, 0, hipY);
-        line(0, hipY, -12, 0); line(0, hipY, 14, 0);
-        strokeWeight(5); line(0, -38, 34, -38);
-      } else if (f.state === "attack3") {
-        // ぶっ飛ばし回転キック
-        ellipse(0, headY, 16, 16); line(0, bodyTop, 0, hipY);
-        strokeWeight(6); line(0, hipY, 36, -30); // 豪快なハイキック
-      } else if (f.state === "beam") {
-        // かめはめ波ポーズ
-        ellipse(-5, headY + 5, 16, 16); line(-5, bodyTop + 5, 0, hipY);
-        line(0, hipY, -10, 0); line(0, hipY, 10, 0);
-        line(-5, -35, 18, -35);
-      } else {
-        // 通常立ち／走り
-        let bob = sin(frameCount * 0.2) * 2;
-        ellipse(0, headY + bob, 16, 16);
-        line(0, bodyTop + bob, 0, hipY);
-        if (f.state === "move") {
-          let leg = sin(frameCount * 0.35) * 14;
-          line(0, hipY, leg, 0); line(0, hipY, -leg, 0);
-        } else {
-          line(0, hipY, -8, 0); line(0, hipY, 8, 0);
-          line(0, -40, 10, -32); // 構え手
-        }
-      }
-
-      pop();
-    }
-
-    function drawHUD() {
-      // P1 HPバー (左上)
-      drawBar(30, 25, 200, 14, p1.hp, p1.maxHp, '#f43f5e', p1.name);
-      drawEnergyBar(30, 44, 120, 6, p1.energy, '#c084fc');
-
-      // P2 HPバー (右上)
-      drawBar(width - 230, 25, 200, 14, p2.hp, p2.maxHp, '#38bdf8', p2.name);
-      drawEnergyBar(width - 150, 44, 120, 6, p2.energy, '#c084fc');
-
-      // 弾描画
-      for (let p of projectiles) {
-        fill(p.color);
-        noStroke();
-        ellipse(p.x, p.y, 16, 16);
-        // 光彩
-        fill(255, 255, 255, 120);
-        ellipse(p.x, p.y, 8, 8);
-      }
-    }
-
-    function drawBar(x, y, w, h, val, maxVal, col, label) {
-      fill('#1e293b'); stroke('#475569'); strokeWeight(1);
-      rect(x, y, w, h, 4);
-      noStroke(); fill(col);
-      rect(x, y, (val / maxVal) * w, h, 4);
-      fill('#fff'); textSize(11); textStyle(BOLD); textAlign(LEFT, BOTTOM);
-      text(label, x, y - 3);
-    }
-
-    function drawEnergyBar(x, y, w, h, val, col) {
-      fill('#0f172a'); noStroke();
-      rect(x, y, w, h, 2);
-      fill(col);
-      rect(x, y, (val / 100) * w, h, 2);
-    }
-
-    // ========================================================
-    // エフェクト
-    // ========================================================
-    function createImpactSparks(x, y, col) {
-      for (let i = 0; i < 18; i++) {
-        let a = random(TWO_PI);
-        let s = random(4, 12);
-        particles.push({ x: x, y: y, vx: cos(a) * s, vy: sin(a) * s, life: 14, col: col });
-      }
-    }
-
-    function createDust(x, y) {
-      for (let i = 0; i < 8; i++) {
-        particles.push({ x: x, y: y - 5, vx: random(-2, 2), vy: random(-1, -3), life: 12, col: '#64748b' });
-      }
-    }
-
-    function updateParticles() {
-      for (let i = particles.length - 1; i >= 0; i--) {
-        let p = particles[i];
-        p.x += p.vx; p.y += p.vy;
-        noStroke(); fill(p.col);
-        ellipse(p.x, p.y, p.life * 0.4);
-        p.life--;
-        if (p.life <= 0) particles.splice(i, 1);
-      }
-    }
-
-    // ========================================================
-    // UI ＆ ネットワーク
-    // ========================================================
-    function setupUI() {
-      document.getElementById('start-cpu-btn').onclick = () => {
-        gameMode = "cpu"; role = "offline"; p2.name = "CPU (青)";
-        document.getElementById('mode-modal').style.display = 'none';
-        document.getElementById('status-text').innerText = "● バトル中 (VS CPU)";
-      };
-
-      document.getElementById('start-online-btn').onclick = () => {
-        gameMode = "online";
-        document.getElementById('mode-modal').style.display = 'none';
-        initOnline();
-      };
-
-      document.getElementById('title-return-btn').onclick = () => {
-        window.location.href = window.location.href.split('?')[0];
-      };
-    }
-
-    function endMatch() {
-      isGameOver = true;
-      let winText = (p1.hp > p2.hp) ? `${p1.name} WIN!` : `${p2.name} WIN!`;
-      document.getElementById('winner-text').innerText = winText;
-      document.getElementById('gameover-modal').style.display = 'flex';
-    }
-
-    document.getElementById('rematch-btn').onclick = () => {
-      p1.hp = 100; p2.hp = 100; p1.energy = 100; p2.energy = 100;
-      p1.state = "idle"; p2.state = "idle";
-      p1.x = 180; p2.x = 560;
-      isGameOver = false;
-      document.getElementById('gameover-modal').style.display = 'none';
-      if (role === "host" && conn) conn.send({ t: 'rematch' });
-    };
-
-    function initOnline() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const targetRoom = urlParams.get('room');
-
-      peer = new Peer({
-        config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] }
-      });
-
-      peer.on('open', (id) => {
-        if (targetRoom) {
-          role = "guest"; gameMode = "online";
-          document.getElementById('status-text').innerText = "対戦部屋へ接続中...";
-          document.getElementById('mobile-controller').style.display = 'flex';
-          conn = peer.connect(targetRoom, { reliable: false });
-          setupGuest();
-        } else {
-          role = "host"; gameMode = "online";
-          document.getElementById('status-text').innerText = "待機中...";
-          const joinUrl = window.location.href.split('?')[0] + '?room=' + id;
-          new QRCode(document.getElementById("qrcode"), { text: joinUrl, width: 140, height: 140 });
-          document.getElementById('qr-modal').style.display = 'flex';
-
-          document.getElementById('copy-url-btn').onclick = () => {
-            navigator.clipboard.writeText(joinUrl).then(() => alert("対戦URLをコピーしました！"));
-          };
-
-          peer.on('connection', (c) => {
-            conn = c;
-            setupHost();
-          });
-        }
-      });
-    }
-
-    function setupHost() {
-      conn.on('open', () => {
-        document.getElementById('qr-modal').style.display = 'none';
-        document.getElementById('status-text').innerText = "● 対戦中 (貴方: 赤)";
-      });
-      conn.on('data', (d) => {
-        if (d.t === 'input') {
-          if (p2.state === "idle" || p2.state === "move") {
-            if (d.l) { p2.x -= 5.5; p2.dir = -1; p2.state = "move"; }
-            else if (d.r) { p2.x += 5.5; p2.dir = 1; p2.state = "move"; }
-            else p2.state = "idle";
-            p2.x = constrain(p2.x, 40, GAME_W - 40);
-          }
-        } else if (d.t === 'act') {
-          performAction(p2, d.a);
-        }
-      });
-    }
-
-    function setupGuest() {
-      conn.on('open', () => {
-        document.getElementById('status-text').innerText = "● 対戦中 (貴方: 青)";
-      });
-      conn.on('data', (d) => {
-        if (d.t === 'sync') {
-          p1.x = d.p1.x; p1.dir = d.p1.dir; p1.hp = d.p1.hp; p1.energy = d.p1.energy; p1.state = d.p1.state;
-          p2.x = d.p2.x; p2.dir = d.p2.dir; p2.hp = d.p2.hp; p2.energy = d.p2.energy; p2.state = d.p2.state;
-          projectiles = d.projs;
-          if (d.shake) shakeFrames = 5;
-        } else if (d.t === 'rematch') {
-          p1.hp = 100; p2.hp = 100; p1.state = "idle"; p2.state = "idle";
-          isGameOver = false;
-          document.getElementById('gameover-modal').style.display = 'none';
-        }
-      });
-    }
-
-    function setupMobile() {
-      const bind = (id, onDown, onUp) => {
-        let el = document.getElementById(id);
-        el.addEventListener('touchstart', (e) => { e.preventDefault(); onDown(); });
-        el.addEventListener('touchend', (e) => { e.preventDefault(); onUp(); });
-        el.addEventListener('mousedown', onDown);
-        el.addEventListener('mouseup', onUp);
-      };
-      bind('btn-left', () => inputLeft = true, () => inputLeft = false);
-      bind('btn-right', () => inputRight = true, () => inputRight = false);
-
-      const trigger = (act) => {
-        if (role === "guest") conn && conn.send({ t: 'act', a: act });
-        else performAction(p1, act);
-      };
-
-      document.getElementById('btn-attack').onclick = () => trigger('attack');
-      document.getElementById('btn-step').onclick   = () => trigger('step');
-      document.getElementById('btn-beam').onclick   = () => trigger('beam');
-    }
-  </script>
+function setStatus(t, c) {
+  const el = document.getElementById('status');
+  el.innerText = t; el.style.color = c;
+}
+</script>
 </body>
 </html>
