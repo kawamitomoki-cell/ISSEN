@@ -199,8 +199,8 @@
     W か ↑ を押しながら特殊で上必殺技。移動キーを押しながらカウンターで回避。
     <h3>Switch Proコントローラー</h3>
     左スティック／十字キー：移動　下入力：足場降り<br>
-    B：ジャンプ　Y：攻撃　X：特殊　A：カウンター／回避　L／R：武器を捨てる<br>
-    左スティック上／十字上＋Xで上必殺技。移動入力＋Aで回避。
+    Y／X：ジャンプ　A：攻撃　B：特殊　R／ZR：カウンター／回避　L／ZL：武器を捨てる<br>
+    左スティック上／十字上＋Bで上必殺技。移動入力＋R／ZRで回避。
   </div>
   <div class="nav"><button class="next" id="howto-back">OK！</button></div>
 </div>
@@ -2182,7 +2182,7 @@ bindButton('btn-c', 'c'); bindButton('btn-x', 'x');
 // ========================================================
 // Switch Pro Controller / Gamepad
 // Standard Gamepad mappingを基準にする。Switch Proコンでは通常、
-// B=0 / A=1 / Y=2 / X=3 / L=4 / R=5 / 十字キー=12〜15 として扱われる。
+// B=0 / A=1 / Y=2 / X=3 / L=4 / R=5 / ZL=6 / ZR=7 / 十字キー=12〜15 として扱われる。
 // ========================================================
 const GP_DEAD = 0.28;
 let activeGamepadIndex = null;
@@ -2215,12 +2215,13 @@ function readHuman() {
   const gx = gp && gp.axes.length > 0 ? gp.axes[0] : 0;
   const gy = gp && gp.axes.length > 1 ? gp.axes[1] : 0;
 
-  // Switch Proコン: B=ジャンプ / Y=攻撃 / X=特殊 / A=カウンター / L・R=捨てる
-  const gpJump = gpButton(gp, 0);
-  const gpCounter = gpButton(gp, 1);
-  const gpAttack = gpButton(gp, 2);
-  const gpSpecial = gpButton(gp, 3);
-  const gpDropWeapon = gpButton(gp, 4) || gpButton(gp, 5);
+  // Switch Proコン（物理ボタン表記）:
+  // Y/X=ジャンプ / A=攻撃 / B=特殊 / R・ZR=カウンター / L・ZL=捨てる
+  const gpJump = gpButton(gp, 2) || gpButton(gp, 3);
+  const gpAttack = gpButton(gp, 1);
+  const gpSpecial = gpButton(gp, 0);
+  const gpCounter = gpButton(gp, 5) || gpButton(gp, 7);
+  const gpDropWeapon = gpButton(gp, 4) || gpButton(gp, 6);
 
   const gpLeft  = gx < -GP_DEAD || gpButton(gp, 14);
   const gpRight = gx >  GP_DEAD || gpButton(gp, 15);
@@ -2231,7 +2232,7 @@ function readHuman() {
   const a = touch.a || kd(74) || kd(90) || gpAttack;
   const s = touch.s || kd(75) || kd(88) || gpSpecial;
   const c = touch.c || kd(76) || kd(67) || gpCounter;
-  // PCではEだけ。ProコンではL/R。
+  // PCではEだけ。ProコンではL/ZL。
   const x = touch.x || kd(69) || gpDropWeapon;
 
   hin.l = st.x < -0.35 || kd(65) || kd(LEFT_ARROW) || gpLeft;
