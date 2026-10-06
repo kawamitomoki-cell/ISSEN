@@ -188,15 +188,19 @@
     ・飛び道具はカウンターで防げる。爆発とKOアッパーはカウンターできない。
     <h3>スマホ</h3>
     <span class="chip">スティック</span>移動<br>
-    <span class="chip">ジャンプ</span>空中でもう1回（忍者は2回）。<b>スティック下＋ジャンプで上段の足場から降りる</b><br>
+    <span class="chip">ジャンプ</span>空中でもう1回（忍者は2回）。<b>スティックを下に倒すだけで上段の足場から降りる</b><br>
     <span class="chip red">攻撃</span>タップで通常攻撃／長押しで溜め（溜めすぎると OVERHEAT）<br>
     <span class="chip pur">特殊</span>キャラごとの必殺技。<b>スティック上＋特殊で上必殺技</b>（復帰にも使える）<br>
     <span class="chip blue">カウンター</span>そのまま押すとカウンター、スティックを倒しながらで回避<br>
     <span class="chip gray">捨てる</span>武器を置く
     <h3>PC</h3>
-    移動：A D ／ ← →　ジャンプ：スペース ／ W ／ ↑　足場降り：↓＋ジャンプ<br>
-    攻撃：J ／ Z　特殊：K ／ X　カウンター：L ／ C　捨てる：S ／ V<br>
+    移動：A D ／ ← →　ジャンプ：スペース ／ W ／ ↑　足場降り：<b>S ／ ↓</b><br>
+    攻撃：J ／ Z　特殊：K ／ X　カウンター：L ／ C　捨てる：<b>E</b><br>
     W か ↑ を押しながら特殊で上必殺技。移動キーを押しながらカウンターで回避。
+    <h3>Switch Proコントローラー</h3>
+    左スティック／十字キー：移動　下入力：足場降り<br>
+    B：ジャンプ　Y：攻撃　X：特殊　A：カウンター／回避　L／R：武器を捨てる<br>
+    左スティック上／十字上＋Xで上必殺技。移動入力＋Aで回避。
   </div>
   <div class="nav"><button class="next" id="howto-back">OK！</button></div>
 </div>
@@ -354,9 +358,9 @@ let freezeT = 0, freezeMax = FREEZE, fzType = 'counter', fz = null, pending = nu
 let simAcc = 0;
 const netTimers = [];
 const predicted = {};
-const blankInput = () => ({ l: false, r: false, u: false, d: false, a: false, s: false, jc: 0, ac: 0, rc: 0, cc: 0, sc: 0, xc: 0 });
+const blankInput = () => ({ l: false, r: false, u: false, d: false, a: false, s: false, jc: 0, ac: 0, rc: 0, cc: 0, sc: 0, xc: 0, dc: 0 });
 let hin = blankInput();
-let raw = { j: false, a: false, c: false, s: false, x: false };
+let raw = { j: false, a: false, c: false, s: false, x: false, d: false };
 
 // ========================================================
 // ③ 効果音
@@ -847,7 +851,7 @@ function startBattleCommon(list, mapId, wpn, stocks) {
   projs = []; bombs = []; mines = []; particles = []; popups = []; trails = {}; flash = {};
   if (!online) items = {};
   elim = []; freezeT = 0; pending = null; shake = 0; itemTimer = 240;
-  hin = blankInput(); raw = { j: false, a: false, c: false, s: false, x: false };
+  hin = blankInput(); raw = { j: false, a: false, c: false, s: false, x: false, d: false };
   fighters = list.map((m, i) => makeFighter(m, i));
   const main = stage.plats[0], n = fighters.length;
   fighters.forEach((f, i) => {
@@ -1040,6 +1044,7 @@ function stepFighter(p, inp) {
   const C = CC(p.cid);
   const jp = inp.jc !== prev.jc, ap = inp.ac !== prev.ac, ar = inp.rc !== prev.rc;
   const cp = inp.cc !== prev.cc, sp = inp.sc !== prev.sc, xp = inp.xc !== prev.xc;
+  const dp = inp.dc !== prev.dc;
   for (const k of TIMERS) if (p[k] > 0) p[k]--;
   if (p.cid === 'boxer') gainKO(p, 100 / (18 * 60));
 
@@ -1079,11 +1084,13 @@ function stepFighter(p, inp) {
     p.vx *= p.g ? 0.80 : 0.90;
     if (dir !== 0 && p.a === 0) p.f = dir;
 
+    // S / ↓ / Proコンの下入力だけで上段足場をすり抜ける。最下段は床扱い。
+    if (dp && p.g && p.groundPl >= 0 && p.groundPl !== lowestPlatformIndex()) {
+      p.dropPl = p.groundPl; p.dropT = 12; p.g = false; p.groundPl = -1; p.y += 7; p.vy = 2.2;
+    }
+
     if (jp) {
-      // 下＋ジャンプ：上段の足場だけをすり抜ける。最下段は床扱いで降りられない。
-      if (p.g && inp.d && p.groundPl >= 0 && p.groundPl !== lowestPlatformIndex()) {
-        p.dropPl = p.groundPl; p.dropT = 12; p.g = false; p.groundPl = -1; p.y += 7; p.vy = 2.2;
-      } else if (p.g) { p.vy = -12.5 * C.jump; p.g = false; p.groundPl = -1; p.jn = 1; if (!p.cpu) sfxJump(); }
+      if (p.g) { p.vy = -12.5 * C.jump; p.g = false; p.groundPl = -1; p.jn = 1; if (!p.cpu) sfxJump(); }
       else if (p.jn < C.jumps) { p.vy = -11 * C.jump; p.jn++; if (!p.cpu) sfxJump(); burst(p.x, p.y, 6, 3, '#ffffff', 6); }
     }
 
@@ -2172,25 +2179,79 @@ function bindButton(id, key) {
 bindButton('btn-j', 'j'); bindButton('btn-a', 'a'); bindButton('btn-s', 's');
 bindButton('btn-c', 'c'); bindButton('btn-x', 'x');
 
+// ========================================================
+// Switch Pro Controller / Gamepad
+// Standard Gamepad mappingを基準にする。Switch Proコンでは通常、
+// B=0 / A=1 / Y=2 / X=3 / L=4 / R=5 / 十字キー=12〜15 として扱われる。
+// ========================================================
+const GP_DEAD = 0.28;
+let activeGamepadIndex = null;
+
+window.addEventListener('gamepadconnected', e => {
+  activeGamepadIndex = e.gamepad.index;
+  console.log('Gamepad connected:', e.gamepad.id);
+});
+window.addEventListener('gamepaddisconnected', e => {
+  if (activeGamepadIndex === e.gamepad.index) activeGamepadIndex = null;
+});
+
+function currentGamepad() {
+  if (!navigator.getGamepads) return null;
+  const pads = navigator.getGamepads();
+  if (activeGamepadIndex !== null && pads[activeGamepadIndex]) return pads[activeGamepadIndex];
+  for (const g of pads) {
+    if (g && g.connected) { activeGamepadIndex = g.index; return g; }
+  }
+  return null;
+}
+
+function gpButton(g, i) {
+  return !!(g && g.buttons && g.buttons[i] && g.buttons[i].pressed);
+}
+
 function readHuman() {
   const kd = k => keyIsDown(k);
-  const j = touch.j || kd(32) || kd(87) || kd(UP_ARROW);
-  const a = touch.a || kd(74) || kd(90);
-  const s = touch.s || kd(75) || kd(88);
-  const c = touch.c || kd(76) || kd(67);
-  const x = touch.x || kd(83) || kd(86);
-  hin.l = st.x < -0.35 || kd(65) || kd(LEFT_ARROW);
-  hin.r = st.x > 0.35 || kd(68) || kd(RIGHT_ARROW);
-  hin.u = st.y < -0.55 || kd(87) || kd(UP_ARROW);
-  hin.d = st.y > 0.55 || kd(DOWN_ARROW);
+  const gp = currentGamepad();
+  const gx = gp && gp.axes.length > 0 ? gp.axes[0] : 0;
+  const gy = gp && gp.axes.length > 1 ? gp.axes[1] : 0;
+
+  // Switch Proコン: B=ジャンプ / Y=攻撃 / X=特殊 / A=カウンター / L・R=捨てる
+  const gpJump = gpButton(gp, 0);
+  const gpCounter = gpButton(gp, 1);
+  const gpAttack = gpButton(gp, 2);
+  const gpSpecial = gpButton(gp, 3);
+  const gpDropWeapon = gpButton(gp, 4) || gpButton(gp, 5);
+
+  const gpLeft  = gx < -GP_DEAD || gpButton(gp, 14);
+  const gpRight = gx >  GP_DEAD || gpButton(gp, 15);
+  const gpUp    = gy < -0.55 || gpButton(gp, 12);
+  const gpDown  = gy >  0.55 || gpButton(gp, 13);
+
+  const j = touch.j || kd(32) || kd(87) || kd(UP_ARROW) || gpJump;
+  const a = touch.a || kd(74) || kd(90) || gpAttack;
+  const s = touch.s || kd(75) || kd(88) || gpSpecial;
+  const c = touch.c || kd(76) || kd(67) || gpCounter;
+  // PCではEだけ。ProコンではL/R。
+  const x = touch.x || kd(69) || gpDropWeapon;
+
+  hin.l = st.x < -0.35 || kd(65) || kd(LEFT_ARROW) || gpLeft;
+  hin.r = st.x > 0.35 || kd(68) || kd(RIGHT_ARROW) || gpRight;
+  hin.u = st.y < -0.55 || kd(87) || kd(UP_ARROW) || gpUp;
+
+  // 足場降り：スマホのスティック↓、PCのS/↓、Proコンのスティック↓/十字↓。
+  const down = st.y > 0.55 || kd(83) || kd(DOWN_ARROW) || gpDown;
+  hin.d = down;
+
   if (j && !raw.j) hin.jc++;
   if (a && !raw.a) hin.ac++;
   if (!a && raw.a) hin.rc++;
   if (s && !raw.s) hin.sc++;
   if (c && !raw.c) hin.cc++;
   if (x && !raw.x) hin.xc++;
+  if (down && !raw.d) hin.dc++;
+
   hin.a = a; hin.s = s;
-  raw.j = j; raw.a = a; raw.s = s; raw.c = c; raw.x = x;
+  raw.j = j; raw.a = a; raw.s = s; raw.c = c; raw.x = x; raw.d = down;
 }
 
 // ========================================================
