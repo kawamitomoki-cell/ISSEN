@@ -27,7 +27,6 @@
     font-size: clamp(56px, 17vw, 120px); font-weight: 900; font-style: italic; line-height: 0.9; text-align: center;
     color: #ffd166; -webkit-text-stroke: 3px #0d1418; text-shadow: 7px 7px 0 #ef4747; letter-spacing: 2px;
   }
-  .sub { font-weight: 900; color: #cfe3ee; }
   .tap { font-weight: 900; font-size: 18px; animation: blink 1.2s infinite; margin-top: 24px; }
   @keyframes blink { 50% { opacity: 0.15; } }
   .hd { font-size: 24px; font-weight: 900; font-style: italic; color: #fff; background: #ef4747; padding: 4px 26px; transform: skewX(-12deg); border: 3px solid #0d1418; }
@@ -103,7 +102,6 @@
 
 <div id="sc-title" class="screen" style="display:flex">
   <div class="logo">STICK<br>BRAWL</div>
-  <div class="sub">三すくみ × 棒人間バトル</div>
   <div class="tap" id="title-tap">タップしてスタート</div>
 </div>
 
@@ -159,10 +157,10 @@
   <div class="card">
     <h3>三すくみ（これだけ覚えればOK）</h3>
     ・<b>溜め攻撃 ＞ 通常攻撃</b>：溜め中は通常攻撃でひるまない（ARMOR!）<br>
-    ・<b>カウンター ＞ 溜め攻撃</b>：張り手・KOアッパーも返せる（COUNTER!!）<br>
+    ・<b>カウンター ＞ 溜め攻撃</b>：張り手も返せる（COUNTER!!）<br>
     ・<b>通常攻撃 ＞ カウンター</b>：構えている相手を殴ると GUARD BREAK!<br>
     ・<b>光っている相手</b>にはカウンター、<b>青い盾の相手</b>は殴れ！<br>
-    ・飛び道具はカウンターで防げる。爆発はカウンターできない。
+    ・飛び道具はカウンターで防げる。爆発とKOアッパーはカウンターできない。
     <h3>スマホ</h3>
     <span class="chip">スティック</span>移動（上に倒す＋特殊で復帰技）<br>
     <span class="chip">ジャンプ</span>空中でもう1回（忍者は2回）<br>
@@ -224,16 +222,17 @@ const GRAV = 0.6, MAX_STOCK = 3, MAX_PLAYERS = 6;
 const CH_TH = 12, CH_FULL = 50, CH_WARN = 70, CH_OVER = 100, STUN_T = 80;
 const CT_ON = 3, CT_OFF = 20, CT_END = 46, CT_COOL = 90;
 const DG_T = 18, DG_INV0 = 2, DG_INV1 = 14, DG_COOL = 40, DG_SPD = 9;
-const FREEZE = 28, INTERP = 110;
+const FREEZE = 28, FREEZE_KO = 36, INTERP = 110;
+const HADO_MAX = 2;
 const COLORS = ['#e63946', '#1f8ef1', '#f4a261', '#2a9d8f', '#9b5de5', '#ef476f'];
 
 const CHARS = {
   karate: { name: '格闘家', en: 'KARATE', mark: '空', spd: 1.0, jump: 1.0, jumps: 2, wt: 1.0, pow: 1.0, size: 1.0,
             ctx: 14, back: true, ctc: 1.0, dgc: 1.0, dgs: 1.0, st: [3, 3, 3],
-            sp: '波動拳：遅い気弾を連続で撃てる（画面に3発まで）', ab: 'カウンターの受付が長く、背後からの攻撃も返せる' },
+            sp: '波動拳：遅い気弾を連続で撃てる（画面に2発まで）', ab: 'カウンターの受付が長く、背後からの攻撃も返せる' },
   bomber: { name: '爆弾魔', en: 'BOMBER', mark: '爆', spd: 0.95, jump: 1.0, jumps: 2, wt: 1.05, pow: 0.9, size: 1.0,
             ctx: 0, back: false, ctc: 1.0, dgc: 1.0, dgs: 1.0, st: [3, 2, 3],
-            sp: '爆弾投げ：数の制限なしでポイポイ投げる', ab: '特殊を長押しで地雷を設置。自分の爆発は半減' },
+            sp: '爆弾投げ：まっすぐ飛び、当たると即爆発。数の制限なし', ab: '特殊を長押しで地雷を設置。自分の爆発は半減' },
   ninja:  { name: '忍者', en: 'NINJA', mark: '忍', spd: 1.3, jump: 1.08, jumps: 3, wt: 1.25, pow: 0.9, size: 0.9,
             ctx: 0, back: false, ctc: 1.0, dgc: 0.6, dgs: 1.2, st: [5, 2, 1],
             sp: '手裏剣：速いけど射程は短め。連続OK', ab: '3段ジャンプ。足がとても速い。でも軽い' },
@@ -242,7 +241,7 @@ const CHARS = {
             sp: '張り手：溜め攻撃級の一撃をすぐ出せる（クールタイム約2.5秒）', ab: '動きは遅いが、とても吹っ飛びにくい' },
   boxer:  { name: 'ボクサー', en: 'BOXER', mark: '拳', spd: 1.15, jump: 0.95, jumps: 2, wt: 1.0, pow: 1.05, size: 1.0,
             ctx: 0, back: false, ctc: 0.35, dgc: 0.9, dgs: 1.0, st: [4, 4, 3],
-            sp: 'KOアッパー：ゲージ満タンで一撃必殺（時間・攻撃・被弾で溜まる）', ab: 'カウンターのクールタイムがとても短い。機動力もある' }
+            sp: 'KOアッパー：ゲージ満タンで一撃必殺。カウンターも貫通する', ab: 'カウンターのクールタイムがとても短い。機動力もある' }
 };
 const CC = id => CHARS[id] || CHARS.karate;
 
@@ -265,7 +264,6 @@ const AI_LV = [
 ];
 const LV_NAME = ['かんたん', 'ふつう', 'つよい'];
 
-// 技の基本データ（オンラインで相手の技を再現するのにも使う）
 const MOVE_DEF = {
   normal: { type: 'normal', act0: 4, act1: 8,  end: 14, reach: 28, R: 24, yo: 34, cd: 3 },
   charge: { type: 'heavy',  act0: 4, act1: 9,  end: 18, reach: 34, R: 32, yo: 34, cd: 5 },
@@ -289,7 +287,7 @@ let nextSpawn = 0, battleStartAt = 0, aiLv = 1, battleWpn = true;
 let stage = MAPS.std, fighters = [], bt = { phase: 'none', t: 0 }, elim = [];
 let projs = [], bombs = [], mines = [], items = {}, itemSeq = 0, itemTimer = 0, objSeq = 0;
 let particles = [], popups = [], trails = {}, flash = {}, shake = 0;
-let freezeT = 0, fz = null, pending = null;
+let freezeT = 0, freezeMax = FREEZE, fzType = 'counter', fz = null, pending = null;
 const blankInput = () => ({ l: false, r: false, u: false, a: false, s: false, jc: 0, ac: 0, rc: 0, cc: 0, sc: 0, xc: 0 });
 let hin = blankInput();
 let raw = { j: false, a: false, c: false, s: false, x: false };
@@ -302,7 +300,7 @@ function unlockAudio() {
   try {
     if (!actx) {
       actx = new (window.AudioContext || window.webkitAudioContext)();
-      const len = actx.sampleRate * 0.8;
+      const len = actx.sampleRate * 1.2;
       noiseBuf = actx.createBuffer(1, len, actx.sampleRate);
       const d = noiseBuf.getChannelData(0);
       for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
@@ -329,10 +327,11 @@ function tone(f1, f2, dur, vol, type, delay) {
   o.connect(g); g.connect(actx.destination);
   o.start(t); o.stop(t + dur + 0.02);
 }
-function noiseHit(dur, vol, freq, hp) {
+function noiseHit(dur, vol, freq, hp, delay) {
   if (!actx) return;
-  const t = actx.currentTime, s = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+  const t = actx.currentTime + (delay || 0), s = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
   s.buffer = noiseBuf; f.type = hp ? 'highpass' : 'lowpass'; f.frequency.value = freq;
+  g.gain.setValueAtTime(0.0001, actx.currentTime);
   g.gain.setValueAtTime(vol, t);
   g.gain.exponentialRampToValueAtTime(0.001, t + dur);
   s.connect(f); f.connect(g); g.connect(actx.destination);
@@ -351,6 +350,20 @@ function sfxCounter() {
   [1047, 1319, 1568, 2093, 2637].forEach((f, i) => tone(f, f, 0.11, 0.1, 'square', 0.06 + i * 0.065));
 }
 function sfxCounterBoom() { noiseHit(0.9, 0.85, 1100); tone(170, 28, 0.9, 0.6, 'sawtooth'); tone(85, 30, 1.0, 0.7, 'sine'); tone(2093, 4186, 0.25, 0.08, 'triangle'); }
+// KOアッパー：ゴングの「カーン」→ 上がるファンファーレ
+function sfxKOHit() {
+  noiseHit(0.25, 0.8, 7000, true);
+  tone(110, 40, 0.5, 0.7, 'sine');
+  tone(1568, 1560, 1.6, 0.2, 'sine'); tone(2349, 2340, 1.4, 0.13, 'sine'); tone(3136, 3130, 1.0, 0.08, 'sine');
+  [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, f, 0.1, 0.09, 'square', 0.08 + i * 0.06));
+}
+// 解放の瞬間：重低音のドーン
+function sfxKOBoom() {
+  noiseHit(1.1, 0.95, 900);
+  tone(220, 25, 1.1, 0.7, 'sawtooth');
+  tone(70, 25, 1.3, 0.85, 'sine');
+  [1047, 1568, 2093].forEach((f, i) => tone(f, f * 1.5, 0.45, 0.08, 'triangle', i * 0.05));
+}
 function sfxShot() { noiseHit(0.06, 0.3, 4000, true); tone(900, 200, 0.07, 0.07, 'square'); }
 function sfxHado() { tone(500, 160, 0.25, 0.12, 'square'); noiseHit(0.2, 0.2, 1500); }
 function sfxShuri() { noiseHit(0.07, 0.2, 6000, true); tone(2400, 1800, 0.05, 0.04, 'triangle'); }
@@ -496,7 +509,6 @@ function onGm(g) {
     return;
   }
   if (gmFirst) { gmFirst = false; if (g.ph !== 'lobby') skipRound = g.round; }
-  const prev = gmCache;
   gmCache = g;
   if (g.ph === 'play' && g.round !== curRound && g.round !== skipRound) {
     curRound = g.round;
@@ -656,6 +668,10 @@ function onEvent(e) {
     if (e.sl) fxSlash(e.x, e.y);
   }
   else if (e.k === 'bomb') { bombs.push({ ...e.b }); sfxThrow(); }
+  else if (e.k === 'bx') {
+    const i = bombs.findIndex(b => b.bid === e.bid);
+    if (i >= 0) { bombs.splice(i, 1); explode(e.x, e.y, 92, e.o); }
+  }
   else if (e.k === 'mine') { mines.push({ ...e.m }); }
   else if (e.k === 'mb') {
     const i = mines.findIndex(m => m.mid === e.mid);
@@ -736,7 +752,7 @@ function showResult() {
   document.getElementById('res-list').innerHTML = order.map((f, i) =>
     `<div class="rk"><div class="no">${i + 1}</div><div class="mk" style="background:${f.c}">${CC(f.cid).mark}</div><div>${f.label}　${CC(f.cid).name}</div></div>`).join('');
 
-  const again = document.getElementById('res-again'), rc = document.getElementById('res-chars'), rt = document.getElementById('res-title');
+  const rc = document.getElementById('res-chars'), rt = document.getElementById('res-title');
   if (online) {
     document.getElementById('res-wait').style.display = isHost ? 'none' : 'block';
     document.getElementById('res-nav1').style.display = isHost ? 'flex' : 'none';
@@ -801,7 +817,7 @@ function startSpecial(p) {
   if (p.spc > 0 && p.cid !== 'boxer') { if (!p.cpu) sfxNo(); return; }
   const C = CC(p.cid);
   if (p.cid === 'karate') {
-    if (projs.filter(q => q.o === p.id && q.kind === 'hado').length >= 3) { if (!p.cpu) sfxNo(); return; }
+    if (projs.filter(q => q.o === p.id && q.kind === 'hado').length >= HADO_MAX) { if (!p.cpu) sfxNo(); return; }
     spawnProj(p, 'hado'); p.spc = 22; p.sh = 12; sfxHado();
   } else if (p.cid === 'ninja') {
     spawnProj(p, 'shuri'); p.spc = 9; p.sh = 6; sfxShuri();
@@ -978,14 +994,14 @@ function meleeCheck(a) {
   }
 }
 
-// 受けた側（の端末）で三すくみを判定する
 function resolveMelee(A, t) {
   const mv = A.mv, ty = t.y - 30 * CC(t.cid).size;
   if (isInvuln(t)) { if (t.dg > 0) emitFx({ res: 'evade', t: t.id, a: A.id, x: t.x, y: t.y - 110 }); return; }
   const front = fromFront(t, A.x) || CC(t.cid).back;
-  if (mv.type === 'heavy' && inCounter(t) && front) { startCounter(A, t, mv); return; }
+  // KOアッパーはカウンターを貫通する
+  if (mv.type === 'heavy' && mv.kind !== 'upper' && inCounter(t) && front) { startCounter(A, t, mv); return; }
   const h = { dm: mv.dm, k0: mv.k0, ks: mv.ks, up: mv.up, f: A.f };
-  const bk = t.ct > 0 && (mv.type === 'normal' || !front);
+  const bk = mv.kind !== 'upper' && t.ct > 0 && (mv.type === 'normal' || !front);
   if (!bk && mv.type === 'normal' && t.ch > 0) {
     armorHit(t, h);
     emitFx({ res: 'armor', t: t.id, a: A.id, x: t.x, y: ty, gain: 4 });
@@ -1044,11 +1060,14 @@ function playFx(e) {
     burst(e.x, e.y, n, kb * 0.9, '#ffffff', 8);
     burst(e.x, e.y, Math.floor(n / 2), kb * 0.7, e.c, 7);
     ring(e.x, e.y, kb * 0.9, 12);
-    shake = Math.max(shake, Math.min(kb * 0.35, 7));
-    if (e.bk) popups.push({ x: e.x, y: e.y - 30, txt: 'GUARD BREAK!', life: 42, max: 42, size: 32, c: '#ef4747' });
-    else if (e.up) popups.push({ x: e.x, y: e.y - 40, txt: 'UPPERCUT!!', life: 45, max: 45, size: 38, c: '#ffd166' });
-    else if (kb >= 14) popups.push({ x: e.x, y: e.y - 30, txt: 'SMASH!', life: 40, max: 40, size: 40, c: '#ffd166' });
-    sfxHit(kb);
+    if (e.up) {
+      startKOFreeze(e);                       // KOアッパーの決め演出
+    } else {
+      shake = Math.max(shake, Math.min(kb * 0.35, 7));
+      if (e.bk) popups.push({ x: e.x, y: e.y - 30, txt: 'GUARD BREAK!', life: 42, max: 42, size: 32, c: '#ef4747' });
+      else if (kb >= 14) popups.push({ x: e.x, y: e.y - 30, txt: 'SMASH!', life: 40, max: 40, size: 40, c: '#ffd166' });
+      sfxHit(kb);
+    }
   }
   if (e.gain && e.a) gainKO(byId(e.a), e.gain);
 }
@@ -1060,7 +1079,7 @@ function startCounter(A, t, mv) {
 }
 
 function doCounter(e) {
-  freezeT = FREEZE;
+  freezeT = FREEZE; freezeMax = FREEZE; fzType = 'counter';
   fz = { x: e.x, y: e.y, att: e.att, cnt: e.cnt };
   shake = 6;
   sfxCounter();
@@ -1070,7 +1089,25 @@ function doCounter(e) {
   if (a && isLocal(a)) { clearActs(a); pending = { att: a, dir: e.dir, dm: e.dm, kb0: e.kb0 }; }
 }
 
+function startKOFreeze(e) {
+  freezeT = FREEZE_KO; freezeMax = FREEZE_KO; fzType = 'ko';
+  fz = { x: e.x, y: e.y, att: e.a, cnt: e.t };
+  shake = 12;
+  sfxKOHit();
+}
+
 function endFreeze() {
+  if (fzType === 'ko') {
+    sfxKOBoom();
+    if (fz) {
+      burst(fz.x, fz.y, 70, 20, '#ffd166', 16);
+      burst(fz.x, fz.y, 40, 15, '#ef4747', 12);
+      burst(fz.x, fz.y, 30, 12, '#ffffff', 10);
+      ring(fz.x, fz.y, 30, 26); ring(fz.x, fz.y, 18, 20);
+    }
+    shake = 28;
+    return;
+  }
   if (pending) {
     const a = pending.att;
     a.d += pending.dm;
@@ -1111,9 +1148,11 @@ function fireGun(p) {
   if (p.am <= 0) { p.w = null; popups.push({ x: p.x, y: p.y - 110, txt: 'EMPTY!', life: 30, max: 30, size: 22, c: '#ffffff' }); }
 }
 
+// 爆弾：ほぼ直線で速く飛ぶ
 function throwBomb(p) {
   const sz = CC(p.cid).size;
-  const b = { o: p.id, x: Math.round(p.x + p.f * 16), y: Math.round(p.y - 44 * sz), vx: Math.round((p.f * 8 + p.vx * 0.5) * 10) / 10, vy: -8, t: 0 };
+  const b = { bid: p.id + '_' + (objSeq++), o: p.id, x: Math.round(p.x + p.f * 16), y: Math.round(p.y - 40 * sz),
+              vx: Math.round((p.f * 11 + p.vx * 0.4) * 10) / 10, vy: -3, t: 0 };
   bombs.push(b); send({ k: 'bomb', b: { ...b } });
   p.sh = 10; sfxThrow();
 }
@@ -1168,7 +1207,6 @@ function stepProjs() {
     q.x += q.vx; q.life--; q.rot += 0.5;
     let gone = q.life <= 0 || q.x < -100 || q.x > stage.w + 100;
     if (!gone && q.local) {
-      // 剣で斬られる
       for (const f of fighters) {
         if (f.id === q.o || f.out || f.w !== 'sword' || !isActive(f)) continue;
         const sz = CC(f.cid).size;
@@ -1203,16 +1241,29 @@ function stepBombs() {
   for (let i = bombs.length - 1; i >= 0; i--) {
     const b = bombs[i];
     b.t++;
-    b.vy = Math.min(b.vy + 0.5, 14);
+    b.vy = Math.min(b.vy + 0.28, 12);
     const py = b.y;
     b.x += b.vx; b.y += b.vy;
     for (const pl of stage.plats) {
       if (b.vy > 0 && b.x > pl.x && b.x < pl.x + pl.w && py <= pl.y - 6 && b.y >= pl.y - 6) {
-        b.y = pl.y - 6; b.vy *= -0.45; b.vx *= 0.7;
+        b.y = pl.y - 6; b.vy *= -0.35; b.vx *= 0.8;
       }
     }
-    if (b.y > stage.h + 200) { bombs.splice(i, 1); continue; }
-    if (b.t >= 50) { explode(b.x, b.y, 92, b.o); bombs.splice(i, 1); }
+    if (b.y > stage.h + 200 || b.x < -150 || b.x > stage.w + 150) { bombs.splice(i, 1); continue; }
+    // 自分の端末のキャラに当たったら即爆発
+    let hit = false;
+    for (const f of fighters) {
+      if (!isLocal(f) || f.out || f.id === b.o || isInvuln(f)) continue;
+      const sz = CC(f.cid).size;
+      if (Math.abs(b.x - f.x) < 16 * sz + 8 && b.y > f.y - 64 * sz && b.y < f.y + 4) { hit = true; break; }
+    }
+    if (hit) {
+      send({ k: 'bx', bid: b.bid, o: b.o, x: Math.round(b.x), y: Math.round(b.y) });
+      explode(b.x, b.y, 92, b.o);
+      bombs.splice(i, 1);
+      continue;
+    }
+    if (b.t >= 48) { explode(b.x, b.y, 92, b.o); bombs.splice(i, 1); }
   }
 }
 
@@ -1228,7 +1279,6 @@ function stepMines() {
       if (m.y > stage.h + 200) { mines.splice(i, 1); continue; }
     }
     if (m.arm > 0) { m.arm--; continue; }
-    // 自分の端末のキャラが踏んだら起爆
     for (const f of fighters) {
       if (!isLocal(f) || f.out || f.id === m.o) continue;
       if (Math.abs(f.x - m.x) < 26 && Math.abs(f.y - m.y) < 30) {
@@ -1241,7 +1291,6 @@ function stepMines() {
   }
 }
 
-// 爆発：見た目は全員、ダメージは「自分の端末のキャラ」にだけ与える
 function explode(x, y, R, ownerId) {
   burst(x, y, 40, 13, '#f4a261', 14);
   burst(x, y, 20, 10, '#ffffff', 10);
@@ -1302,7 +1351,7 @@ function stageMid() {
   return (Math.min(...xs) + Math.max(...xe)) / 2;
 }
 function nearExplosive(p, R) {
-  for (const b of bombs) if (Math.hypot(b.x - p.x, b.y - (p.y - 30)) < R) return b;
+  for (const b of bombs) if (b.o !== p.id && Math.hypot(b.x - p.x, b.y - (p.y - 30)) < R) return b;
   for (const m of mines) if (m.arm === 0 && m.o !== p.id && Math.hypot(m.x - p.x, m.y - p.y) < R * 0.7) return m;
   return null;
 }
@@ -1349,10 +1398,13 @@ function aiStep(p) {
     return;
   }
   if (Math.random() < L.read) {
+    // KOアッパーはカウンターできないので回避で逃げる
+    if (adx < 130 && t.cid === 'boxer' && (t.ko >= 100 || (t.mv && t.mv.kind === 'upper')) && Math.random() < 0.5) {
+      I[away] = true; if (p.dgc === 0) I.cc++; return;
+    }
     if (adx < 140 && t.ch > CH_TH && p.ctc === 0) { I.cc++; return; }
-    if (adx < 130 && t.mv && t.mv.type === 'heavy' && t.a < t.mv.act0 && p.ctc === 0) { I.cc++; return; }
+    if (adx < 130 && t.mv && t.mv.type === 'heavy' && t.mv.kind !== 'upper' && t.a < t.mv.act0 && p.ctc === 0) { I.cc++; return; }
     if (adx < 100 && t.ct > 0) { I[face] = true; aiTap(I, A); return; }
-    if (adx < 130 && t.cid === 'boxer' && t.ko >= 100 && p.ctc === 0 && Math.random() < 0.35) { I.cc++; return; }
     if (adx < 80 && t.mv && t.mv.type === 'normal' && t.a > 0) { I[away] = true; if (p.dgc === 0) I.cc++; return; }
   }
   if (Math.random() < L.err) {
@@ -1399,7 +1451,7 @@ function render() {
   for (const m of mines) drawMine(m);
   for (const f of fighters) drawFighter(f);
   drawProjs();
-  for (const b of bombs) drawWeapon('bomb', b.x, b.y, 1, 'icon', b.t > 35);
+  for (const b of bombs) drawWeapon('bomb', b.x, b.y, 1, 'icon', b.t > 30);
   drawParticles(frozen);
   if (frozen) drawFreezeWorld();
   drawPopups();
@@ -1455,7 +1507,7 @@ function burst(x, y, n, spd, c, sz) {
     const a = random(TWO_PI), v = random(0.3, 1) * spd;
     particles.push({ x, y, vx: cos(a) * v, vy: sin(a) * v, life: random(16, 30), max: 30, c, s: random(sz * 0.5, sz) });
   }
-  if (particles.length > 400) particles.splice(0, particles.length - 400);
+  if (particles.length > 450) particles.splice(0, particles.length - 450);
 }
 function ring(x, y, vr, life) { particles.push({ ring: true, x, y, r: 4, vr, life, max: life }); }
 
@@ -1491,22 +1543,67 @@ function drawPopups() {
 }
 
 function drawFreezeWorld() {
-  noStroke(); fill(8, 12, 18, 175); rect(-300, -300, stage.w + 600, stage.h + 600);
   if (!fz) return;
+  const a = byId(fz.att), c = byId(fz.cnt);
+  if (fzType === 'ko') {
+    // 暗転＋赤と金の集中線＋衝撃の星
+    const el = freezeMax - freezeT;
+    noStroke(); fill(12, 4, 6, 215); rect(-300, -300, stage.w + 600, stage.h + 600);
+    push();
+    translate(fz.x, fz.y);
+    for (let i = 0; i < 40; i++) {
+      const ang = random(TWO_PI), r1 = random(40, 80), r2 = r1 + random(300, 900);
+      stroke(i % 2 ? color(255, 209, 102, 230) : color(239, 71, 71, 230));
+      strokeWeight(random(2, 6));
+      line(cos(ang) * r1, sin(ang) * r1, cos(ang) * r2, sin(ang) * r2);
+    }
+    const pulse = 1 + sin(el * 0.8) * 0.12;
+    rotate(el * 0.05);
+    noStroke(); fill('#ffd166');
+    beginShape();
+    for (let k = 0; k < 24; k++) {
+      const rr = (k % 2 ? 34 : 86) * pulse, an = k * TWO_PI / 24;
+      vertex(cos(an) * rr, sin(an) * rr);
+    }
+    endShape(CLOSE);
+    fill('#ffffff'); circle(0, 0, 50 * pulse);
+    pop();
+    if (a) drawFighter(a);
+    if (c) { flash[c.id] = 2; drawFighter(c); }
+    return;
+  }
+  noStroke(); fill(8, 12, 18, 175); rect(-300, -300, stage.w + 600, stage.h + 600);
   stroke(255, 225, 120, 210);
   for (let i = 0; i < 28; i++) {
-    const a = random(TWO_PI), r1 = random(45, 90), r2 = r1 + random(220, 650);
+    const ang = random(TWO_PI), r1 = random(45, 90), r2 = r1 + random(220, 650);
     strokeWeight(random(1, 4));
-    line(fz.x + cos(a) * r1, fz.y + sin(a) * r1, fz.x + cos(a) * r2, fz.y + sin(a) * r2);
+    line(fz.x + cos(ang) * r1, fz.y + sin(ang) * r1, fz.x + cos(ang) * r2, fz.y + sin(ang) * r2);
   }
-  const a = byId(fz.att), c = byId(fz.cnt);
   if (a) drawFighter(a);
   if (c) drawFighter(c);
 }
+
 function drawFreezeText() {
-  const el = FREEZE - freezeT;
+  const el = freezeMax - freezeT, t = el / freezeMax;
+  if (fzType === 'ko') {
+    // 白フラッシュ → 一瞬の黒コマ → K.O.!!
+    if (el < 3) { noStroke(); fill(255); rect(0, 0, W, WH); }
+    else if (el < 6) { noStroke(); fill(0, 0, 0, 220); rect(0, 0, W, WH); }
+    const s = t < 0.2 ? 130 * (t / 0.2) * 1.3 : 118 + sin(el * 1.1) * 5;
+    push();
+    translate(W / 2 + random(-4, 4), WH / 2 - 30 + random(-4, 4)); rotate(-0.1);
+    textAlign(CENTER, CENTER); textStyle(BOLDITALIC); textSize(Math.max(s, 1));
+    noStroke(); fill('#ffd166'); text('K.O.!!', 8, 8);
+    stroke('#ffffff'); strokeWeight(10); fill('#ef4747');
+    text('K.O.!!', 0, 0);
+    if (t > 0.25) {
+      textSize(26); strokeWeight(6); stroke('#0d1418'); fill('#ffd166');
+      text('UPPERCUT', 0, 78);
+    }
+    pop();
+    return;
+  }
   if (el < 4) { noStroke(); fill(255, 255, 255, 255 * (1 - el / 4)); rect(0, 0, W, WH); }
-  const t = el / FREEZE;
   const s = t < 0.15 ? 92 * (t / 0.15) * 1.25 : 84 + sin(el * 0.9) * 3;
   push();
   translate(W / 2, WH / 2 - 50); rotate(-0.08);
@@ -1815,11 +1912,11 @@ bindButton('btn-c', 'c'); bindButton('btn-x', 'x');
 
 function readHuman() {
   const kd = k => keyIsDown(k);
-  const j = touch.j || kd(32) || kd(87) || kd(UP_ARROW);          // スペース / W / ↑
-  const a = touch.a || kd(74) || kd(90);                           // J / Z
-  const s = touch.s || kd(75) || kd(88);                           // K / X
-  const c = touch.c || kd(76) || kd(67);                           // L / C
-  const x = touch.x || kd(83) || kd(86);                           // S / V
+  const j = touch.j || kd(32) || kd(87) || kd(UP_ARROW);
+  const a = touch.a || kd(74) || kd(90);
+  const s = touch.s || kd(75) || kd(88);
+  const c = touch.c || kd(76) || kd(67);
+  const x = touch.x || kd(83) || kd(86);
   hin.l = st.x < -0.35 || kd(65) || kd(LEFT_ARROW);
   hin.r = st.x > 0.35 || kd(68) || kd(RIGHT_ARROW);
   hin.u = st.y < -0.55 || kd(87) || kd(UP_ARROW);
@@ -1958,7 +2055,7 @@ function buildMenus() {
   };
   document.getElementById('b-help').onclick = () => {
     howtoFrom = 'battle';
-    if (!online) scene = 'howto';          // CPU戦は一時停止（オンラインは止まらない）
+    if (!online) scene = 'howto';
     document.getElementById('sc-howto').style.display = 'flex';
   };
   document.getElementById('b-quit').onclick = () => {
