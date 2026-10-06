@@ -80,6 +80,11 @@
   .chip.red { background: #ef4747; color: #fff; } .chip.blue { background: #3a86ff; color: #fff; }
   .chip.pur { background: #9b5de5; color: #fff; } .chip.gray { background: #5b7383; color: #fff; }
   .card h3 { font-size: 15px; margin: 6px 0 2px; }
+  .namebox { width:min(560px,100%); display:flex; align-items:center; gap:10px; background:#eef3f6; color:#1d2a33; border:3px solid #0d1418; padding:9px 12px; font-weight:900; }
+  .namebox label { flex-shrink:0; font-size:13px; }
+  .namebox input { flex:1; min-width:0; padding:8px 10px; border:2px solid #5b7383; border-radius:5px; font:inherit; font-size:15px; font-weight:800; color:#1d2a33; background:#fff; }
+  .result-stats { font-size:11px; font-weight:700; color:#5b7383; margin-top:2px; }
+
 
   #game { width: 100%; max-width: 800px; display: none; flex-direction: column; align-items: center; }
   #bar { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 8px 4px; }
@@ -120,6 +125,7 @@
 
 <div id="sc-chars" class="screen" style="z-index:8">
   <div class="hd">FIGHTER</div>
+  <div class="namebox"><label for="player-name">プレイヤー名</label><input id="player-name" maxlength="12" autocomplete="off" placeholder="PLAYER"></div>
   <div id="char-grid" class="cgrid"></div>
   <div id="char-info" class="card"></div>
   <div id="cpu-opts" style="width:min(560px,100%);display:flex;flex-direction:column;gap:10px">
@@ -133,6 +139,7 @@
   <div class="hd">STAGE</div>
   <div class="stage-grid" id="stage-grid" style="width:min(560px,100%)"></div>
   <div class="optrow" style="width:min(560px,100%)"><span>武器</span><div class="seg" id="seg-wpn"></div></div>
+  <div class="optrow" style="width:min(560px,100%)"><span>残機</span><div class="seg" id="seg-stock"></div></div>
   <div class="nav"><button class="back" id="stage-back">もどる</button><button class="next" id="stage-next">バトル開始！</button></div>
 </div>
 
@@ -153,6 +160,7 @@
     <div id="lb-chars" class="cgrid"></div>
     <div id="lb-chardesc" style="margin-top:6px"></div>
   </div>
+  <div class="namebox"><label for="lb-name">あなたの名前</label><input id="lb-name" maxlength="12" autocomplete="off" placeholder="PLAYER"></div>
   <div class="card" id="lb-mem"></div>
   <div class="card" id="lb-set"></div>
   <button class="startbig" id="lb-start">バトル開始！</button>
@@ -180,13 +188,13 @@
     ・飛び道具はカウンターで防げる。爆発とKOアッパーはカウンターできない。
     <h3>スマホ</h3>
     <span class="chip">スティック</span>移動<br>
-    <span class="chip">ジャンプ</span>空中でもう1回（忍者は2回）<br>
+    <span class="chip">ジャンプ</span>空中でもう1回（忍者は2回）。<b>スティック下＋ジャンプで上段の足場から降りる</b><br>
     <span class="chip red">攻撃</span>タップで通常攻撃／長押しで溜め（溜めすぎると OVERHEAT）<br>
     <span class="chip pur">特殊</span>キャラごとの必殺技。<b>スティック上＋特殊で上必殺技</b>（復帰にも使える）<br>
     <span class="chip blue">カウンター</span>そのまま押すとカウンター、スティックを倒しながらで回避<br>
     <span class="chip gray">捨てる</span>武器を置く
     <h3>PC</h3>
-    移動：A D ／ ← →　ジャンプ：スペース ／ W ／ ↑<br>
+    移動：A D ／ ← →　ジャンプ：スペース ／ W ／ ↑　足場降り：↓＋ジャンプ<br>
     攻撃：J ／ Z　特殊：K ／ X　カウンター：L ／ C　捨てる：S ／ V<br>
     W か ↑ を押しながら特殊で上必殺技。移動キーを押しながらカウンターで回避。
   </div>
@@ -239,12 +247,13 @@ function initFirebase() {
 // ② 基本設定（数字で調整できます）
 // ========================================================
 const W = 800, WH = 450, H = 500;
-const GRAV = 0.6, MAX_STOCK = 3, MAX_PLAYERS = 6;
+const GRAV = 0.6, DEFAULT_STOCK = 3, MAX_STOCK = 5, MAX_PLAYERS = 6;
 const CH_TH = 12, CH_FULL = 50, CH_WARN = 70, CH_OVER = 100, STUN_T = 80;
 const CT_ON = 3, CT_OFF = 20, CT_END = 46, CT_COOL = 90;
 const DG_T = 18, DG_INV0 = 2, DG_INV1 = 14, DG_COOL = 40, DG_SPD = 9;
 const FREEZE = 28, FREEZE_KO = 36;
 const INTERP = 80, SEND_MS = 33;            // 通信：表示の遅らせ幅・送信間隔
+const FIXED_MS = 1000 / 60, MAX_SIM_STEPS = 5; // 端末FPSに左右されない60Hz固定更新
 const HADO_MAX = 2;
 const COLORS = ['#e63946', '#1f8ef1', '#f4a261', '#2a9d8f', '#9b5de5', '#ef476f'];
 
@@ -271,6 +280,19 @@ const CHARS = {
             ab: 'カウンターのクールタイムがとても短い。機動力もある' }
 };
 const CC = id => CHARS[id] || CHARS.karate;
+function clampInt(v, lo, hi, fallback) { const n = parseInt(v, 10); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : fallback; }
+function cleanName(v) {
+  const x = String(v || '').replace(/[<>&"'`]/g, '').replace(/\s+/g, ' ').trim().slice(0, 12);
+  return x || 'PLAYER';
+}
+function esc(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function lowestPlatformIndex() {
+  let idx = 0, best = -Infinity;
+  stage.plats.forEach((pl, i) => { if (pl.y > best) { best = pl.y; idx = i; } });
+  return idx;
+}
+function clearNetTimers() { while (netTimers.length) clearInterval(netTimers.pop()); }
+
 
 const MAPS = {
   small: { name: 'せまい闘技場', w: 800, h: 450, bg: '#d6e6f0', wpn: false,
@@ -290,6 +312,14 @@ const AI_LV = [
   { think: 4,  read: 0.85, spec: 0.28, err: 0.04 }
 ];
 const LV_NAME = ['かんたん', 'ふつう', 'つよい'];
+const AI_STYLE = {
+  karate: { counter: 1.25, special: 1.00, retreat: 0.20, aggression: 1.00 },
+  bomber: { counter: 0.85, special: 1.45, retreat: 1.30, aggression: 0.65 },
+  ninja:  { counter: 0.90, special: 1.20, retreat: 0.45, aggression: 1.35 },
+  sumo:   { counter: 0.90, special: 1.25, retreat: 0.10, aggression: 0.95 },
+  boxer:  { counter: 1.35, special: 1.10, retreat: 0.35, aggression: 1.15 }
+};
+
 
 const MOVE_DEF = {
   normal: { type: 'normal', act0: 4, act1: 8,  end: 14, reach: 28, R: 24, yo: 34, cd: 3 },
@@ -312,17 +342,19 @@ function mkMv(kind, w) {
 
 const myId = Math.random().toString(36).slice(2, 10);
 const urlRoom = new URLSearchParams(location.search).get('room');
-let settings = { cid: 'karate', cpuN: 1, cpuLv: 1, map: 'std', wpn: true };
+let settings = { cid: 'karate', cpuN: 1, cpuLv: 1, map: 'std', wpn: true, stocks: DEFAULT_STOCK, name: 'PLAYER' };
 let scene = 'title', howtoFrom = 'sc-mode', charMode = 'cpu';
 let online = false, isHost = false, roomId = null, roomRef = null;
 let memCache = {}, gmCache = null, curRound = 0, skipRound = -1, gmFirst = true;
-let nextSpawn = 0, battleStartAt = 0, aiLv = 1, battleWpn = true;
+let nextSpawn = 0, battleStartAt = 0, aiLv = 1, battleWpn = true, battleStocks = DEFAULT_STOCK;
 let stage = MAPS.std, fighters = [], bt = { phase: 'none', t: 0 }, elim = [];
 let projs = [], bombs = [], mines = [], items = {}, itemSeq = 0, itemTimer = 0, objSeq = 0;
 let particles = [], popups = [], trails = {}, flash = {}, shake = 0;
 let freezeT = 0, freezeMax = FREEZE, fzType = 'counter', fz = null, pending = null;
+let simAcc = 0;
+const netTimers = [];
 const predicted = {};
-const blankInput = () => ({ l: false, r: false, u: false, a: false, s: false, jc: 0, ac: 0, rc: 0, cc: 0, sc: 0, xc: 0 });
+const blankInput = () => ({ l: false, r: false, u: false, d: false, a: false, s: false, jc: 0, ac: 0, rc: 0, cc: 0, sc: 0, xc: 0 });
 let hin = blankInput();
 let raw = { j: false, a: false, c: false, s: false, x: false };
 
@@ -426,10 +458,8 @@ function setup() {
   if (urlRoom) document.getElementById('title-tap').innerText = 'タップしてルーム ' + urlRoom + ' に参加';
 }
 
-function draw() {
-  if (scene !== 'battle') return;
+function simulateFrame() {
   readHuman();
-
   if (bt.phase === 'count') {
     if (bt.t === 200 || bt.t === 140 || bt.t === 80) sfxCount();
     if (bt.t === 20) sfxGo();
@@ -453,22 +483,48 @@ function draw() {
     }
   }
   for (const k in flash) if (flash[k] > 0) flash[k]--;
+}
+
+function draw() {
+  if (scene !== 'battle') return;
+  simAcc += Math.min(deltaTime || FIXED_MS, 100);
+  let steps = 0;
+  while (simAcc >= FIXED_MS && steps < MAX_SIM_STEPS) {
+    simulateFrame();
+    simAcc -= FIXED_MS;
+    steps++;
+  }
+  if (steps === MAX_SIM_STEPS) simAcc = 0; // 長い停止後の暴走追いつきを防ぐ
   render();
 }
 
 // ========================================================
 // ⑤ オンライン：部屋・ロビー
 // ========================================================
+function newRoomCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const a = new Uint32Array(6);
+  if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(a);
+  else for (let i = 0; i < a.length; i++) a[i] = Math.floor(Math.random() * 0xffffffff);
+  return Array.from(a, n => chars[n % chars.length]).join('');
+}
 async function createRoom() {
   if (!initFirebase()) return;
   online = true; isHost = true;
-  roomId = Math.random().toString(36).slice(2, 7).toUpperCase();
-  roomRef = db.ref('rooms/' + roomId);
+  clearNetTimers();
+  for (let tries = 0; tries < 8; tries++) {
+    roomId = newRoomCode();
+    roomRef = db.ref('rooms/' + roomId);
+    const exists = await roomRef.child('gm').once('value');
+    if (!exists.exists()) break;
+    roomRef = null;
+  }
+  if (!roomRef) { alert('部屋コードを作れませんでした。もう一度お試しください。'); return; }
   roomRef.onDisconnect().remove();
-  await roomRef.child('gm').set({ ph: 'lobby', round: 0, map: 'std', wpn: 1, cpuN: 0, cpuLv: 1, w: '' });
+  await roomRef.child('gm').set({ ph: 'lobby', round: 0, map: 'std', wpn: 1, stocks: settings.stocks, cpuN: 0, cpuLv: 1, w: '' });
   await joinCommon();
-  setInterval(hostTick, 200);
-  setInterval(hostSpawn, 1000);
+  netTimers.push(setInterval(hostTick, 200));
+  netTimers.push(setInterval(hostSpawn, 1000));
 }
 
 async function joinRoom() {
@@ -481,12 +537,21 @@ async function joinRoom() {
 }
 
 async function joinCommon() {
-  const r = await roomRef.child('cnt').transaction(c => (c || 0) + 1);
-  const slot = r.snapshot.val() - 1;
+  const ms = await roomRef.child('mem').once('value');
+  const existing = ms.val() || {};
+  const humans = Object.values(existing).filter(m => m && !m.cpu);
+  if (!isHost && humans.length >= MAX_PLAYERS) {
+    alert('この部屋は満員です。');
+    location.href = location.href.split('?')[0];
+    return;
+  }
+  const used = new Set(humans.map(m => Number(m.slot)).filter(Number.isFinite));
+  let slot = 0; while (used.has(slot) && slot < MAX_PLAYERS) slot++;
+  if (slot >= MAX_PLAYERS) { alert('この部屋は満員です。'); return; }
   const memRef = roomRef.child('mem/' + myId);
   memRef.onDisconnect().remove();
   roomRef.child('p/' + myId).onDisconnect().remove();
-  await memRef.set({ cid: settings.cid, slot, label: 'P' + (slot + 1), cpu: 0, host: isHost ? 1 : 0 });
+  await memRef.set({ cid: settings.cid, slot, label: cleanName(settings.name), cpu: 0, host: isHost ? 1 : 0 });
 
   roomRef.child('mem').on('value', s => { memCache = s.val() || {}; if (scene === 'sc-lobby') renderLobby(); });
   roomRef.child('gm').on('value', s => onGm(s.val()));
@@ -510,7 +575,7 @@ async function joinCommon() {
     const old = new Set(Object.keys(snap.val() || {}));
     evRef.on('child_added', s => { if (!old.has(s.key)) onEvent(s.val()); });
   });
-  setInterval(sendLocal, SEND_MS);
+  netTimers.push(setInterval(sendLocal, SEND_MS));
 
   if (isHost) {
     const url = location.href.split('?')[0] + '?room=' + roomId;
@@ -531,6 +596,7 @@ async function joinCommon() {
 }
 
 function leaveRoom() {
+  clearNetTimers();
   try {
     if (roomRef) {
       if (isHost) roomRef.remove();
@@ -565,6 +631,7 @@ function lobbyMembers() {
 
 function renderLobby() {
   const g = gmCache || {};
+  const ln = document.getElementById('lb-name'); if (ln && document.activeElement !== ln) ln.value = settings.name;
   const mem = lobbyMembers().filter(m => !m.cpu);
   const total = mem.length + (g.cpuN || 0);
 
@@ -587,7 +654,7 @@ function renderLobby() {
   mem.forEach((m, i) => {
     const C = CC(m.cid);
     html += `<div class="mrow"><div class="mk" style="background:${COLORS[i % COLORS.length]}">${C.mark}</div>` +
-            `<div>${m.label}　${C.name} ${m.host ? '<span class="tag">HOST</span>' : ''} ${m.id === myId ? '<small>（あなた）</small>' : ''}</div></div>`;
+            `<div>${esc(m.label)}　${C.name} ${m.host ? '<span class="tag">HOST</span>' : ''} ${m.id === myId ? '<small>（あなた）</small>' : ''}</div></div>`;
   });
   if (g.cpuN > 0) html += `<div class="mrow"><div class="mk" style="background:#5b7383">C</div><div>CPU ×${g.cpuN}（${LV_NAME[g.cpuLv || 0]}）</div></div>`;
   if (skipRound === g.round && g.ph !== 'lobby') html += '<div class="wait">対戦中です。次のラウンドから参加できます</div>';
@@ -601,10 +668,12 @@ function renderLobby() {
     setBox.innerHTML = '<div class="sh">④ ルールを決める</div>' +
       '<div style="font-weight:900;margin-bottom:4px">ステージ</div><div class="stage-grid" id="lb-stage"></div>' +
       '<div class="optrow" style="margin-top:10px"><span>武器</span><div class="seg" id="lb-wpn"></div></div>' +
+      '<div class="optrow" style="margin-top:8px"><span>残機</span><div class="seg" id="lb-stock"></div></div>' +
       '<div class="optrow" style="margin-top:8px"><span>CPUを足す</span><div class="seg" id="lb-cpun"></div></div>' +
       '<div class="optrow" style="margin-top:8px"><span>CPUの強さ</span><div class="seg" id="lb-cpulv"></div></div>';
     renderStageGrid('lb-stage', g.map, id => roomRef.child('gm').update({ map: id, wpn: MAPS[id].wpn ? 1 : 0 }));
     seg('lb-wpn', ['あり', 'なし'], () => g.wpn ? 0 : 1, i => roomRef.child('gm').update({ wpn: i === 0 ? 1 : 0 }));
+    seg('lb-stock', ['1', '2', '3', '4', '5'], () => clampInt(g.stocks, 1, MAX_STOCK, DEFAULT_STOCK) - 1, i => roomRef.child('gm').update({ stocks: i + 1 }));
     const maxCpu = Math.max(0, Math.min(3, MAX_PLAYERS - mem.length));
     const labels = []; for (let i = 0; i <= maxCpu; i++) labels.push(i === 0 ? 'なし' : i + '体');
     seg('lb-cpun', labels, () => Math.min(g.cpuN || 0, maxCpu), i => roomRef.child('gm').update({ cpuN: i }));
@@ -615,7 +684,7 @@ function renderLobby() {
     else { startBtn.className = 'startbig off'; startBtn.innerText = 'あと1人必要（CPUを足してもOK）'; }
   } else {
     setBox.innerHTML = '<div class="sh">④ ルール（ホストが決めます）</div>' +
-      `ステージ：<b>${(MAPS[g.map] || MAPS.std).name}</b>　武器：<b>${g.wpn ? 'あり' : 'なし'}</b>　CPU：<b>${g.cpuN ? g.cpuN + '体' : 'なし'}</b>`;
+      `ステージ：<b>${(MAPS[g.map] || MAPS.std).name}</b>　武器：<b>${g.wpn ? 'あり' : 'なし'}</b>　残機：<b>${clampInt(g.stocks,1,MAX_STOCK,DEFAULT_STOCK)}</b>　CPU：<b>${g.cpuN ? g.cpuN + '体' : 'なし'}</b>`;
     startBtn.style.display = 'none';
     waitEl.style.display = 'block';
     waitEl.innerText = 'ホストがバトルを始めるのを待っています…';
@@ -635,7 +704,7 @@ async function hostStart() {
   upd['items'] = null;
   await roomRef.update(upd);
   nextSpawn = Date.now() + 6000;
-  await roomRef.child('gm').set({ ...g, ph: 'play', round: (g.round || 0) + 1, w: '' });
+  await roomRef.child('gm').set({ ...g, stocks: clampInt(g.stocks, 1, MAX_STOCK, DEFAULT_STOCK), ph: 'play', round: (g.round || 0) + 1, w: '' });
 }
 
 function hostTick() {
@@ -671,7 +740,8 @@ function stateOf(f) {
     a: f.a, mk: f.mv ? f.mv.kind : '', ch: f.ch, ct: f.ct, cs: f.cs, stn: f.stn > 0 ? 1 : 0, dg: f.dg > 0 ? 1 : 0,
     iv: isInvuln(f) ? 1 : 0, kb: f.kb > 0 ? 1 : 0, w: f.w || '', sh: f.sh > 0 ? 1 : 0, sph: f.sph, ri: f.rise > 0 ? 1 : 0,
     am: f.arm > 0 ? 1 : 0, cid: f.cid,
-    d: Math.round(f.d), s: f.s, o: f.out ? 1 : 0, ko: Math.round(f.ko), g: f.g ? 1 : 0, rd: curRound, ts: Date.now() };
+    d: Math.round(f.d), s: f.s, o: f.out ? 1 : 0, ko: Math.round(f.ko), g: f.g ? 1 : 0,
+    stats: f.stats || null, rd: curRound, ts: Date.now() };
 }
 
 function sendLocal() {
@@ -714,7 +784,7 @@ function updateRemote() {
     }
     Object.assign(f, { x, y, r, vx: s.vx, f: s.f, a: s.a, ch: s.ch, ct: s.ct, cs: s.cs, stn: s.stn, dg: s.dg,
       ivf: s.iv, kb: s.kb, w: s.w || null, sh: s.sh, sph: s.sph, rise: s.ri, arm: s.am || 0, cid: s.cid || f.cid,
-      d: s.d, s: s.s, ko: s.ko, g: s.g });
+      d: s.d, s: s.s, ko: s.ko, g: s.g, stats: s.stats || f.stats });
     f.mv = mkMv(s.mk, s.w);
     if (s.o && !f.out) { f.out = true; if (!elim.includes(f.id)) elim.push(f.id); }
     while (f.buf.length > 2 && f.buf[1].ts < rt - 300) f.buf.shift();
@@ -753,12 +823,12 @@ function onEvent(e) {
 function startBattleOffline() {
   online = false;
   const keys = Object.keys(CHARS);
-  const list = [{ id: myId, cid: settings.cid, label: 'P1', cpu: 0, owner: myId }];
+  const list = [{ id: myId, cid: settings.cid, label: cleanName(settings.name), cpu: 0, owner: myId }];
   for (let i = 0; i < settings.cpuN; i++) {
     list.push({ id: 'cpu' + i, cid: keys[Math.floor(Math.random() * keys.length)], label: 'CPU' + (i + 1), cpu: 1, owner: myId });
   }
   aiLv = settings.cpuLv;
-  startBattleCommon(list, settings.map, settings.wpn);
+  startBattleCommon(list, settings.map, settings.wpn, settings.stocks);
 }
 
 function startBattleOnline() {
@@ -766,12 +836,14 @@ function startBattleOnline() {
   const list = lobbyMembers().map(m => ({ id: m.id, cid: m.cid, label: m.label, cpu: m.cpu, owner: m.cpu ? m.owner : m.id }));
   aiLv = g.cpuLv || 0;
   items = {};
-  startBattleCommon(list, g.map, !!g.wpn);
+  startBattleCommon(list, g.map, !!g.wpn, g.stocks);
 }
 
-function startBattleCommon(list, mapId, wpn) {
+function startBattleCommon(list, mapId, wpn, stocks) {
   stage = MAPS[mapId] || MAPS.std;
   battleWpn = wpn;
+  battleStocks = clampInt(stocks, 1, MAX_STOCK, DEFAULT_STOCK);
+  simAcc = 0;
   projs = []; bombs = []; mines = []; particles = []; popups = []; trails = {}; flash = {};
   if (!online) items = {};
   elim = []; freezeT = 0; pending = null; shake = 0; itemTimer = 240;
@@ -792,9 +864,10 @@ function makeFighter(m, i) {
   return { id: m.id, cid: m.cid, c: COLORS[i % COLORS.length], cpu: !!m.cpu, label: m.label, owner: m.owner,
     remote: online && m.owner !== myId, buf: [], off: null, ivf: 0,
     x: 0, y: 0, vx: 0, vy: 0, g: true, f: 1,
-    d: 0, s: MAX_STOCK, kb: 0, r: 0, a: 0, mv: null, ch: 0, cd: 0, ct: 0, cs: 0, ctc: 0, stn: 0,
+    d: 0, s: battleStocks, kb: 0, r: 0, a: 0, mv: null, ch: 0, cd: 0, ct: 0, cs: 0, ctc: 0, stn: 0,
     dg: 0, dgd: 1, dgc: 0, qa: 0, airDg: false, inv: 0, jn: 0, out: false, hit: {},
     w: null, am: 0, sh: 0, plk: 0, spc: 0, sph: 0, ko: 0, rec: false, rise: 0, arm: 0,
+    groundPl: -1, dropPl: -1, dropT: 0, stats: { dealt: 0, deaths: 0, counters: 0, dodges: 0 },
     prev: blankInput(), ai: m.cpu ? { inp: blankInput(), t: 40, hold: 0, shold: 0 } : null };
 }
 
@@ -814,10 +887,11 @@ function showResult() {
   for (const f of fighters) if (!order.includes(f)) order.push(f);
   const win = bt.winner ? byId(bt.winner) : null;
   const rw = document.getElementById('res-win');
-  rw.innerText = !win ? 'DRAW' : (win.id === myId ? 'YOU WIN!' : win.label + ' WIN');
+  rw.innerText = !win ? 'DRAW' : (win.id === myId ? 'YOU WIN!' : cleanName(win.label) + ' WIN');
   rw.style.color = win ? win.c : '#ffffff';
   document.getElementById('res-list').innerHTML = order.map((f, i) =>
-    `<div class="rk"><div class="no">${i + 1}</div><div class="mk" style="background:${f.c}">${CC(f.cid).mark}</div><div>${f.label}　${CC(f.cid).name}</div></div>`).join('');
+    `<div class="rk"><div class="no">${i + 1}</div><div class="mk" style="background:${f.c}">${CC(f.cid).mark}</div><div>${esc(f.label)}　${CC(f.cid).name}` +
+    `<div class="result-stats">与ダメ ${Math.round(f.stats?.dealt || 0)}% ／ ミス ${f.stats?.deaths || 0} ／ カウンター ${f.stats?.counters || 0} ／ 回避 ${f.stats?.dodges || 0}</div></div></div>`).join('');
 
   const rc = document.getElementById('res-chars'), rt = document.getElementById('res-title');
   if (online) {
@@ -851,7 +925,7 @@ function applyCharChange(id) {
 // ========================================================
 // ⑧ キャラの動き
 // ========================================================
-const TIMERS = ['inv', 'cd', 'cs', 'ctc', 'dgc', 'sh', 'plk', 'spc', 'rise', 'arm'];
+const TIMERS = ['inv', 'cd', 'cs', 'ctc', 'dgc', 'sh', 'plk', 'spc', 'rise', 'arm', 'dropT'];
 
 function clearActs(p) { p.a = 0; p.mv = null; p.ch = 0; p.ct = 0; p.dg = 0; p.qa = 0; p.sh = 0; p.sph = 0; p.arm = 0; }
 function isInvuln(p) { return p.remote ? !!p.ivf : (p.inv > 0 || (p.dg >= DG_INV0 && p.dg <= DG_INV1)); }
@@ -1006,7 +1080,10 @@ function stepFighter(p, inp) {
     if (dir !== 0 && p.a === 0) p.f = dir;
 
     if (jp) {
-      if (p.g) { p.vy = -12.5 * C.jump; p.g = false; p.jn = 1; if (!p.cpu) sfxJump(); }
+      // 下＋ジャンプ：上段の足場だけをすり抜ける。最下段は床扱いで降りられない。
+      if (p.g && inp.d && p.groundPl >= 0 && p.groundPl !== lowestPlatformIndex()) {
+        p.dropPl = p.groundPl; p.dropT = 12; p.g = false; p.groundPl = -1; p.y += 7; p.vy = 2.2;
+      } else if (p.g) { p.vy = -12.5 * C.jump; p.g = false; p.groundPl = -1; p.jn = 1; if (!p.cpu) sfxJump(); }
       else if (p.jn < C.jumps) { p.vy = -11 * C.jump; p.jn++; if (!p.cpu) sfxJump(); burst(p.x, p.y, 6, 3, '#ffffff', 6); }
     }
 
@@ -1014,7 +1091,7 @@ function stepFighter(p, inp) {
     if (cp && p.a === 0) {
       if (dir !== 0) {
         if (p.dgc === 0 && (p.g || !p.airDg)) {
-          p.dg = 1; p.dgd = dir;
+          p.dg = 1; p.dgd = dir; p.stats.dodges++;
           if (!p.g) p.airDg = true;
           sfxDodge(); acted = true;
         }
@@ -1054,13 +1131,17 @@ function stepFighter(p, inp) {
   const prevY = p.y;
   p.x += p.vx;
   p.y += p.vy;
-  p.g = false;
-  for (const pl of stage.plats) {
+  p.g = false; p.groundPl = -1;
+  for (let pi = 0; pi < stage.plats.length; pi++) {
+    const pl = stage.plats[pi];
+    if (p.dropT > 0 && p.dropPl === pi) continue;
     if (p.vy >= 0 && p.x > pl.x - 6 && p.x < pl.x + pl.w + 6 && prevY <= pl.y && p.y >= pl.y) {
-      p.y = pl.y; p.vy = 0; p.g = true; p.jn = 0; p.airDg = false; p.rec = false;
+      p.y = pl.y; p.vy = 0; p.g = true; p.groundPl = pi; p.jn = 0; p.airDg = false; p.rec = false;
       if (p.kb > 0) { p.kb = Math.min(p.kb, 6); p.vx *= 0.6; }
+      break;
     }
   }
+  if (p.dropT === 0) p.dropPl = -1;
 
   if (p.x < -120 || p.x > stage.w + 120 || p.y > stage.h + 160 || p.y < -300) { koFighter(p); return; }
 
@@ -1074,6 +1155,7 @@ function stepFighter(p, inp) {
 }
 
 function koFighter(p) {
+  p.stats.deaths++;
   const e = { k: 'ko', id: p.id, x: Math.round(constrain(p.x, 0, stage.w)), y: Math.round(constrain(p.y, 0, stage.h)), c: p.c, out: p.s <= 1 ? 1 : 0 };
   koFx(e); send(e);
   p.s--;
@@ -1140,11 +1222,11 @@ function resolveMelee(A, t) {
   const h = { dm: mv.dm, k0: mv.k0, ks: mv.ks, up: mv.up, f: A.f };
   const bk = mv.kind !== 'upper' && t.ct > 0 && (mv.type === 'normal' || !front);
   if (!bk && mv.type === 'normal' && isArmored(t)) {
-    armorHit(t, h);
+    armorHit(t, h, A.id);
     emitFx({ res: 'armor', t: t.id, a: A.id, x: t.x, y: ty, gain: 4 });
     return;
   }
-  const kb = applyHit(t, h, bk);
+  const kb = applyHit(t, h, bk, A.id);
   emitFx({ res: 'hit', t: t.id, a: A.id, x: t.x, y: ty, kb: Math.round(kb * 10) / 10, bk: bk ? 1 : 0, up: mv.kind === 'upper' ? 1 : 0, c: t.c, gain: 8 });
 }
 
@@ -1154,19 +1236,21 @@ function resolveProj(Q, t) {
   const front = fromFront(t, Q.x) || CC(t.cid).back;
   if (inCounter(t) && front) { emitFx({ res: 'block', t: t.id, a: Q.o, x: Q.x, y: ty }); return; }
   const h = { dm: Q.dm, k0: Q.k0, ks: Q.ks, up: Q.up, f: Math.sign(Q.vx) || 1 };
-  if (isArmored(t)) { armorHit(t, h); emitFx({ res: 'armor', t: t.id, a: Q.o, x: t.x, y: ty, gain: 3 }); return; }
-  const kb = applyHit(t, h, false);
+  if (isArmored(t)) { armorHit(t, h, Q.o); emitFx({ res: 'armor', t: t.id, a: Q.o, x: t.x, y: ty, gain: 3 }); return; }
+  const kb = applyHit(t, h, false, Q.o);
   emitFx({ res: 'hit', t: t.id, a: Q.o, x: t.x, y: ty, kb: Math.round(kb * 10) / 10, bk: 0, up: 0, c: t.c, gain: 5 });
 }
 
-function armorHit(t, h) {
-  t.d += h.dm;
+function addDealt(attackerId, dm) { const a = byId(attackerId); if (a && a.stats) a.stats.dealt += Math.max(0, dm || 0); }
+
+function armorHit(t, h, attackerId) {
+  t.d += h.dm; addDealt(attackerId, h.dm);
   gainKO(t, h.dm * 1.2);
 }
 
-function applyHit(t, h, bk) {
+function applyHit(t, h, bk, attackerId) {
   const C = CC(t.cid), m = bk ? 1.4 : 1;
-  t.d += h.dm * m;
+  t.d += h.dm * m; addDealt(attackerId, h.dm * m);
   gainKO(t, h.dm * 1.2);
   const kb = (h.k0 + t.d * h.ks) * m * C.wt;
   t.vx = h.f * kb;
@@ -1214,6 +1298,7 @@ function playFx(e, remote) {
 }
 
 function startCounter(A, t, mv) {
+  if (t.stats) t.stats.counters++;
   const e = { k: 'ctr', att: A.id, cnt: t.id, dm: 6 + mv.dm * 0.4, kb0: 9 + mv.k0 * 0.45,
               dir: Math.sign(A.x - t.x) || -A.f, x: Math.round((A.x + t.x) / 2), y: Math.round(t.y - 34 * CC(t.cid).size) };
   doCounter(e); send(e);
@@ -1448,7 +1533,7 @@ function explode(x, y, R, ownerId) {
     if (Math.hypot(f.x - x, (f.y - 30 * CC(f.cid).size) - y) < R) {
       const h = { dm: 14, k0: 9, ks: 0.085, up: 0.9, f: Math.sign(f.x - x) || 1 };
       if (f.id === ownerId && f.cid === 'bomber') { h.dm *= 0.5; h.k0 *= 0.6; }
-      applyHit(f, h, false);
+      applyHit(f, h, false, ownerId);
       flash[f.id] = 6;
     }
   }
@@ -1520,7 +1605,7 @@ function aiStep(p) {
   A.t = L.think + Math.floor(Math.random() * L.think);
   if (A.hold > 0 || A.shold > 0) return;
   I.l = false; I.r = false; I.u = false;
-  const C = CC(p.cid);
+  const C = CC(p.cid), P = AI_STYLE[p.cid] || AI_STYLE.karate;
 
   if (!overGround(p)) {
     I[p.x < stageMid() ? 'r' : 'l'] = true;
@@ -1543,7 +1628,7 @@ function aiStep(p) {
     if (p.ctc === 0 && p.ch === 0 && p.a === 0) I.cc++; else I.jc++;
     return;
   }
-  if (Math.random() < L.read) {
+  if (Math.random() < Math.min(1, L.read * P.counter)) {
     if (adx < 130 && t.cid === 'boxer' && (t.ko >= 100 || (t.mv && t.mv.kind === 'upper')) && Math.random() < 0.5) {
       I[away] = true; if (p.dgc === 0) I.cc++; return;
     }
@@ -1562,13 +1647,15 @@ function aiStep(p) {
   if (p.w === 'gun' && adx < 420 && Math.abs(dy) < 50) { I[face] = true; aiTap(I, A); return; }
   if ((p.cid === 'karate' || p.cid === 'ninja' || p.cid === 'bomber') && p.spc === 0 && Math.abs(dy) < 70) {
     const lo = p.cid === 'ninja' ? 60 : 110, hi = p.cid === 'ninja' ? 260 : 420;
-    if (adx > lo && adx < hi && Math.random() < L.spec * 2) {
+    if (adx > lo && adx < hi && Math.random() < L.spec * 2 * P.special) {
       I[face] = true;
       aiSpecial(I, A, p.cid === 'bomber' && Math.random() < 0.25 ? 22 : 2);
       return;
     }
   }
-  if (adx > 46) I[face] = true;
+  if (p.cid === 'bomber' && adx < 115 && Math.random() < 0.55 * P.retreat) I[away] = true;
+  else if (p.cid === 'sumo' && Math.abs(p.x - stageMid()) > 160 && adx > 120) I[p.x < stageMid() ? 'r' : 'l'] = true;
+  else if (adx > (46 / P.aggression)) I[face] = true;
   if (dy < -70 && adx < 180 && Math.random() < 0.6) I.jc++;
   if (adx < 64 && Math.abs(dy) < 50) {
     I[face] = true;
@@ -1636,7 +1723,7 @@ function drawHUD() {
     textSize(w < 120 ? 18 : 24); fill(dmgColor(p.d)); stroke('#0d1418'); strokeWeight(3);
     text(`${Math.round(p.d)}%`, x + 40, y + 27);
     noStroke();
-    for (let k = 0; k < MAX_STOCK; k++) {
+    for (let k = 0; k < battleStocks; k++) {
       fill(k < p.s ? p.c : 'rgba(255,255,255,0.15)');
       circle(x + w - 10 - k * 10, y + 10, 7);
     }
@@ -2067,12 +2154,20 @@ stickEl.addEventListener('pointercancel', endStick);
 
 function bindButton(id, key) {
   const b = document.getElementById(id);
-  const on = e => { e.preventDefault(); touch[key] = true; b.classList.add('on'); };
-  const off = e => { e.preventDefault(); touch[key] = false; b.classList.remove('on'); };
+  let pid = null;
+  const on = e => {
+    e.preventDefault(); pid = e.pointerId;
+    try { b.setPointerCapture(e.pointerId); } catch (_) {}
+    touch[key] = true; b.classList.add('on');
+  };
+  const off = e => {
+    if (e.type !== 'lostpointercapture' && pid !== null && e.pointerId !== pid) return;
+    if (e.preventDefault) e.preventDefault(); pid = null; touch[key] = false; b.classList.remove('on');
+  };
   b.addEventListener('pointerdown', on);
   b.addEventListener('pointerup', off);
   b.addEventListener('pointercancel', off);
-  b.addEventListener('pointerleave', off);
+  b.addEventListener('lostpointercapture', off);
 }
 bindButton('btn-j', 'j'); bindButton('btn-a', 'a'); bindButton('btn-s', 's');
 bindButton('btn-c', 'c'); bindButton('btn-x', 'x');
@@ -2087,6 +2182,7 @@ function readHuman() {
   hin.l = st.x < -0.35 || kd(65) || kd(LEFT_ARROW);
   hin.r = st.x > 0.35 || kd(68) || kd(RIGHT_ARROW);
   hin.u = st.y < -0.55 || kd(87) || kd(UP_ARROW);
+  hin.d = st.y > 0.55 || kd(DOWN_ARROW);
   if (j && !raw.j) hin.jc++;
   if (a && !raw.a) hin.ac++;
   if (!a && raw.a) hin.rc++;
@@ -2138,7 +2234,7 @@ function renderStageGrid(elId, current, onPick) {
   }
 }
 
-let renderChars = null, renderWpnSeg = null;
+let renderChars = null, renderWpnSeg = null, renderStockSeg = null;
 
 function openChars(mode) {
   charMode = mode;
@@ -2183,6 +2279,19 @@ function buildMenus() {
   });
   renderStages();
   renderWpnSeg = seg('seg-wpn', ['あり', 'なし'], () => settings.wpn ? 0 : 1, i => settings.wpn = i === 0);
+  renderStockSeg = seg('seg-stock', ['1', '2', '3', '4', '5'], () => settings.stocks - 1, i => settings.stocks = i + 1);
+
+  const nameInput = document.getElementById('player-name');
+  const lobbyName = document.getElementById('lb-name');
+  nameInput.value = settings.name; lobbyName.value = settings.name;
+  const applyName = v => {
+    settings.name = cleanName(v); nameInput.value = settings.name; lobbyName.value = settings.name;
+    if (online && roomRef) roomRef.child('mem/' + myId).update({ label: settings.name });
+  };
+  nameInput.addEventListener('change', e => applyName(e.target.value));
+  nameInput.addEventListener('blur', e => applyName(e.target.value));
+  lobbyName.addEventListener('change', e => applyName(e.target.value));
+  lobbyName.addEventListener('blur', e => applyName(e.target.value));
 
   document.getElementById('sc-title').onclick = () => {
     if (urlRoom && !online) joinRoom();          // QRから来た人はそのまま部屋へ
