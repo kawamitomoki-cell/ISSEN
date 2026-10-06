@@ -258,13 +258,13 @@ const DG_T = 18, DG_INV0 = 2, DG_INV1 = 14, DG_COOL = 40, DG_SPD = 9;
 const FREEZE = 28, FREEZE_KO = 36;
 const INTERP = 80, SEND_MS = 33;            // 通信：表示の遅らせ幅・送信間隔
 const FIXED_MS = 1000 / 60, MAX_SIM_STEPS = 5; // 端末FPSに左右されない60Hz固定更新
-const HADO_MAX = 2;
+// 波動拳は同時発射数の制限なし
 const COLORS = ['#e63946', '#1f8ef1', '#f4a261', '#2a9d8f', '#9b5de5', '#ef476f'];
 
 const CHARS = {
   karate: { name: '格闘家', en: 'KARATE', mark: '空', spd: 1.0, jump: 1.0, jumps: 2, wt: 1.0, pow: 1.0, size: 1.0,
             ctx: 14, back: true, ctc: 1.0, dgc: 1.0, dgs: 1.0, st: [3, 3, 3],
-            sp: '波動拳：遅い気弾を連続で撃てる（画面に2発まで）', up: '昇龍拳：飛び上がりながらアッパー',
+            sp: '波動拳：遅い気弾を好きなだけ連続で撃てる', up: '昇龍拳：炎をまとって高く飛び上がる強力なアッパー',
             ab: 'カウンターの受付が長く、背後からの攻撃も返せる' },
   bomber: { name: '爆弾魔', en: 'BOMBER', mark: '爆', spd: 0.95, jump: 1.0, jumps: 2, wt: 1.05, pow: 0.9, size: 1.0,
             ctx: 0, back: false, ctc: 1.0, dgc: 1.0, dgs: 1.0, st: [3, 2, 3],
@@ -276,7 +276,7 @@ const CHARS = {
             ab: '3段ジャンプ。足がとても速い。でも軽い' },
   sumo:   { name: '力士', en: 'SUMO', mark: '力', spd: 0.78, jump: 0.88, jumps: 2, wt: 0.65, pow: 1.2, size: 1.22,
             ctx: 0, back: false, ctc: 1.0, dgc: 1.2, dgs: 0.85, st: [1, 5, 5],
-            sp: '張り手：溜め攻撃級の一撃をすぐ出せる（クールタイム約2.5秒）', up: '突き上げ：アーマー付きで飛び上がり、頭上を突く',
+            sp: '張り手：溜め攻撃級の一撃をすぐ出せる（クールタイム約2.5秒）', up: 'どすこいジャンプ：アーマー付きで飛び上がる復帰技（攻撃判定なし）',
             ab: '動きは遅いが、とても吹っ飛びにくい' },
   boxer:  { name: 'ボクサー', en: 'BOXER', mark: '拳', spd: 1.15, jump: 0.95, jumps: 2, wt: 1.0, pow: 1.05, size: 1.0,
             ctx: 0, back: false, ctc: 0.35, dgc: 0.9, dgs: 1.0, st: [4, 4, 3],
@@ -977,7 +977,6 @@ function startSpecial(p) {
   if (p.spc > 0 && p.cid !== 'boxer') { if (!p.cpu) sfxNo(); return; }
   const C = CC(p.cid);
   if (p.cid === 'karate') {
-    if (projs.filter(q => q.o === p.id && q.kind === 'hado').length >= HADO_MAX) { if (!p.cpu) sfxNo(); return; }
     spawnProj(p, 'hado'); p.spc = 22; p.sh = 12; sfxHado();
   } else if (p.cid === 'ninja') {
     spawnProj(p, 'shuri'); p.spc = 9; p.sh = 6; sfxShuri();
@@ -999,16 +998,20 @@ function upSpecial(p, dir) {
   const C = CC(p.cid);
   p.rec = true; p.jn = C.jumps; p.rise = 20; p.g = false; p.hit = {};
   if (p.cid === 'karate') {
-    p.vy = -14; p.vx += p.f * 2;
-    p.mv = { ...mkMv('shoryu'), dm: 9 * C.pow, k0: 7 * C.pow, ks: 0.07, up: 1.25 }; p.a = 1;
+    // 強化版・昇龍拳：高火力＋強い上方向吹っ飛ばし
+    p.vy = -15.2; p.vx += p.f * 2.6;
+    p.mv = { ...mkMv('shoryu'), dm: 15 * C.pow, k0: 11 * C.pow, ks: 0.10, up: 1.45, R: 34, yo: 56 }; p.a = 1;
+    burst(p.x + p.f * 8, p.y - 30, 10, 4.5, '#ff8c3a', 12);
+    ring(p.x + p.f * 8, p.y - 34, 16, 12);
     sfxRise();
   } else if (p.cid === 'boxer') {
     p.vy = -13.5;
     p.mv = { ...mkMv('jupper'), dm: 7 * C.pow, k0: 6 * C.pow, ks: 0.06, up: 1.3 }; p.a = 1;
     sfxRise();
   } else if (p.cid === 'sumo') {
+    // 復帰専用。見た目のモーションは残すが攻撃判定は一切出さない
     p.vy = -12.5; p.arm = 16;
-    p.mv = { ...mkMv('tsuki'), dm: 12 * C.pow, k0: 10 * C.pow, ks: 0.09, up: 1.1 }; p.a = 1;
+    p.mv = { ...mkMv('tsuki'), noHit: true, dm: 0, k0: 0, ks: 0, up: 0 }; p.a = 1;
     sfxWindup();
   } else if (p.cid === 'bomber') {
     p.vy = -15.5;
@@ -1196,7 +1199,9 @@ function localHitFx(tid, x, y, kb) {
 
 function meleeCheck(a) {
   if (!isLocal(a) || a.out || !isActive(a)) return;
-  const mv = a.mv, asz = CC(a.cid).size;
+  const mv = a.mv;
+  if (mv.noHit) return;
+  const asz = CC(a.cid).size;
   const hx = a.x + a.f * mv.reach * asz, hy = a.y - mv.yo * asz, R = mv.R * asz;
   for (const t of fighters) {
     if (t === a || t.out || a.hit[t.id]) continue;
@@ -2005,8 +2010,17 @@ function drawFighter(p) {
       if (act) {
         noFill(); strokeWeight(7);
         if (mv.kind === 'shoryu') {
-          stroke(255, 140, 60, 230); arc(p.f * 6, -24, 60, 74, -PI * 0.9, -PI * 0.1);
-          noStroke(); fill(255, 200, 80, 190); circle(p.f * 8, -40, 20);
+          // 昇龍拳らしい縦方向の炎の軌跡
+          stroke(255, 105, 35, 235); strokeWeight(9);
+          arc(p.f * 5, -22, 70, 90, -PI * 0.92, -PI * 0.08);
+          stroke(255, 190, 60, 225); strokeWeight(5);
+          arc(p.f * 7, -26, 50, 76, -PI * 0.9, -PI * 0.1);
+          noStroke();
+          fill(255, 235, 130, 235); circle(p.f * 9, -43, 24);
+          fill(255, 110, 40, 180);
+          circle(-p.f * 5, 7, 14 + sin(frameCount * 0.8) * 3);
+          circle(p.f * 1, -7, 11 + sin(frameCount * 1.1) * 2);
+          circle(-p.f * 2, -20, 8 + sin(frameCount * 1.3) * 2);
         } else if (mv.kind === 'tsuki') {
           stroke(255, 255, 255, 220); strokeWeight(6); arc(0, -46, 72, 40, -PI, 0);
           noStroke(); fill(col); ellipse(p.f * 6, -44, 16, 22);
