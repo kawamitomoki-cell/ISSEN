@@ -20,44 +20,49 @@
 
   .screen {
     position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center;
-    gap: 12px; padding: 16px; z-index: 5; overflow-y: auto;
+    gap: 12px; padding: 16px; z-index: 5; overflow-y: auto; touch-action: pan-y;
     background: repeating-linear-gradient(-35deg, #16212a 0 22px, #1a2731 22px 44px);
   }
+  #sc-lobby { justify-content: flex-start; }
   .logo {
     font-size: clamp(56px, 17vw, 120px); font-weight: 900; font-style: italic; line-height: 0.9; text-align: center;
     color: #ffd166; -webkit-text-stroke: 3px #0d1418; text-shadow: 7px 7px 0 #ef4747; letter-spacing: 2px;
   }
-  .tap { font-weight: 900; font-size: 18px; animation: blink 1.2s infinite; margin-top: 24px; }
+  .tap { font-weight: 900; font-size: 18px; animation: blink 1.2s infinite; margin-top: 24px; text-align: center; }
   @keyframes blink { 50% { opacity: 0.15; } }
-  .hd { font-size: 24px; font-weight: 900; font-style: italic; color: #fff; background: #ef4747; padding: 4px 26px; transform: skewX(-12deg); border: 3px solid #0d1418; }
+  .hd { font-size: 24px; font-weight: 900; font-style: italic; color: #fff; background: #ef4747; padding: 4px 26px; transform: skewX(-12deg); border: 3px solid #0d1418; flex-shrink: 0; }
   .big {
     width: min(440px, 100%); padding: 14px 20px; border: 3px solid #0d1418; background: #eef3f6; color: #1d2a33;
     font-weight: 900; font-size: 21px; text-align: left; transform: skewX(-8deg); display: flex; flex-direction: column; gap: 2px;
   }
   .big small { font-size: 12px; color: #5b7383; }
   .big:active { background: #ffd166; }
-  #char-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: min(560px, 100%); }
+  .cgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; }
+  #char-grid { width: min(560px, 100%); }
   .ci {
     aspect-ratio: 1; border: 3px solid #0d1418; background: #24323c; color: #fff; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; font-weight: 900; font-size: clamp(24px, 7vw, 38px); line-height: 1.1;
+    align-items: center; justify-content: center; font-weight: 900; font-size: clamp(22px, 7vw, 38px); line-height: 1.1;
   }
   .ci small { font-size: 10px; }
   .ci.sel { background: #ef4747; outline: 3px solid #ffd166; }
-  .card { width: min(560px, 100%); background: #eef3f6; color: #1d2a33; padding: 12px; font-size: 13px; line-height: 1.6; border: 3px solid #0d1418; }
+  .card { width: min(560px, 100%); background: #eef3f6; color: #1d2a33; padding: 12px; font-size: 13px; line-height: 1.6; border: 3px solid #0d1418; flex-shrink: 0; }
   .card .nm { font-size: 18px; font-weight: 900; }
+  .sh { font-weight: 900; font-size: 15px; color: #ef4747; margin-bottom: 6px; }
   .stat { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; }
   .stat b { width: 52px; }
   .gauge { flex: 1; height: 7px; background: #d3dde3; }
   .gauge i { display: block; height: 100%; background: #ef4747; }
-  .optrow { width: min(560px, 100%); display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 14px; }
+  .optrow { width: 100%; display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 14px; }
   .optrow > span { width: 84px; flex-shrink: 0; }
   .seg { display: flex; gap: 6px; flex: 1; }
   .seg button { flex: 1; padding: 9px 4px; border: 2px solid #0d1418; background: #e8eef2; color: #1d2a33; font-weight: 900; font-size: 13px; }
   .seg button.sel { background: #ffd166; }
-  .nav { width: min(560px, 100%); display: flex; gap: 10px; }
+  .nav { width: min(560px, 100%); display: flex; gap: 10px; flex-shrink: 0; }
   .nav button { flex: 1; padding: 13px; font-weight: 900; font-size: 16px; border: 3px solid #0d1418; transform: skewX(-8deg); }
   .nav .back { background: #5b7383; color: #fff; }
   .nav .next { background: #ef4747; color: #fff; }
+  .startbig { width: min(560px, 100%); padding: 16px; font-size: 22px; font-weight: 900; background: #ef4747; color: #fff; border: 3px solid #0d1418; transform: skewX(-8deg); flex-shrink: 0; }
+  .startbig.off { background: #8a9aa5; font-size: 15px; }
   .stage-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
   .stc { border: 3px solid #0d1418; background: #eef3f6; color: #1d2a33; padding: 5px; font-weight: 900; font-size: 11px; display: flex; flex-direction: column; gap: 4px; }
   .stc.sel { background: #ffd166; }
@@ -68,8 +73,9 @@
   .mk { width: 34px; height: 34px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; flex-shrink: 0; }
   .mrow { display: flex; align-items: center; gap: 10px; padding: 4px 0; font-weight: 900; }
   .mrow small { color: #5b7383; }
-  .wait { font-weight: 900; color: #ffd166; animation: blink 1.4s infinite; }
-  #lb-qr { background: #fff; padding: 6px; display: inline-block; }
+  .tag { background: #1d2a33; color: #ffd166; font-size: 10px; padding: 1px 6px; border-radius: 4px; }
+  .wait { font-weight: 900; color: #ffd166; animation: blink 1.4s infinite; text-align: center; }
+  #lb-qr { background: #fff; padding: 8px; display: inline-block; }
   .chip { display: inline-block; padding: 0 8px; border-radius: 10px; border: 2px solid #1d2a33; font-weight: 900; font-size: 12px; margin-right: 4px; background: #e8eef2; }
   .chip.red { background: #ef4747; color: #fff; } .chip.blue { background: #3a86ff; color: #fff; }
   .chip.pur { background: #9b5de5; color: #fff; } .chip.gray { background: #5b7383; color: #fff; }
@@ -112,9 +118,9 @@
   <button class="big" id="go-howto">あそびかた<small>操作と三すくみのルール</small></button>
 </div>
 
-<div id="sc-chars" class="screen">
+<div id="sc-chars" class="screen" style="z-index:8">
   <div class="hd">FIGHTER</div>
-  <div id="char-grid"></div>
+  <div id="char-grid" class="cgrid"></div>
   <div id="char-info" class="card"></div>
   <div id="cpu-opts" style="width:min(560px,100%);display:flex;flex-direction:column;gap:10px">
     <div class="optrow"><span>CPUの数</span><div class="seg" id="seg-cpun"></div></div>
@@ -126,20 +132,31 @@
 <div id="sc-stage" class="screen">
   <div class="hd">STAGE</div>
   <div class="stage-grid" id="stage-grid" style="width:min(560px,100%)"></div>
-  <div class="optrow"><span>武器</span><div class="seg" id="seg-wpn"></div></div>
+  <div class="optrow" style="width:min(560px,100%)"><span>武器</span><div class="seg" id="seg-wpn"></div></div>
   <div class="nav"><button class="back" id="stage-back">もどる</button><button class="next" id="stage-next">バトル開始！</button></div>
 </div>
 
 <div id="sc-lobby" class="screen">
   <div class="hd">ONLINE ROOM</div>
   <div class="card" style="text-align:center">
-    <div>部屋コード <b id="lb-code" style="font-size:24px;letter-spacing:3px"></b></div>
-    <div id="lb-qrbox" style="display:none;margin-top:6px"><div id="lb-qr"></div><br>
-      <button class="chip" id="lb-copy" style="padding:4px 12px;margin-top:4px">参加URLをコピー</button></div>
+    <div class="sh" id="lb-step1">① 友達を呼ぶ</div>
+    <div id="lb-hostinv" style="display:none">
+      <div id="lb-qr"></div>
+      <div style="font-weight:700">スマホのカメラでQRを読み取ると参加できます</div>
+      <div>部屋コード <b id="lb-code" style="font-size:22px;letter-spacing:3px"></b></div>
+      <button class="chip" id="lb-copy" style="padding:4px 12px;margin-top:4px">参加URLをコピー</button>
+    </div>
+    <div id="lb-guestinv" style="display:none;font-weight:900">ルーム <span id="lb-code2"></span> に参加中！</div>
+  </div>
+  <div class="card">
+    <div class="sh">② あなたのキャラ（タップで変更）</div>
+    <div id="lb-chars" class="cgrid"></div>
+    <div id="lb-chardesc" style="margin-top:6px"></div>
   </div>
   <div class="card" id="lb-mem"></div>
   <div class="card" id="lb-set"></div>
-  <div class="nav"><button class="back" id="lb-char">キャラ変更</button><button class="next" id="lb-start">バトル開始！</button></div>
+  <button class="startbig" id="lb-start">バトル開始！</button>
+  <div id="lb-wait" class="wait" style="display:none"></div>
   <div class="nav"><button class="back" id="lb-leave">退出する</button></div>
 </div>
 
@@ -152,7 +169,7 @@
   <div class="nav" id="res-nav2"><button class="back" id="res-chars">キャラ選択へ</button><button class="back" id="res-title">タイトルへ</button></div>
 </div>
 
-<div id="sc-howto" class="screen">
+<div id="sc-howto" class="screen" style="z-index:8">
   <div class="hd">HOW TO PLAY</div>
   <div class="card">
     <h3>三すくみ（これだけ覚えればOK）</h3>
@@ -162,16 +179,16 @@
     ・<b>光っている相手</b>にはカウンター、<b>青い盾の相手</b>は殴れ！<br>
     ・飛び道具はカウンターで防げる。爆発とKOアッパーはカウンターできない。
     <h3>スマホ</h3>
-    <span class="chip">スティック</span>移動（上に倒す＋特殊で復帰技）<br>
+    <span class="chip">スティック</span>移動<br>
     <span class="chip">ジャンプ</span>空中でもう1回（忍者は2回）<br>
     <span class="chip red">攻撃</span>タップで通常攻撃／長押しで溜め（溜めすぎると OVERHEAT）<br>
-    <span class="chip pur">特殊</span>キャラごとの必殺技<br>
+    <span class="chip pur">特殊</span>キャラごとの必殺技。<b>スティック上＋特殊で上必殺技</b>（復帰にも使える）<br>
     <span class="chip blue">カウンター</span>そのまま押すとカウンター、スティックを倒しながらで回避<br>
     <span class="chip gray">捨てる</span>武器を置く
     <h3>PC</h3>
     移動：A D ／ ← →　ジャンプ：スペース ／ W ／ ↑<br>
     攻撃：J ／ Z　特殊：K ／ X　カウンター：L ／ C　捨てる：S ／ V<br>
-    W か ↑ を押しながら特殊で復帰技。移動キーを押しながらカウンターで回避。
+    W か ↑ を押しながら特殊で上必殺技。移動キーを押しながらカウンターで回避。
   </div>
   <div class="nav"><button class="next" id="howto-back">OK！</button></div>
 </div>
@@ -179,7 +196,11 @@
 <div id="game">
   <div id="bar">
     <div id="title">STICK BRAWL</div>
-    <div class="barbtns"><button class="barbtn" id="b-help">操作</button><button class="barbtn" id="b-quit">やめる</button></div>
+    <div class="barbtns">
+      <button class="barbtn" id="b-char">キャラ</button>
+      <button class="barbtn" id="b-help">操作</button>
+      <button class="barbtn" id="b-quit">やめる</button>
+    </div>
   </div>
   <div id="wrap"></div>
   <div id="pad">
@@ -222,26 +243,32 @@ const GRAV = 0.6, MAX_STOCK = 3, MAX_PLAYERS = 6;
 const CH_TH = 12, CH_FULL = 50, CH_WARN = 70, CH_OVER = 100, STUN_T = 80;
 const CT_ON = 3, CT_OFF = 20, CT_END = 46, CT_COOL = 90;
 const DG_T = 18, DG_INV0 = 2, DG_INV1 = 14, DG_COOL = 40, DG_SPD = 9;
-const FREEZE = 28, FREEZE_KO = 36, INTERP = 110;
+const FREEZE = 28, FREEZE_KO = 36;
+const INTERP = 80, SEND_MS = 33;            // 通信：表示の遅らせ幅・送信間隔
 const HADO_MAX = 2;
 const COLORS = ['#e63946', '#1f8ef1', '#f4a261', '#2a9d8f', '#9b5de5', '#ef476f'];
 
 const CHARS = {
   karate: { name: '格闘家', en: 'KARATE', mark: '空', spd: 1.0, jump: 1.0, jumps: 2, wt: 1.0, pow: 1.0, size: 1.0,
             ctx: 14, back: true, ctc: 1.0, dgc: 1.0, dgs: 1.0, st: [3, 3, 3],
-            sp: '波動拳：遅い気弾を連続で撃てる（画面に2発まで）', ab: 'カウンターの受付が長く、背後からの攻撃も返せる' },
+            sp: '波動拳：遅い気弾を連続で撃てる（画面に2発まで）', up: '昇龍拳：飛び上がりながらアッパー',
+            ab: 'カウンターの受付が長く、背後からの攻撃も返せる' },
   bomber: { name: '爆弾魔', en: 'BOMBER', mark: '爆', spd: 0.95, jump: 1.0, jumps: 2, wt: 1.05, pow: 0.9, size: 1.0,
             ctx: 0, back: false, ctc: 1.0, dgc: 1.0, dgs: 1.0, st: [3, 2, 3],
-            sp: '爆弾投げ：まっすぐ飛び、当たると即爆発。数の制限なし', ab: '特殊を長押しで地雷を設置。自分の爆発は半減' },
+            sp: '爆弾投げ：まっすぐ飛び、当たると即爆発。数の制限なし', up: '爆風ジャンプ：足元を爆破して大ジャンプ。周りも吹っ飛ぶ',
+            ab: '特殊を長押しで地雷を設置。自分の爆発は半減' },
   ninja:  { name: '忍者', en: 'NINJA', mark: '忍', spd: 1.3, jump: 1.08, jumps: 3, wt: 1.25, pow: 0.9, size: 0.9,
             ctx: 0, back: false, ctc: 1.0, dgc: 0.6, dgs: 1.2, st: [5, 2, 1],
-            sp: '手裏剣：速いけど射程は短め。連続OK', ab: '3段ジャンプ。足がとても速い。でも軽い' },
+            sp: '手裏剣：速いけど射程は短め。連続OK', up: '変わり身：煙と共に上へワープ（一瞬無敵）',
+            ab: '3段ジャンプ。足がとても速い。でも軽い' },
   sumo:   { name: '力士', en: 'SUMO', mark: '力', spd: 0.78, jump: 0.88, jumps: 2, wt: 0.65, pow: 1.2, size: 1.22,
             ctx: 0, back: false, ctc: 1.0, dgc: 1.2, dgs: 0.85, st: [1, 5, 5],
-            sp: '張り手：溜め攻撃級の一撃をすぐ出せる（クールタイム約2.5秒）', ab: '動きは遅いが、とても吹っ飛びにくい' },
+            sp: '張り手：溜め攻撃級の一撃をすぐ出せる（クールタイム約2.5秒）', up: '突き上げ：アーマー付きで飛び上がり、頭上を突く',
+            ab: '動きは遅いが、とても吹っ飛びにくい' },
   boxer:  { name: 'ボクサー', en: 'BOXER', mark: '拳', spd: 1.15, jump: 0.95, jumps: 2, wt: 1.0, pow: 1.05, size: 1.0,
             ctx: 0, back: false, ctc: 0.35, dgc: 0.9, dgs: 1.0, st: [4, 4, 3],
-            sp: 'KOアッパー：ゲージ満タンで一撃必殺。カウンターも貫通する', ab: 'カウンターのクールタイムがとても短い。機動力もある' }
+            sp: 'KOアッパー：ゲージ満タンで一撃必殺。カウンターも貫通する', up: 'ジャンピングアッパー：上昇しながらパンチ',
+            ab: 'カウンターのクールタイムがとても短い。機動力もある' }
 };
 const CC = id => CHARS[id] || CHARS.karate;
 
@@ -268,8 +295,14 @@ const MOVE_DEF = {
   normal: { type: 'normal', act0: 4, act1: 8,  end: 14, reach: 28, R: 24, yo: 34, cd: 3 },
   charge: { type: 'heavy',  act0: 4, act1: 9,  end: 18, reach: 34, R: 32, yo: 34, cd: 5 },
   harite: { type: 'heavy',  act0: 9, act1: 14, end: 24, reach: 40, R: 34, yo: 36, cd: 6, glow: 8 },
-  upper:  { type: 'heavy',  act0: 7, act1: 12, end: 28, reach: 22, R: 34, yo: 52, cd: 8, glow: 6 }
+  upper:  { type: 'heavy',  act0: 7, act1: 12, end: 28, reach: 22, R: 34, yo: 52, cd: 8, glow: 6 },
+  // 上必殺技
+  shoryu: { type: 'normal', act0: 1, act1: 14, end: 20, reach: 12, R: 28, yo: 52, cd: 4 },
+  jupper: { type: 'normal', act0: 2, act1: 12, end: 18, reach: 14, R: 28, yo: 54, cd: 4 },
+  tsuki:  { type: 'heavy',  act0: 4, act1: 14, end: 20, reach: 4,  R: 32, yo: 66, cd: 6 },
+  blastj: { type: 'normal', act0: 1, act1: 4,  end: 10, reach: 0,  R: 50, yo: 0,  cd: 4 }
 };
+const RISE_KINDS = ['shoryu', 'jupper', 'tsuki', 'blastj'];
 function mkMv(kind, w) {
   if (!kind || !MOVE_DEF[kind]) return null;
   const m = { ...MOVE_DEF[kind], kind };
@@ -288,6 +321,7 @@ let stage = MAPS.std, fighters = [], bt = { phase: 'none', t: 0 }, elim = [];
 let projs = [], bombs = [], mines = [], items = {}, itemSeq = 0, itemTimer = 0, objSeq = 0;
 let particles = [], popups = [], trails = {}, flash = {}, shake = 0;
 let freezeT = 0, freezeMax = FREEZE, fzType = 'counter', fz = null, pending = null;
+const predicted = {};
 const blankInput = () => ({ l: false, r: false, u: false, a: false, s: false, jc: 0, ac: 0, rc: 0, cc: 0, sc: 0, xc: 0 });
 let hin = blankInput();
 let raw = { j: false, a: false, c: false, s: false, x: false };
@@ -350,18 +384,15 @@ function sfxCounter() {
   [1047, 1319, 1568, 2093, 2637].forEach((f, i) => tone(f, f, 0.11, 0.1, 'square', 0.06 + i * 0.065));
 }
 function sfxCounterBoom() { noiseHit(0.9, 0.85, 1100); tone(170, 28, 0.9, 0.6, 'sawtooth'); tone(85, 30, 1.0, 0.7, 'sine'); tone(2093, 4186, 0.25, 0.08, 'triangle'); }
-// KOアッパー：ゴングの「カーン」→ 上がるファンファーレ
 function sfxKOHit() {
   noiseHit(0.25, 0.8, 7000, true);
   tone(110, 40, 0.5, 0.7, 'sine');
   tone(1568, 1560, 1.6, 0.2, 'sine'); tone(2349, 2340, 1.4, 0.13, 'sine'); tone(3136, 3130, 1.0, 0.08, 'sine');
   [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, f, 0.1, 0.09, 'square', 0.08 + i * 0.06));
 }
-// 解放の瞬間：重低音のドーン
 function sfxKOBoom() {
   noiseHit(1.1, 0.95, 900);
-  tone(220, 25, 1.1, 0.7, 'sawtooth');
-  tone(70, 25, 1.3, 0.85, 'sine');
+  tone(220, 25, 1.1, 0.7, 'sawtooth'); tone(70, 25, 1.3, 0.85, 'sine');
   [1047, 1568, 2093].forEach((f, i) => tone(f, f * 1.5, 0.45, 0.08, 'triangle', i * 0.05));
 }
 function sfxShot() { noiseHit(0.06, 0.3, 4000, true); tone(900, 200, 0.07, 0.07, 'square'); }
@@ -370,6 +401,7 @@ function sfxShuri() { noiseHit(0.07, 0.2, 6000, true); tone(2400, 1800, 0.05, 0.
 function sfxThrow() { noiseHit(0.1, 0.2, 2000, true); }
 function sfxMine() { tone(300, 300, 0.06, 0.1, 'square'); tone(500, 500, 0.06, 0.1, 'square', 0.08); }
 function sfxBoom() { noiseHit(0.6, 0.75, 700); tone(120, 30, 0.5, 0.5, 'sawtooth'); }
+function sfxSmoke() { noiseHit(0.25, 0.3, 2500, true); tone(1200, 500, 0.15, 0.05, 'sine'); }
 function sfxPickup() { tone(700, 1400, 0.1, 0.08, 'triangle'); tone(1400, 1400, 0.08, 0.06, 'triangle', 0.08); }
 function sfxBlock() { tone(2200, 1800, 0.15, 0.12, 'square'); noiseHit(0.05, 0.3, 5000, true); }
 function sfxSlash() { noiseHit(0.12, 0.4, 5000, true); tone(3200, 1400, 0.12, 0.1, 'sawtooth'); }
@@ -386,6 +418,7 @@ function sfxGame() { noiseHit(0.8, 0.6, 800); [523, 659, 784, 1047].forEach((f, 
 // ④ p5.js メインループ
 // ========================================================
 function setup() {
+  pixelDensity(1);                          // スマホで重くならないよう等倍で描く
   const c = createCanvas(W, H);
   c.parent('wrap');
   textFont('sans-serif');
@@ -432,7 +465,7 @@ async function createRoom() {
   roomId = Math.random().toString(36).slice(2, 7).toUpperCase();
   roomRef = db.ref('rooms/' + roomId);
   roomRef.onDisconnect().remove();
-  await roomRef.child('gm').set({ ph: 'lobby', round: 0, map: settings.map, wpn: settings.wpn ? 1 : 0, cpuN: 0, cpuLv: 1, w: '' });
+  await roomRef.child('gm').set({ ph: 'lobby', round: 0, map: 'std', wpn: 1, cpuN: 0, cpuLv: 1, w: '' });
   await joinCommon();
   setInterval(hostTick, 200);
   setInterval(hostSpawn, 1000);
@@ -453,7 +486,7 @@ async function joinCommon() {
   const memRef = roomRef.child('mem/' + myId);
   memRef.onDisconnect().remove();
   roomRef.child('p/' + myId).onDisconnect().remove();
-  await memRef.set({ cid: settings.cid, slot, label: 'P' + (slot + 1), cpu: 0 });
+  await memRef.set({ cid: settings.cid, slot, label: 'P' + (slot + 1), cpu: 0, host: isHost ? 1 : 0 });
 
   roomRef.child('mem').on('value', s => { memCache = s.val() || {}; if (scene === 'sc-lobby') renderLobby(); });
   roomRef.child('gm').on('value', s => onGm(s.val()));
@@ -477,17 +510,21 @@ async function joinCommon() {
     const old = new Set(Object.keys(snap.val() || {}));
     evRef.on('child_added', s => { if (!old.has(s.key)) onEvent(s.val()); });
   });
-  setInterval(sendLocal, 40);
+  setInterval(sendLocal, SEND_MS);
 
-  document.getElementById('lb-code').innerText = roomId;
   if (isHost) {
     const url = location.href.split('?')[0] + '?room=' + roomId;
-    document.getElementById('lb-qrbox').style.display = 'block';
-    new QRCode(document.getElementById('lb-qr'), { text: url, width: 140, height: 140 });
+    document.getElementById('lb-hostinv').style.display = 'block';
+    document.getElementById('lb-code').innerText = roomId;
+    new QRCode(document.getElementById('lb-qr'), { text: url, width: 170, height: 170 });
     document.getElementById('lb-copy').onclick = () => {
       if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => alert('参加URLをコピーしました'));
       else prompt('このURLを送ってください', url);
     };
+  } else {
+    document.getElementById('lb-step1').innerText = '① 参加しました';
+    document.getElementById('lb-guestinv').style.display = 'block';
+    document.getElementById('lb-code2').innerText = roomId;
   }
   show('sc-lobby');
   renderLobby();
@@ -529,35 +566,59 @@ function lobbyMembers() {
 function renderLobby() {
   const g = gmCache || {};
   const mem = lobbyMembers().filter(m => !m.cpu);
-  let html = '<div style="font-weight:900;margin-bottom:4px">参加者</div>';
+  const total = mem.length + (g.cpuN || 0);
+
+  // ② 自分のキャラ（その場で変更）
+  const cg = document.getElementById('lb-chars');
+  cg.innerHTML = '';
+  for (const id in CHARS) {
+    const C = CHARS[id];
+    const b = document.createElement('button');
+    b.className = 'ci' + (settings.cid === id ? ' sel' : '');
+    b.innerHTML = `${C.mark}<small>${C.name}</small>`;
+    b.onclick = () => { settings.cid = id; roomRef.child('mem/' + myId).update({ cid: id }); renderLobby(); };
+    cg.appendChild(b);
+  }
+  const MC = CC(settings.cid);
+  document.getElementById('lb-chardesc').innerHTML = `<b>${MC.name}</b>　特殊：${MC.sp}<br>上＋特殊：${MC.up}`;
+
+  // ③ 参加者
+  let html = `<div class="sh">③ 参加者（${total} / ${MAX_PLAYERS}）</div>`;
   mem.forEach((m, i) => {
     const C = CC(m.cid);
     html += `<div class="mrow"><div class="mk" style="background:${COLORS[i % COLORS.length]}">${C.mark}</div>` +
-            `<div>${m.label}　${C.name} ${m.id === myId ? '<small>（あなた）</small>' : ''}</div></div>`;
+            `<div>${m.label}　${C.name} ${m.host ? '<span class="tag">HOST</span>' : ''} ${m.id === myId ? '<small>（あなた）</small>' : ''}</div></div>`;
   });
   if (g.cpuN > 0) html += `<div class="mrow"><div class="mk" style="background:#5b7383">C</div><div>CPU ×${g.cpuN}（${LV_NAME[g.cpuLv || 0]}）</div></div>`;
   if (skipRound === g.round && g.ph !== 'lobby') html += '<div class="wait">対戦中です。次のラウンドから参加できます</div>';
   document.getElementById('lb-mem').innerHTML = html;
 
+  // ④ ルール
   const setBox = document.getElementById('lb-set');
   const startBtn = document.getElementById('lb-start');
+  const waitEl = document.getElementById('lb-wait');
   if (isHost) {
-    setBox.innerHTML = '<div style="font-weight:900;margin-bottom:6px">ルール設定</div><div class="stage-grid" id="lb-stage"></div>' +
-      '<div class="optrow" style="margin-top:8px"><span>武器</span><div class="seg" id="lb-wpn"></div></div>' +
-      '<div class="optrow" style="margin-top:8px"><span>CPUの数</span><div class="seg" id="lb-cpun"></div></div>' +
+    setBox.innerHTML = '<div class="sh">④ ルールを決める</div>' +
+      '<div style="font-weight:900;margin-bottom:4px">ステージ</div><div class="stage-grid" id="lb-stage"></div>' +
+      '<div class="optrow" style="margin-top:10px"><span>武器</span><div class="seg" id="lb-wpn"></div></div>' +
+      '<div class="optrow" style="margin-top:8px"><span>CPUを足す</span><div class="seg" id="lb-cpun"></div></div>' +
       '<div class="optrow" style="margin-top:8px"><span>CPUの強さ</span><div class="seg" id="lb-cpulv"></div></div>';
     renderStageGrid('lb-stage', g.map, id => roomRef.child('gm').update({ map: id, wpn: MAPS[id].wpn ? 1 : 0 }));
     seg('lb-wpn', ['あり', 'なし'], () => g.wpn ? 0 : 1, i => roomRef.child('gm').update({ wpn: i === 0 ? 1 : 0 }));
     const maxCpu = Math.max(0, Math.min(3, MAX_PLAYERS - mem.length));
-    const labels = []; for (let i = 0; i <= maxCpu; i++) labels.push(i + '体');
+    const labels = []; for (let i = 0; i <= maxCpu; i++) labels.push(i === 0 ? 'なし' : i + '体');
     seg('lb-cpun', labels, () => Math.min(g.cpuN || 0, maxCpu), i => roomRef.child('gm').update({ cpuN: i }));
     seg('lb-cpulv', LV_NAME, () => g.cpuLv || 0, i => roomRef.child('gm').update({ cpuLv: i }));
     startBtn.style.display = '';
-    startBtn.style.opacity = mem.length + (g.cpuN || 0) >= 2 ? 1 : 0.4;
+    waitEl.style.display = 'none';
+    if (total >= 2) { startBtn.className = 'startbig'; startBtn.innerText = 'バトル開始！'; }
+    else { startBtn.className = 'startbig off'; startBtn.innerText = 'あと1人必要（CPUを足してもOK）'; }
   } else {
-    setBox.innerHTML = `<div style="font-weight:900">ルール</div>ステージ：${(MAPS[g.map] || MAPS.std).name}　武器：${g.wpn ? 'あり' : 'なし'}` +
-      '<div class="wait" style="margin-top:6px">ホストの開始を待っています…</div>';
+    setBox.innerHTML = '<div class="sh">④ ルール（ホストが決めます）</div>' +
+      `ステージ：<b>${(MAPS[g.map] || MAPS.std).name}</b>　武器：<b>${g.wpn ? 'あり' : 'なし'}</b>　CPU：<b>${g.cpuN ? g.cpuN + '体' : 'なし'}</b>`;
     startBtn.style.display = 'none';
+    waitEl.style.display = 'block';
+    waitEl.innerText = 'ホストがバトルを始めるのを待っています…';
   }
 }
 
@@ -602,13 +663,14 @@ function send(e) {
   if (!online || !roomRef) return;
   e.by = myId; e.rd = curRound;
   const ref = roomRef.child('ev').push(e);
-  setTimeout(() => ref.remove(), 4000);
+  setTimeout(() => ref.remove(), 3000);
 }
 
 function stateOf(f) {
   return { x: Math.round(f.x), y: Math.round(f.y), vx: Math.round(f.vx * 10) / 10, f: f.f, r: Math.round(f.r * 100) / 100,
     a: f.a, mk: f.mv ? f.mv.kind : '', ch: f.ch, ct: f.ct, cs: f.cs, stn: f.stn > 0 ? 1 : 0, dg: f.dg > 0 ? 1 : 0,
     iv: isInvuln(f) ? 1 : 0, kb: f.kb > 0 ? 1 : 0, w: f.w || '', sh: f.sh > 0 ? 1 : 0, sph: f.sph, ri: f.rise > 0 ? 1 : 0,
+    am: f.arm > 0 ? 1 : 0, cid: f.cid,
     d: Math.round(f.d), s: f.s, o: f.out ? 1 : 0, ko: Math.round(f.ko), g: f.g ? 1 : 0, rd: curRound, ts: Date.now() };
 }
 
@@ -646,9 +708,13 @@ function updateRemote() {
       const t = constrain((rt - a.ts) / Math.max(b.ts - a.ts, 1), 0, 1);
       if (Math.hypot(b.x - a.x, b.y - a.y) > 150) { x = t < 0.5 ? a.x : b.x; y = t < 0.5 ? a.y : b.y; }
       else { x = lerp(a.x, b.x, t); y = lerp(a.y, b.y, t); r = a.r + (b.r - a.r) * t; }
+    } else if (a && !b) {
+      // 通信が遅れた時は、最後の向きに少し進めておく（止まって見えない）
+      x = a.x + (a.vx || 0) * Math.min((rt - a.ts) / 16.7, 5);
     }
     Object.assign(f, { x, y, r, vx: s.vx, f: s.f, a: s.a, ch: s.ch, ct: s.ct, cs: s.cs, stn: s.stn, dg: s.dg,
-      ivf: s.iv, kb: s.kb, w: s.w || null, sh: s.sh, sph: s.sph, rise: s.ri, d: s.d, s: s.s, ko: s.ko, g: s.g });
+      ivf: s.iv, kb: s.kb, w: s.w || null, sh: s.sh, sph: s.sph, rise: s.ri, arm: s.am || 0, cid: s.cid || f.cid,
+      d: s.d, s: s.s, ko: s.ko, g: s.g });
     f.mv = mkMv(s.mk, s.w);
     if (s.o && !f.out) { f.out = true; if (!elim.includes(f.id)) elim.push(f.id); }
     while (f.buf.length > 2 && f.buf[1].ts < rt - 300) f.buf.shift();
@@ -659,8 +725,9 @@ function onEvent(e) {
   if (!e || e.by === myId || scene !== 'battle' || e.rd !== curRound) return;
   if (e.k === 'mh') { const t = byId(e.to); if (t && isLocal(t)) resolveMelee({ id: e.a, x: e.ax, f: e.f, c: e.c, mv: e.mv }, t); }
   else if (e.k === 'ph') { const t = byId(e.to); if (t && isLocal(t)) resolveProj(e.q, t); }
-  else if (e.k === 'fx') playFx(e);
+  else if (e.k === 'fx') playFx(e, true);
   else if (e.k === 'ctr') doCounter(e);
+  else if (e.k === 'vfx') vfx(e);
   else if (e.k === 'proj') { projs.push({ ...e.q, local: false }); if (e.q.kind === 'hado') sfxHado(); else if (e.q.kind === 'shuri') sfxShuri(); else sfxShot(); }
   else if (e.k === 'pg') {
     const i = projs.findIndex(q => q.pid === e.pid);
@@ -727,7 +794,7 @@ function makeFighter(m, i) {
     x: 0, y: 0, vx: 0, vy: 0, g: true, f: 1,
     d: 0, s: MAX_STOCK, kb: 0, r: 0, a: 0, mv: null, ch: 0, cd: 0, ct: 0, cs: 0, ctc: 0, stn: 0,
     dg: 0, dgd: 1, dgc: 0, qa: 0, airDg: false, inv: 0, jn: 0, out: false, hit: {},
-    w: null, am: 0, sh: 0, plk: 0, spc: 0, sph: 0, ko: 0, rec: false, rise: 0,
+    w: null, am: 0, sh: 0, plk: 0, spc: 0, sph: 0, ko: 0, rec: false, rise: 0, arm: 0,
     prev: blankInput(), ai: m.cpu ? { inp: blankInput(), t: 40, hold: 0, shold: 0 } : null };
 }
 
@@ -767,13 +834,28 @@ function showResult() {
   show('sc-result');
 }
 
+// 試合中のキャラ変更
+function applyCharChange(id) {
+  settings.cid = id;
+  if (online && roomRef) roomRef.child('mem/' + myId).update({ cid: id });
+  const p = byId(myId);
+  if (!p || p.out || p.cid === id) return;
+  p.cid = id; p.ko = 0; p.spc = 0; p.sph = 0; p.arm = 0;
+  clearActs(p);
+  p.inv = Math.max(p.inv, 40);
+  burst(p.x, p.y - 30, 24, 7, '#ffffff', 9); ring(p.x, p.y - 30, 10, 14);
+  popups.push({ x: p.x, y: p.y - 110, txt: 'CHANGE! ' + CC(id).en, life: 45, max: 45, size: 22, c: '#ffd166' });
+  sfxPickup();
+}
+
 // ========================================================
 // ⑧ キャラの動き
 // ========================================================
-const TIMERS = ['inv', 'cd', 'cs', 'ctc', 'dgc', 'sh', 'plk', 'spc', 'rise'];
+const TIMERS = ['inv', 'cd', 'cs', 'ctc', 'dgc', 'sh', 'plk', 'spc', 'rise', 'arm'];
 
-function clearActs(p) { p.a = 0; p.mv = null; p.ch = 0; p.ct = 0; p.dg = 0; p.qa = 0; p.sh = 0; p.sph = 0; }
+function clearActs(p) { p.a = 0; p.mv = null; p.ch = 0; p.ct = 0; p.dg = 0; p.qa = 0; p.sh = 0; p.sph = 0; p.arm = 0; }
 function isInvuln(p) { return p.remote ? !!p.ivf : (p.inv > 0 || (p.dg >= DG_INV0 && p.dg <= DG_INV1)); }
+function isArmored(p) { return p.ch > 0 || p.arm > 0; }
 function inCounter(p) { return p.ct >= CT_ON && p.ct <= CT_OFF + CC(p.cid).ctx; }
 function isActive(p) { return p.mv && p.a >= p.mv.act0 && p.a <= p.mv.act1; }
 const fromFront = (t, ax) => Math.abs(ax - t.x) < 6 || Math.sign(ax - t.x) === t.f;
@@ -834,9 +916,47 @@ function startSpecial(p) {
   }
 }
 
-function recovery(p) {
-  p.rec = true; p.vy = -13.5; p.jn = CC(p.cid).jumps; p.rise = 20;
-  burst(p.x, p.y, 10, 4, p.c, 7); sfxRise();
+// 上＋特殊：キャラごとの上必殺技（空中で1回まで、着地で回復）
+function upSpecial(p, dir) {
+  const C = CC(p.cid);
+  p.rec = true; p.jn = C.jumps; p.rise = 20; p.g = false; p.hit = {};
+  if (p.cid === 'karate') {
+    p.vy = -14; p.vx += p.f * 2;
+    p.mv = { ...mkMv('shoryu'), dm: 9 * C.pow, k0: 7 * C.pow, ks: 0.07, up: 1.25 }; p.a = 1;
+    sfxRise();
+  } else if (p.cid === 'boxer') {
+    p.vy = -13.5;
+    p.mv = { ...mkMv('jupper'), dm: 7 * C.pow, k0: 6 * C.pow, ks: 0.06, up: 1.3 }; p.a = 1;
+    sfxRise();
+  } else if (p.cid === 'sumo') {
+    p.vy = -12.5; p.arm = 16;
+    p.mv = { ...mkMv('tsuki'), dm: 12 * C.pow, k0: 10 * C.pow, ks: 0.09, up: 1.1 }; p.a = 1;
+    sfxWindup();
+  } else if (p.cid === 'bomber') {
+    p.vy = -15.5;
+    p.mv = { ...mkMv('blastj'), dm: 8, k0: 7.5, ks: 0.07, up: 0.9 }; p.a = 1;
+    const e = { k: 'vfx', v: 'blast', x: Math.round(p.x), y: Math.round(p.y) };
+    vfx(e); send(e);
+  } else if (p.cid === 'ninja') {
+    const d = dir || p.f;
+    const e1 = { k: 'vfx', v: 'smoke', x: Math.round(p.x), y: Math.round(p.y - 30) };
+    p.x += d * 50; p.y -= 120; p.vy = -4; p.vx = d * 3;
+    p.inv = Math.max(p.inv, 12);
+    const e2 = { k: 'vfx', v: 'smoke', x: Math.round(p.x), y: Math.round(p.y - 30) };
+    vfx(e1); vfx(e2); send(e1); send(e2);
+  }
+}
+
+function vfx(e) {
+  if (e.v === 'blast') {
+    burst(e.x, e.y, 26, 9, '#f4a261', 12); burst(e.x, e.y, 12, 6, '#ffffff', 8);
+    ring(e.x, e.y, 14, 14);
+    shake = Math.max(shake, 8);
+    sfxBoom();
+  } else if (e.v === 'smoke') {
+    burst(e.x, e.y, 16, 4, '#9aa5ad', 14); burst(e.x, e.y, 8, 3, '#ffffff', 10);
+    sfxSmoke();
+  }
 }
 
 function stepFighter(p, inp) {
@@ -904,7 +1024,7 @@ function stepFighter(p, inp) {
       }
     }
     if (!acted && sp && p.a === 0 && p.ch === 0 && p.sph === 0) {
-      if (inp.u && !p.rec) recovery(p);
+      if (inp.u) { if (!p.rec) upSpecial(p, dir); else if (!p.cpu) sfxNo(); }
       else startSpecial(p);
       acted = true;
     }
@@ -977,6 +1097,14 @@ function respawn(p) {
 // ========================================================
 // ⑨ 当たり判定と三すくみ
 // ========================================================
+function localHitFx(tid, x, y, kb) {
+  flash[tid] = 6;
+  burst(x, y, 8 + Math.floor(kb), kb * 0.9, '#ffffff', 8);
+  ring(x, y, kb * 0.9, 12);
+  shake = Math.max(shake, Math.min(kb * 0.35, 7));
+  sfxHit(kb);
+}
+
 function meleeCheck(a) {
   if (!isLocal(a) || a.out || !isActive(a)) return;
   const mv = a.mv, asz = CC(a.cid).size;
@@ -989,7 +1117,17 @@ function meleeCheck(a) {
       const A = { id: a.id, x: Math.round(a.x), f: a.f, c: a.c,
                   mv: { type: mv.type, kind: mv.kind, dm: Math.round(mv.dm * 10) / 10, k0: Math.round(mv.k0 * 10) / 10, ks: mv.ks, up: mv.up } };
       if (isLocal(t)) resolveMelee(A, t);
-      else { send({ k: 'mh', to: t.id, a: a.id, ax: A.x, f: a.f, c: a.c, mv: A.mv }); burst(hx, hy, 5, 4, '#ffffff', 5); }
+      else {
+        send({ k: 'mh', to: t.id, a: a.id, ax: A.x, f: a.f, c: a.c, mv: A.mv });
+        // 予測：返事を待たずに手応えを出す
+        const front = fromFront(t, a.x) || CC(t.cid).back;
+        const willCounter = mv.type === 'heavy' && mv.kind !== 'upper' && inCounter(t) && front;
+        if (!willCounter && !t.ivf && mv.kind !== 'upper') {
+          const est = (A.mv.k0 + (t.d + A.mv.dm) * A.mv.ks) * CC(t.cid).wt;
+          localHitFx(t.id, t.x, t.y - 30 * tsz, est);
+          predicted[a.id] = Date.now();
+        }
+      }
     }
   }
 }
@@ -998,11 +1136,10 @@ function resolveMelee(A, t) {
   const mv = A.mv, ty = t.y - 30 * CC(t.cid).size;
   if (isInvuln(t)) { if (t.dg > 0) emitFx({ res: 'evade', t: t.id, a: A.id, x: t.x, y: t.y - 110 }); return; }
   const front = fromFront(t, A.x) || CC(t.cid).back;
-  // KOアッパーはカウンターを貫通する
   if (mv.type === 'heavy' && mv.kind !== 'upper' && inCounter(t) && front) { startCounter(A, t, mv); return; }
   const h = { dm: mv.dm, k0: mv.k0, ks: mv.ks, up: mv.up, f: A.f };
   const bk = mv.kind !== 'upper' && t.ct > 0 && (mv.type === 'normal' || !front);
-  if (!bk && mv.type === 'normal' && t.ch > 0) {
+  if (!bk && mv.type === 'normal' && isArmored(t)) {
     armorHit(t, h);
     emitFx({ res: 'armor', t: t.id, a: A.id, x: t.x, y: ty, gain: 4 });
     return;
@@ -1017,7 +1154,7 @@ function resolveProj(Q, t) {
   const front = fromFront(t, Q.x) || CC(t.cid).back;
   if (inCounter(t) && front) { emitFx({ res: 'block', t: t.id, a: Q.o, x: Q.x, y: ty }); return; }
   const h = { dm: Q.dm, k0: Q.k0, ks: Q.ks, up: Q.up, f: Math.sign(Q.vx) || 1 };
-  if (t.ch > 0) { armorHit(t, h); emitFx({ res: 'armor', t: t.id, a: Q.o, x: t.x, y: ty, gain: 3 }); return; }
+  if (isArmored(t)) { armorHit(t, h); emitFx({ res: 'armor', t: t.id, a: Q.o, x: t.x, y: ty, gain: 3 }); return; }
   const kb = applyHit(t, h, false);
   emitFx({ res: 'hit', t: t.id, a: Q.o, x: t.x, y: ty, kb: Math.round(kb * 10) / 10, bk: 0, up: 0, c: t.c, gain: 5 });
 }
@@ -1041,9 +1178,12 @@ function applyHit(t, h, bk) {
   return kb;
 }
 
-function emitFx(e) { playFx(e); send({ k: 'fx', ...e }); }
+function emitFx(e) { playFx(e, false); send({ k: 'fx', ...e }); }
 
-function playFx(e) {
+function playFx(e, remote) {
+  // 自分が攻撃して予測済みなら、火花と音は二重に出さない
+  const a = e.a ? byId(e.a) : null;
+  const pred = remote && a && isLocal(a) && predicted[e.a] && Date.now() - predicted[e.a] < 800;
   if (e.res === 'evade') {
     popups.push({ x: e.x, y: e.y, txt: 'EVADE!', life: 32, max: 32, size: 26, c: '#7ee081' });
   } else if (e.res === 'armor') {
@@ -1056,20 +1196,21 @@ function playFx(e) {
     sfxBlock();
   } else if (e.res === 'hit') {
     const kb = e.kb, n = 8 + Math.floor(kb);
-    flash[e.t] = 6;
-    burst(e.x, e.y, n, kb * 0.9, '#ffffff', 8);
-    burst(e.x, e.y, Math.floor(n / 2), kb * 0.7, e.c, 7);
-    ring(e.x, e.y, kb * 0.9, 12);
+    if (!pred || e.up) {
+      flash[e.t] = 6;
+      burst(e.x, e.y, n, kb * 0.9, '#ffffff', 8);
+      burst(e.x, e.y, Math.floor(n / 2), kb * 0.7, e.c, 7);
+      ring(e.x, e.y, kb * 0.9, 12);
+    }
     if (e.up) {
-      startKOFreeze(e);                       // KOアッパーの決め演出
+      startKOFreeze(e);
     } else {
-      shake = Math.max(shake, Math.min(kb * 0.35, 7));
+      if (!pred) { shake = Math.max(shake, Math.min(kb * 0.35, 7)); sfxHit(kb); }
       if (e.bk) popups.push({ x: e.x, y: e.y - 30, txt: 'GUARD BREAK!', life: 42, max: 42, size: 32, c: '#ef4747' });
       else if (kb >= 14) popups.push({ x: e.x, y: e.y - 30, txt: 'SMASH!', life: 40, max: 40, size: 40, c: '#ffd166' });
-      sfxHit(kb);
     }
   }
-  if (e.gain && e.a) gainKO(byId(e.a), e.gain);
+  if (e.gain && a) gainKO(a, e.gain);
 }
 
 function startCounter(A, t, mv) {
@@ -1148,7 +1289,6 @@ function fireGun(p) {
   if (p.am <= 0) { p.w = null; popups.push({ x: p.x, y: p.y - 110, txt: 'EMPTY!', life: 30, max: 30, size: 22, c: '#ffffff' }); }
 }
 
-// 爆弾：ほぼ直線で速く飛ぶ
 function throwBomb(p) {
   const sz = CC(p.cid).size;
   const b = { bid: p.id + '_' + (objSeq++), o: p.id, x: Math.round(p.x + p.f * 16), y: Math.round(p.y - 40 * sz),
@@ -1226,7 +1366,14 @@ function stepProjs() {
             gone = true;
             const Q = { o: q.o, x: Math.round(q.x), vx: q.vx, dm: q.dm, k0: q.k0, ks: q.ks, up: q.up };
             if (isLocal(t)) resolveProj(Q, t);
-            else send({ k: 'ph', to: t.id, q: Q });
+            else {
+              send({ k: 'ph', to: t.id, q: Q });
+              const front = fromFront(t, q.x) || CC(t.cid).back;
+              if (!(inCounter(t) && front)) {
+                localHitFx(t.id, q.x, q.y, (q.k0 + (t.d + q.dm) * q.ks) * CC(t.cid).wt);
+                predicted[q.o] = Date.now();
+              }
+            }
             send({ k: 'pg', pid: q.pid });
             break;
           }
@@ -1250,7 +1397,6 @@ function stepBombs() {
       }
     }
     if (b.y > stage.h + 200 || b.x < -150 || b.x > stage.w + 150) { bombs.splice(i, 1); continue; }
-    // 自分の端末のキャラに当たったら即爆発
     let hit = false;
     for (const f of fighters) {
       if (!isLocal(f) || f.out || f.id === b.o || isInvuln(f)) continue;
@@ -1368,7 +1514,7 @@ function aiSpecial(I, A, hold) { I.s = true; I.sc++; A.shold = hold; }
 function aiStep(p) {
   const A = p.ai, I = A.inp, L = AI_LV[aiLv] || AI_LV[1];
   if (A.hold > 0) { A.hold--; if (A.hold === 0 && I.a) { I.a = false; I.rc++; } }
-  if (A.shold > 0) { A.shold--; if (A.shold === 0) I.s = false; }
+  if (A.shold > 0) { A.shold--; if (A.shold === 0) { I.s = false; I.u = false; } }
   if (p.out) return;
   if (--A.t > 0) return;
   A.t = L.think + Math.floor(Math.random() * L.think);
@@ -1398,7 +1544,6 @@ function aiStep(p) {
     return;
   }
   if (Math.random() < L.read) {
-    // KOアッパーはカウンターできないので回避で逃げる
     if (adx < 130 && t.cid === 'boxer' && (t.ko >= 100 || (t.mv && t.mv.kind === 'upper')) && Math.random() < 0.5) {
       I[away] = true; if (p.dgc === 0) I.cc++; return;
     }
@@ -1412,6 +1557,8 @@ function aiStep(p) {
     if (Math.random() < 0.3) I.jc++;
     return;
   }
+  // 真上の相手には上必殺技
+  if (dy < -80 && adx < 70 && !p.rec && Math.random() < 0.35) { I.u = true; aiSpecial(I, A, 2); return; }
   if (p.w === 'gun' && adx < 420 && Math.abs(dy) < 50) { I[face] = true; aiTap(I, A); return; }
   if ((p.cid === 'karate' || p.cid === 'ninja' || p.cid === 'bomber') && p.spc === 0 && Math.abs(dy) < 70) {
     const lo = p.cid === 'ninja' ? 60 : 110, hi = p.cid === 'ninja' ? 260 : 420;
@@ -1507,7 +1654,7 @@ function burst(x, y, n, spd, c, sz) {
     const a = random(TWO_PI), v = random(0.3, 1) * spd;
     particles.push({ x, y, vx: cos(a) * v, vy: sin(a) * v, life: random(16, 30), max: 30, c, s: random(sz * 0.5, sz) });
   }
-  if (particles.length > 450) particles.splice(0, particles.length - 450);
+  if (particles.length > 300) particles.splice(0, particles.length - 300);
 }
 function ring(x, y, vr, life) { particles.push({ ring: true, x, y, r: 4, vr, life, max: life }); }
 
@@ -1546,7 +1693,6 @@ function drawFreezeWorld() {
   if (!fz) return;
   const a = byId(fz.att), c = byId(fz.cnt);
   if (fzType === 'ko') {
-    // 暗転＋赤と金の集中線＋衝撃の星
     const el = freezeMax - freezeT;
     noStroke(); fill(12, 4, 6, 215); rect(-300, -300, stage.w + 600, stage.h + 600);
     push();
@@ -1586,7 +1732,6 @@ function drawFreezeWorld() {
 function drawFreezeText() {
   const el = freezeMax - freezeT, t = el / freezeMax;
   if (fzType === 'ko') {
-    // 白フラッシュ → 一瞬の黒コマ → K.O.!!
     if (el < 3) { noStroke(); fill(255); rect(0, 0, W, WH); }
     else if (el < 6) { noStroke(); fill(0, 0, 0, 220); rect(0, 0, W, WH); }
     const s = t < 0.2 ? 130 * (t / 0.2) * 1.3 : 118 + sin(el * 1.1) * 5;
@@ -1693,7 +1838,7 @@ function drawFighter(p) {
     circle(tr[i].x, tr[i].y, (10 + i * 2.5) * sz);
   }
 
-  if (mv && mv.glow && p.a <= mv.glow) {
+  if ((mv && mv.glow && p.a <= mv.glow) || p.arm > 0) {
     noStroke(); fill(255, 209, 102, 110 + sin(frameCount * 0.9) * 60);
     circle(p.x, p.y - 30 * sz, 74 * sz);
   }
@@ -1754,6 +1899,28 @@ function drawFighter(p) {
     line(0, -8, p.f * 18, -6); line(0, -8, -p.f * 10, 4);
     hand = { x: p.f * 18, y: -6 };
     if (p.cid === 'karate') { noStroke(); fill(110, 200, 255, 150); circle(p.f * 22, -4, 16); }
+  } else if (p.a > 0 && mv && RISE_KINDS.includes(mv.kind)) {
+    // 上必殺技のポーズ
+    const act = p.a >= mv.act0 && p.a <= mv.act1;
+    if (mv.kind === 'blastj') {
+      line(0, -8, -14, -22); line(0, -8, 14, -22);
+      hand = { x: 14, y: -22 };
+    } else {
+      line(0, -8, p.f * 8, -38); line(0, -8, -p.f * 10, 2);
+      hand = { x: p.f * 8, y: -38 };
+      if (act) {
+        noFill(); strokeWeight(7);
+        if (mv.kind === 'shoryu') {
+          stroke(255, 140, 60, 230); arc(p.f * 6, -24, 60, 74, -PI * 0.9, -PI * 0.1);
+          noStroke(); fill(255, 200, 80, 190); circle(p.f * 8, -40, 20);
+        } else if (mv.kind === 'tsuki') {
+          stroke(255, 255, 255, 220); strokeWeight(6); arc(0, -46, 72, 40, -PI, 0);
+          noStroke(); fill(col); ellipse(p.f * 6, -44, 16, 22);
+        } else {
+          stroke(255, 209, 102, 230); arc(p.f * 6, -20, 56, 66, -PI * 0.85, -PI * 0.15);
+        }
+      }
+    }
   } else if (p.a > 0 && mv) {
     const act = p.a >= mv.act0 && p.a <= mv.act1;
     if (mv.kind === 'upper') {
@@ -1976,10 +2143,16 @@ let renderChars = null, renderWpnSeg = null;
 function openChars(mode) {
   charMode = mode;
   document.getElementById('cpu-opts').style.display = mode === 'cpu' ? 'flex' : 'none';
-  document.getElementById('chars-next').innerText =
-    mode === 'cpu' ? 'ステージへ' : mode === 'host' ? 'ルームを作る' : mode === 'join' ? '参加する' : '決定';
+  document.getElementById('chars-next').innerText = mode === 'cpu' ? 'ステージへ' : '変更する';
   renderChars();
-  show('sc-chars');
+  if (mode === 'battle') {
+    document.getElementById('sc-chars').style.display = 'flex';
+    if (!online) scene = 'pause';
+  } else show('sc-chars');
+}
+function closeBattleChars() {
+  document.getElementById('sc-chars').style.display = 'none';
+  scene = 'battle';
 }
 
 function buildMenus() {
@@ -1997,7 +2170,7 @@ function buildMenus() {
     const C = CC(settings.cid);
     document.getElementById('char-info').innerHTML =
       `<div class="nm">${C.name}　<span style="color:#5b7383;font-size:13px">${C.en}</span></div>` +
-      `<div><b>特殊攻撃</b>：${C.sp}</div><div><b>能力</b>：${C.ab}</div>` +
+      `<div><b>特殊</b>：${C.sp}</div><div><b>上＋特殊</b>：${C.up}</div><div><b>能力</b>：${C.ab}</div>` +
       ['スピード', 'パワー', 'おもさ'].map((l, i) =>
         `<div class="stat"><b>${l}</b><div class="gauge"><i style="width:${C.st[i] * 20}%"></i></div></div>`).join('');
   };
@@ -2012,27 +2185,23 @@ function buildMenus() {
   renderWpnSeg = seg('seg-wpn', ['あり', 'なし'], () => settings.wpn ? 0 : 1, i => settings.wpn = i === 0);
 
   document.getElementById('sc-title').onclick = () => {
-    if (urlRoom && !online) openChars('join');
+    if (urlRoom && !online) joinRoom();          // QRから来た人はそのまま部屋へ
     else show('sc-mode');
   };
   document.getElementById('go-cpu').onclick = () => openChars('cpu');
-  document.getElementById('go-online').onclick = () => openChars('host');
+  document.getElementById('go-online').onclick = () => createRoom();   // すぐに部屋を作る
   document.getElementById('go-howto').onclick = () => { howtoFrom = 'sc-mode'; show('sc-howto'); };
   document.getElementById('chars-back').onclick = () => {
-    if (charMode === 'change') show('sc-lobby');
-    else if (charMode === 'join') show('sc-title');
+    if (charMode === 'battle') closeBattleChars();
     else show('sc-mode');
   };
   document.getElementById('chars-next').onclick = () => {
-    if (charMode === 'cpu') show('sc-stage');
-    else if (charMode === 'host') createRoom();
-    else if (charMode === 'join') joinRoom();
-    else { roomRef.child('mem/' + myId).update({ cid: settings.cid }); show('sc-lobby'); renderLobby(); }
+    if (charMode === 'battle') { applyCharChange(settings.cid); closeBattleChars(); }
+    else show('sc-stage');
   };
   document.getElementById('stage-back').onclick = () => openChars('cpu');
   document.getElementById('stage-next').onclick = () => startBattleOffline();
 
-  document.getElementById('lb-char').onclick = () => openChars('change');
   document.getElementById('lb-start').onclick = () => { if (isHost) hostStart(); };
   document.getElementById('lb-leave').onclick = () => { if (confirm('部屋から退出しますか？')) leaveRoom(); };
 
@@ -2055,9 +2224,10 @@ function buildMenus() {
   };
   document.getElementById('b-help').onclick = () => {
     howtoFrom = 'battle';
-    if (!online) scene = 'howto';
+    if (!online) scene = 'pause';
     document.getElementById('sc-howto').style.display = 'flex';
   };
+  document.getElementById('b-char').onclick = () => openChars('battle');
   document.getElementById('b-quit').onclick = () => {
     if (online) { if (confirm('部屋から退出しますか？')) leaveRoom(); }
     else if (confirm('バトルをやめてタイトルに戻りますか？')) show('sc-title');
