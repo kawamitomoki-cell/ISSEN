@@ -282,9 +282,12 @@ const INTERP = 80, SEND_MS = 33;            // 通信：表示の遅らせ幅・
 const FIXED_MS = 1000 / 60, MAX_SIM_STEPS = 5; // 端末FPSに左右されない60Hz固定更新
 // 波動拳は同時発射数の制限なし
 const RAGE_MAX = 100, RAGE_T = 600, RAGE_FREEZE = 44; // ヤンキー：10秒覚醒＋変身演出
-const RAGE_DMG = 1.70, RAGE_KB = 1.55, RAGE_SPD = 1.22, RAGE_JUMP = 1.10, RAGE_WT = 0.82;
-const SENKU_MAX = 100, SENKU_FILL = 100 / (12 * 60); // 剣士：約12秒で旋空ゲージMAX
-const GUN_MAX = 8, GUN_RELOAD = 78;             // ガンマン：8発、約1.3秒リロード
+const RAGE_PASSIVE_FILL = RAGE_MAX / (65 * 60), RAGE_HIT_GAIN = 1.55; // 放置なら約65秒、被弾なら一気に溜まる
+const RAGE_DMG = 1.85, RAGE_KB = 1.75, RAGE_SPD = 1.22, RAGE_JUMP = 1.10, RAGE_WT = 0.78;
+const RAGE_PUNCH_MIN_KB = 16.5;                 // 怒り中の通常パンチは撃墜択になる
+const SENKU_MAX = 100, SENKU_FILL = 100 / (18 * 60), SENKU_WIND = 42; // KOゲージ級：約18秒＋0.7秒の予告
+const LANCE_CHARGE_MAX = 60;                    // 最大まで溜めたら自動で突撃
+const GUN_MAX = 8, GUN_RELOAD = 72;             // ガンマン：8発、約1.2秒リロード
 const COLORS = ['#e63946', '#1f8ef1', '#f4a261', '#2a9d8f', '#9b5de5', '#ef476f', '#06d6a0', '#ff9f1c'];
 
 const CHARS = {
@@ -310,19 +313,19 @@ const CHARS = {
             ab: '通常パンチも高火力。カウンターのクールタイムがとても短い' },
   yankee: { name: 'ヤンキー', en: 'YANKEE', mark: '怒', spd: 1.08, jump: 1.0, jumps: 2, wt: 0.84, pow: 1.08, size: 1.03,
             ctx: 0, back: false, ctc: 1.0, dgc: 1.0, dgs: 1.0, st: [4, 5, 4],
-            sp: '怒り：被弾でゲージ蓄積。MAX時に特殊で10秒間の怒りモードへ変身', up: '根性ジャンプ：大ジャンプする復帰技。攻撃判定なし',
+            sp: '怒り：時間でもゆっくり、被弾で一気に蓄積。MAX時に特殊で10秒間の超強化へ変身', up: '根性ジャンプ：大ジャンプする復帰技。攻撃判定なし',
             ab: 'タフで動ける。怒り中は超高火力・高機動・さらにタフ。飛び道具で怯まない' },
   swordsman: { name: '剣士', en: 'SWORDSMAN', mark: '剣', spd: 1.00, jump: 1.0, jumps: 2, wt: 0.96, pow: 1.14, size: 1.0,
             ctx: 0, back: false, ctc: 1.0, dgc: 1.0, dgs: 1.0, st: [3, 4, 4],
-            sp: '旋空：専用ゲージMAXで使用可能。超長リーチ・高火力の横一閃', up: '斬り上げ：上昇しながら頭上を斬る',
+            sp: '旋空：KOゲージ級に溜めて使用。予告演出の後、前方を超長距離の一閃で薙ぐ', up: '斬り上げ：上昇しながら頭上を斬る',
             ab: '通常攻撃が剣。拳より長いリーチと少し高い火力を持つ' },
   lancer: { name: '槍使い', en: 'LANCER', mark: '槍', spd: 0.92, jump: 0.96, jumps: 2, wt: 0.92, pow: 1.02, size: 1.0,
             ctx: 0, back: false, ctc: 1.0, dgc: 1.05, dgs: 0.98, st: [2, 4, 5],
             sp: '突撃：特殊を長押しして溜め、離すと槍を構えて突進。溜めるほど強い', up: '上薙ぎ：ジャンプせず、槍の長いリーチで頭上を薙ぎ払う',
-            ab: '通常・溜め攻撃のリーチが非常に長い。懐と復帰戦が弱点' },
-  gunman: { name: 'ガンマン', en: 'GUNMAN', mark: '銃', spd: 1.02, jump: 1.0, jumps: 2, wt: 1.03, pow: 0.92, size: 1.0,
-            ctx: 0, back: false, ctc: 1.0, dgc: 0.95, dgs: 1.0, st: [3, 2, 5],
-            sp: '射撃：8発装填。0発で自動リロード。特殊長押しで任意リロード', up: '上ショットガン：ジャンプせず頭上へ強力な散弾を撃つ',
+            ab: '通常・溜め攻撃のリーチが非常に長い。突撃は最大チャージで自動発動する' },
+  gunman: { name: 'ガンマン', en: 'GUNMAN', mark: '銃', spd: 1.02, jump: 1.0, jumps: 2, wt: 1.03, pow: 0.96, size: 1.0,
+            ctx: 0, back: false, ctc: 1.0, dgc: 0.95, dgs: 1.0, st: [3, 4, 5],
+            sp: '射撃：高火力の8連装。短い間隔で連射可能。0発で自動、長押しで任意リロード', up: '上ショットガン：ジャンプせず頭上へ強力な散弾を撃つ',
             ab: '弾数管理型の遠距離キャラ。リロードの隙をどう作るかが重要' }
 };
 const CC = id => CHARS[id] || CHARS.karate;
@@ -498,7 +501,8 @@ function sfxNo() { tone(180, 160, 0.08, 0.06, 'square'); }
 function sfxKOReady() { [784, 988, 1175, 1568].forEach((f, i) => tone(f, f, 0.1, 0.08, 'square', i * 0.07)); }
 function sfxRise() { tone(400, 1200, 0.2, 0.08, 'triangle'); noiseHit(0.15, 0.15, 3000, true); }
 function sfxRage() { noiseHit(0.55, 0.65, 1000); tone(120, 55, 0.65, 0.45, 'sawtooth'); tone(520, 900, 0.45, 0.10, 'square'); }
-function sfxSenku() { noiseHit(0.16, 0.55, 6500, true); tone(2200, 700, 0.25, 0.16, 'sawtooth'); tone(3300, 1200, 0.18, 0.08, 'triangle'); }
+function sfxSenkuCharge() { tone(420, 920, 0.55, 0.11, 'sine'); tone(1100, 2100, 0.38, 0.07, 'triangle', 0.16); }
+function sfxSenku() { noiseHit(0.22, 0.65, 7200, true); tone(2800, 620, 0.32, 0.18, 'sawtooth'); tone(3900, 1500, 0.22, 0.10, 'triangle'); }
 function sfxCount() { tone(880, 880, 0.15, 0.15, 'square'); }
 function sfxGo() { tone(1320, 1320, 0.35, 0.18, 'square'); tone(1760, 1760, 0.35, 0.1, 'square'); }
 function sfxGame() { noiseHit(0.8, 0.6, 800); [523, 659, 784, 1047].forEach((f, i) => tone(f, f, 0.25, 0.12, 'square', i * 0.1)); }
@@ -824,7 +828,7 @@ function stateOf(f) {
     iv: isInvuln(f) ? 1 : 0, kb: f.kb > 0 ? 1 : 0, w: f.w || '', sh: f.sh > 0 ? 1 : 0, sph: f.sph, ri: f.rise > 0 ? 1 : 0,
     am: f.arm > 0 ? 1 : 0, cid: f.cid,
     d: Math.round(f.d), s: f.s, o: f.out ? 1 : 0, ko: Math.round(f.ko), g: f.g ? 1 : 0,
-    rg: Math.round(f.rage || 0), rt: Math.round(f.rageT || 0), sk: Math.round(f.senku || 0),
+    rg: Math.round(f.rage || 0), rt: Math.round(f.rageT || 0), sk: Math.round(f.senku || 0), sw: Math.round(f.senkuWind || 0),
     bl: f.bullets ?? GUN_MAX, rl: Math.round(f.reloadT || 0),
     stats: f.stats || null, rd: curRound, ts: Date.now() };
 }
@@ -869,7 +873,7 @@ function updateRemote() {
     }
     Object.assign(f, { x, y, r, vx: s.vx, f: s.f, a: s.a, ch: s.ch, ct: s.ct, cs: s.cs, stn: s.stn, dg: s.dg,
       ivf: s.iv, kb: s.kb, w: s.w || null, sh: s.sh, sph: s.sph, rise: s.ri, arm: s.am || 0, cid: s.cid || f.cid,
-      d: s.d, s: s.s, ko: s.ko, g: s.g, rage: s.rg || 0, rageT: s.rt || 0, senku: s.sk || 0,
+      d: s.d, s: s.s, ko: s.ko, g: s.g, rage: s.rg || 0, rageT: s.rt || 0, senku: s.sk || 0, senkuWind: s.sw || 0,
       bullets: s.bl ?? f.bullets, reloadT: s.rl || 0, stats: s.stats || f.stats });
     f.mv = mkMv(s.mk, s.w);
     if (s.o && !f.out) { f.out = true; if (!elim.includes(f.id)) elim.push(f.id); }
@@ -958,7 +962,7 @@ function makeFighter(m, i) {
     d: 0, s: battleStocks, kb: 0, r: 0, a: 0, mv: null, ch: 0, cd: 0, ct: 0, cs: 0, ctc: 0, stn: 0,
     dg: 0, dgd: 1, dgc: 0, qa: 0, airDg: false, inv: 0, jn: 0, out: false, hit: {},
     w: null, am: 0, sh: 0, plk: 0, spc: 0, sph: 0, ko: 0, rec: false, rise: 0, arm: 0,
-    rage: 0, rageT: 0, senku: 0, bullets: GUN_MAX, reloadT: 0,
+    rage: 0, rageT: 0, senku: 0, senkuWind: 0, bullets: GUN_MAX, reloadT: 0,
     groundPl: -1, dropPl: -1, dropT: 0, stats: { dealt: 0, deaths: 0, counters: 0, dodges: 0 },
     prev: blankInput(), ai: m.cpu ? { inp: blankInput(), t: 40, hold: 0, shold: 0 } : null };
 }
@@ -1007,7 +1011,7 @@ function applyCharChange(id) {
   const p = byId(myId);
   if (!p || p.out || p.cid === id) return;
   p.cid = id; p.ko = 0; p.spc = 0; p.sph = 0; p.arm = 0;
-  p.rage = 0; p.rageT = 0; p.senku = 0; p.bullets = GUN_MAX; p.reloadT = 0;
+  p.rage = 0; p.rageT = 0; p.senku = 0; p.senkuWind = 0; p.bullets = GUN_MAX; p.reloadT = 0;
   clearActs(p);
   p.inv = Math.max(p.inv, 40);
   burst(p.x, p.y - 30, 24, 7, '#ffffff', 9); ring(p.x, p.y - 30, 10, 14);
@@ -1022,15 +1026,17 @@ const TIMERS = ['inv', 'cd', 'cs', 'ctc', 'dgc', 'sh', 'plk', 'spc', 'rise', 'ar
 
 function rageOn(p) { return !!p && p.cid === 'yankee' && p.rageT > 0; }
 function weightFactor(p) { return CC(p.cid).wt * (rageOn(p) ? RAGE_WT : 1); }
-function gainRage(p, dm) {
-  if (!p || p.cid !== 'yankee' || p.rageT > 0 || !isLocal(p)) return;
+function addRage(p, amount) {
+  if (!p || p.cid !== 'yankee' || p.rageT > 0 || !isLocal(p) || p.rage >= RAGE_MAX) return;
   const before = p.rage;
-  p.rage = Math.min(RAGE_MAX, p.rage + Math.max(0, dm) * 1.35);
+  p.rage = Math.min(RAGE_MAX, p.rage + Math.max(0, amount));
   if (before < RAGE_MAX && p.rage >= RAGE_MAX) {
     sfxKOReady();
     popups.push({ x: p.x, y: p.y - 112, txt: 'RAGE READY!', life: 55, max: 55, size: 24, c: '#ef4747' });
   }
 }
+function gainRage(p, dm) { addRage(p, Math.max(0, dm) * RAGE_HIT_GAIN); }
+function gainRagePassive(p) { addRage(p, RAGE_PASSIVE_FILL); }
 function gainSenku(p, n) {
   if (!p || p.cid !== 'swordsman' || !isLocal(p) || p.senku >= SENKU_MAX) return;
   const before = p.senku; p.senku = Math.min(SENKU_MAX, p.senku + n);
@@ -1045,7 +1051,7 @@ function beginReload(p) {
   sfxMine();
 }
 
-function clearActs(p) { p.a = 0; p.mv = null; p.ch = 0; p.ct = 0; p.dg = 0; p.qa = 0; p.sh = 0; p.sph = 0; p.arm = 0; }
+function clearActs(p) { p.a = 0; p.mv = null; p.ch = 0; p.ct = 0; p.dg = 0; p.qa = 0; p.sh = 0; p.sph = 0; p.arm = 0; p.senkuWind = 0; }
 function isInvuln(p) { return p.remote ? !!p.ivf : (p.inv > 0 || (p.dg >= DG_INV0 && p.dg <= DG_INV1)); }
 function isArmored(p) { return p.ch > 0 || p.arm > 0; }
 function inCounter(p) { return p.ct >= CT_ON && p.ct <= CT_OFF + CC(p.cid).ctx; }
@@ -1085,7 +1091,10 @@ function fireAttack(p, ch) {
   mv.dm *= C.pow; mv.k0 *= C.pow;
   if (p.cid === 'swordsman') { mv.reach += (mv.kind === 'charge' ? 22 : 18); mv.R += 5; mv.charSword = true; }
   if (p.cid === 'lancer') { mv.reach += (mv.kind === 'charge' ? 44 : 34); mv.R += 2; mv.charSpear = true; }
-  if (rageOn(p)) { mv.dm *= RAGE_DMG; mv.k0 *= RAGE_KB; mv.ks *= RAGE_KB; }
+  if (rageOn(p)) {
+    mv.dm *= RAGE_DMG; mv.k0 *= RAGE_KB; mv.ks *= RAGE_KB;
+    if (mv.kind === 'normal') { mv.ragePunch = true; mv.k0 = Math.max(mv.k0, 13.5); mv.ks = Math.max(mv.ks, 0.105); }
+  }
   if (mv.sword) { mv.dm *= 1.3; mv.k0 *= 1.2; }
   p.mv = mv; p.a = 1; p.hit = {};
 }
@@ -1111,9 +1120,11 @@ function startSpecial(p) {
     if (p.rage >= RAGE_MAX && p.rageT <= 0) triggerRage(p);
     else if (!p.cpu) sfxNo();
   } else if (p.cid === 'swordsman') {
-    if (p.senku >= SENKU_MAX) {
-      p.senku = 0; p.spc = 35; p.sh = 16;
-      spawnProj(p, 'senku'); sfxSenku();
+    if (p.senku >= SENKU_MAX && p.senkuWind <= 0) {
+      p.senku = 0; p.senkuWind = SENKU_WIND; p.spc = SENKU_WIND + 34; p.sh = SENKU_WIND;
+      p.vx *= 0.2;
+      const e = { k:'vfx', v:'senkuCharge', id:p.id, x:Math.round(p.x), y:Math.round(p.y - 34) };
+      vfx(e); send(e);
     } else if (!p.cpu) sfxNo();
   } else if (p.cid === 'lancer') {
     if (p.spc === 0) { p.sph = 1; sfxWindup(); }
@@ -1147,7 +1158,7 @@ function fireLanceRush(p, hold) {
 }
 function fireGunmanShot(p) {
   if (p.bullets <= 0 || p.reloadT > 0) { beginReload(p); return; }
-  p.bullets--; p.spc = 9; p.sh = 7; spawnProj(p, 'gunshot'); sfxShot(); p.vx -= p.f * 0.7;
+  p.bullets--; p.spc = 3; p.sh = 5; spawnProj(p, 'gunshot'); sfxShot(); p.vx -= p.f * 0.45;
   if (p.bullets <= 0) beginReload(p);
 }
 
@@ -1197,6 +1208,10 @@ function vfx(e) {
   } else if (e.v === 'smoke') {
     burst(e.x, e.y, 16, 4, '#9aa5ad', 14); burst(e.x, e.y, 8, 3, '#ffffff', 10);
     sfxSmoke();
+  } else if (e.v === 'senkuCharge') {
+    burst(e.x, e.y, 18, 5, '#90e0ef', 12); ring(e.x, e.y, 22, 18); ring(e.x, e.y, 12, 12);
+    popups.push({ x:e.x, y:e.y-76, txt:'……！', life:SENKU_WIND, max:SENKU_WIND, size:28, c:'#ffffff' });
+    sfxSenkuCharge();
   }
 }
 
@@ -1211,6 +1226,7 @@ function stepFighter(p, inp) {
   for (const k of TIMERS) if (p[k] > 0) p[k]--;
   if (p.cid === 'boxer') gainKO(p, 100 / (18 * 60));
   if (p.cid === 'swordsman') gainSenku(p, SENKU_FILL);
+  if (p.cid === 'yankee' && p.rageT <= 0) gainRagePassive(p);
   if (p.rageT > 0) { p.rageT--; if (p.rageT === 0 && p.cid === 'yankee') popups.push({ x:p.x, y:p.y-105, txt:'RAGE END', life:32, max:32, size:18, c:'#ffffff' }); }
   if (p.cid === 'gunman' && p.reloadT > 0) {
     p.reloadT--;
@@ -1219,7 +1235,12 @@ function stepFighter(p, inp) {
 
   if (xp && p.kb === 0) dropWeapon(p, false);
 
-  if (p.kb > 0) {
+  if (p.senkuWind > 0 && p.kb === 0 && p.stn === 0) {
+    p.senkuWind--;
+    p.vx *= 0.45; p.r *= 0.35;
+    if (p.senkuWind === 24 || p.senkuWind === 10) { ring(p.x, p.y - 34, 18 + (SENKU_WIND - p.senkuWind) * 0.7, 10); }
+    if (p.senkuWind === 0) fireSenkuSlash(p);
+  } else if (p.kb > 0) {
     p.kb--;
     p.r += p.vx * 0.06 + p.f * 0.05;
     p.vx *= 0.985;
@@ -1248,7 +1269,7 @@ function stepFighter(p, inp) {
   } else {
     p.r *= 0.5;
     const dir = (inp.r ? 1 : 0) - (inp.l ? 1 : 0);
-    const slow = p.ch > 0 ? 0.35 : (p.a > 0 ? 0.5 : 1);
+    const slow = p.ch > 0 ? 0.35 : (p.cid === 'lancer' && p.sph > 0 ? 0.12 : (p.a > 0 ? 0.5 : 1));
     const moveSpd = C.spd * (rageOn(p) ? RAGE_SPD : 1);
     p.vx += dir * (p.g ? 1.0 : 0.65) * slow * moveSpd;
     p.vx *= p.g ? 0.80 : 0.90;
@@ -1259,7 +1280,7 @@ function stepFighter(p, inp) {
       p.dropPl = p.groundPl; p.dropT = 12; p.g = false; p.groundPl = -1; p.y += 7; p.vy = 2.2;
     }
 
-    if (jp) {
+    if (jp && !(p.cid === 'lancer' && p.sph > 0)) {
       const jmul = rageOn(p) ? RAGE_JUMP : 1;
       if (p.g) { p.vy = -12.5 * C.jump * jmul; p.g = false; p.groundPl = -1; p.jn = 1; if (!p.cpu) sfxJump(); }
       else if (p.jn < C.jumps) { p.vy = -11 * C.jump * jmul; p.jn++; if (!p.cpu) sfxJump(); burst(p.x, p.y, 6, 3, '#ffffff', 6); }
@@ -1288,7 +1309,10 @@ function stepFighter(p, inp) {
         if (inp.s) { p.sph++; if (p.sph >= 18) { placeMine(p); p.sph = 0; p.spc = 20; } }
         else { throwBomb(p); p.sph = 0; p.spc = 20; }
       } else if (p.cid === 'lancer') {
-        if (inp.s) p.sph = Math.min(60, p.sph + 1); else fireLanceRush(p, p.sph);
+        if (inp.s) {
+          p.sph++;
+          if (p.sph >= LANCE_CHARGE_MAX) fireLanceRush(p, LANCE_CHARGE_MAX);
+        } else fireLanceRush(p, p.sph);
       } else if (p.cid === 'gunman') {
         if (inp.s) { p.sph++; if (p.sph >= 24) beginReload(p); }
         else { fireGunmanShot(p); p.sph = 0; }
@@ -1385,7 +1409,7 @@ function meleeCheck(a) {
     if (Math.hypot(hx - t.x, hy - (t.y - 30 * tsz)) < R + 16 * tsz) {
       a.hit[t.id] = true;
       const A = { id: a.id, x: Math.round(a.x), f: a.f, c: a.c,
-                  mv: { type: mv.type, kind: mv.kind, dm: Math.round(mv.dm * 10) / 10, k0: Math.round(mv.k0 * 10) / 10, ks: mv.ks, up: mv.up, ko: !!mv.ko, blockOnly: !!mv.blockOnly } };
+                  mv: { type: mv.type, kind: mv.kind, dm: Math.round(mv.dm * 10) / 10, k0: Math.round(mv.k0 * 10) / 10, ks: mv.ks, up: mv.up, ko: !!mv.ko, blockOnly: !!mv.blockOnly, ragePunch: !!mv.ragePunch } };
       if (isLocal(t)) resolveMelee(A, t);
       else {
         send({ k: 'mh', to: t.id, a: a.id, ax: A.x, f: a.f, c: a.c, mv: A.mv });
@@ -1408,7 +1432,7 @@ function resolveMelee(A, t) {
   const front = fromFront(t, A.x) || CC(t.cid).back;
   if (mv.blockOnly && inCounter(t) && front) { emitFx({ res:'block', t:t.id, a:A.id, x:t.x, y:ty }); return; }
   if (mv.type === 'heavy' && mv.kind !== 'upper' && inCounter(t) && front) { startCounter(A, t, mv); return; }
-  const h = { dm: mv.dm, k0: mv.k0, ks: mv.ks, up: mv.up, f: A.f, ko: !!mv.ko };
+  const h = { dm: mv.dm, k0: mv.k0, ks: mv.ks, up: mv.up, f: A.f, ko: !!mv.ko, ragePunch: !!mv.ragePunch };
   const bk = mv.kind !== 'upper' && t.ct > 0 && (mv.type === 'normal' || !front);
   if (!bk && mv.type === 'normal' && isArmored(t)) {
     armorHit(t, h, A.id);
@@ -1423,8 +1447,8 @@ function resolveProj(Q, t) {
   const ty = t.y - 34 * CC(t.cid).size;
   if (isInvuln(t)) { if (t.dg > 0) emitFx({ res: 'evade', t: t.id, a: Q.o, x: t.x, y: t.y - 110 }); return; }
   const front = fromFront(t, Q.x) || CC(t.cid).back;
-  if (inCounter(t) && front) { emitFx({ res: 'block', t: t.id, a: Q.o, x: Q.x, y: ty }); return; }
-  const h = { dm: Q.dm, k0: Q.k0, ks: Q.ks, up: Q.up, f: Math.sign(Q.vx) || 1 };
+  if ((Q.senku && inCounter(t)) || (inCounter(t) && front)) { emitFx({ res: 'block', t: t.id, a: Q.o, x: Q.x, y: ty }); return; }
+  const h = { dm: Q.dm, k0: Q.k0, ks: Q.ks, up: Q.up, f: Q.dir || Math.sign(Q.vx) || 1 };
   if (rageOn(t) && !Q.senku) {
     t.d += h.dm; addDealt(Q.o, h.dm); gainRage(t, h.dm);
     t.vx += h.f * 0.35;
@@ -1448,6 +1472,7 @@ function applyHit(t, h, bk, attackerId) {
   t.d += dealt; addDealt(attackerId, dealt);
   gainKO(t, h.dm * 1.2); gainRage(t, dealt);
   let kb = (h.k0 + t.d * h.ks) * m * weightFactor(t);
+  if (h.ragePunch) kb = Math.max(kb, RAGE_PUNCH_MIN_KB);
   if (h.ko) {
     // KOアッパー専用：重量補正を超えて確実に撃墜圏へ運ぶ最強吹っ飛ばし
     kb = Math.max(kb, 36);
@@ -1566,11 +1591,20 @@ function spawnProj(p, kind) {
   if (kind === 'hado')   Object.assign(q, { vx: p.f * 5, life: 150, r: 14, dm: 7, k0: 6, ks: 0.06, up: 0.5 });
   if (kind === 'shuri')  Object.assign(q, { vx: p.f * 14, life: 22, r: 8, dm: 4, k0: 3.5, ks: 0.03, up: 0.35 });
   if (kind === 'bullet') Object.assign(q, { vx: p.f * 16, life: 55, r: 6, dm: 8, k0: 6.5, ks: 0.07, up: 0.45 });
-  if (kind === 'gunshot') Object.assign(q, { vx: p.f * 18, life: 48, r: 6, dm: 7.5, k0: 6.2, ks: 0.055, up: 0.38 });
-  if (kind === 'senku') Object.assign(q, { vx: p.f * 44, life: 20, r: 20, dm: 24, k0: 15, ks: 0.105, up: 0.35, senku: true });
+  if (kind === 'gunshot') Object.assign(q, { vx: p.f * 21, life: 50, r: 7, dm: 10.5, k0: 8.2, ks: 0.075, up: 0.42 });
+  if (kind === 'senku') Object.assign(q, { vx: 0, dir: p.f, life: 11, r: 26, range: 520, dm: 26, k0: 17, ks: 0.115, up: 0.32, senku: true, resolved: false });
   send({ k: 'proj', q: { ...q } });
   q.local = true;
   projs.push(q);
+}
+
+function fireSenkuSlash(p) {
+  if (!p || p.out) return;
+  p.sh = 16; p.vx *= 0.25;
+  spawnProj(p, 'senku');
+  popups.push({ x:p.x + p.f * 52, y:p.y - 88, txt:'旋空!!', life:32, max:32, size:30, c:'#ffffff' });
+  burst(p.x + p.f * 28, p.y - 38, 24, 8, '#ffffff', 10); ring(p.x + p.f * 34, p.y - 38, 24, 16);
+  shake = Math.max(shake, 13); sfxSenku();
 }
 
 function fireGun(p) {
@@ -1635,6 +1669,24 @@ function fxSlash(x, y) {
 function stepProjs() {
   for (let i = projs.length - 1; i >= 0; i--) {
     const q = projs[i];
+    if (q.kind === 'senku') {
+      q.life--; q.rot += 0.15;
+      if (q.local && !q.resolved) {
+        q.resolved = true;
+        for (const t of fighters) {
+          if (t.id === q.o || t.out) continue;
+          const tsz = CC(t.cid).size;
+          const dx = (t.x - q.x) * q.dir;
+          const dy = Math.abs((t.y - 32 * tsz) - q.y);
+          if (dx >= 12 && dx <= q.range && dy <= 54 + 12 * tsz) {
+            const Q = { o:q.o, x:q.x, vx:0, dir:q.dir, dm:q.dm, k0:q.k0, ks:q.ks, up:q.up, senku:true };
+            if (isLocal(t)) resolveProj(Q, t); else send({ k:'ph', to:t.id, q:Q });
+          }
+        }
+      }
+      if (q.life <= 0) projs.splice(i, 1);
+      continue;
+    }
     q.x += q.vx; q.life--; q.rot += 0.5;
     let gone = q.life <= 0 || q.x < -100 || q.x > stage.w + 100;
     if (!gone && q.local) {
@@ -1655,7 +1707,7 @@ function stepProjs() {
           if (Math.abs(q.x - t.x) < 14 * sz + q.r && q.y > t.y - 64 * sz - q.r && q.y < t.y + q.r) {
             if (isInvuln(t)) continue;
             gone = true;
-            const Q = { o: q.o, x: Math.round(q.x), vx: q.vx, dm: q.dm, k0: q.k0, ks: q.ks, up: q.up, senku: q.kind === 'senku' };
+            const Q = { o: q.o, x: Math.round(q.x), vx: q.vx, dir:q.dir || Math.sign(q.vx) || 1, dm: q.dm, k0: q.k0, ks: q.ks, up: q.up, senku: false };
             if (isLocal(t)) resolveProj(Q, t);
             else {
               send({ k: 'ph', to: t.id, q: Q });
@@ -1907,6 +1959,7 @@ function render() {
   pop();
 
   if (frozen) drawFreezeText();
+  drawSenkuThreat();
   drawHUD();
 
   textAlign(CENTER, CENTER); textStyle(BOLD); stroke('#0d1418'); strokeWeight(12);
@@ -1919,6 +1972,20 @@ function render() {
   } else if (bt.phase === 'game') {
     textSize(130); fill('#ffd166');
     push(); translate(W / 2, WH / 2); rotate(-0.08); text('GAME!', 0, 0); pop();
+  }
+}
+
+
+function drawSenkuThreat() {
+  const p = fighters.find(f => !f.out && f.cid === 'swordsman' && f.senkuWind > 0);
+  if (!p || freezeT > 0) return;
+  const q = 1 - p.senkuWind / SENKU_WIND;
+  noStroke(); fill(3, 9, 16, 24 + q * 40); rect(0, 0, W, WH);
+  noFill(); stroke(190, 242, 255, 55 + q * 145); strokeWeight(2 + q * 4);
+  rect(5, 5, W - 10, WH - 10, 12);
+  if (p.senkuWind <= 14 && frameCount % 4 < 2) {
+    stroke(255, 255, 255, 170); strokeWeight(2);
+    line(W * 0.12, WH * 0.18, W * 0.88, WH * 0.18);
   }
 }
 
@@ -2141,8 +2208,12 @@ function drawProjs() {
       push(); translate(q.x, q.y); rotate(q.rot); noStroke(); fill('#5b7383');
       for (let k = 0; k < 4; k++) { rotate(HALF_PI); triangle(0, -3, 0, 3, 11, 0); } fill('#24323c'); circle(0, 0, 5); pop();
     } else if (q.kind === 'senku') {
-      push(); translate(q.x,q.y); scale(Math.sign(q.vx)||1,1); noFill(); stroke('#ffffff'); strokeWeight(9); line(-85,0,35,0);
-      stroke('#90e0ef'); strokeWeight(4); line(-100,0,45,0); noStroke(); fill(255,255,255,150); triangle(45,0,20,-18,20,18); pop();
+      push(); translate(q.x,q.y); scale(q.dir || 1,1); noFill();
+      const fade = constrain(q.life / 11, 0, 1);
+      stroke(144,224,239,105 * fade); strokeWeight(18); bezier(18,24,150,-52,360,-48,q.range,-7);
+      stroke(255,255,255,235 * fade); strokeWeight(7); bezier(18,20,150,-46,360,-42,q.range,-6);
+      stroke(220,248,255,190 * fade); strokeWeight(2); bezier(12,31,165,-30,365,-29,q.range+8,2);
+      noStroke(); fill(255,255,255,150 * fade); circle(q.range,-7,10); pop();
     } else {
       stroke(255, 209, 102); strokeWeight(5); line(q.x - q.vx * 0.9, q.y, q.x, q.y);
       stroke(255); strokeWeight(2); line(q.x - q.vx * 0.4, q.y, q.x, q.y);
@@ -2179,6 +2250,12 @@ function drawFighter(p) {
   if (rageOn(p)) {
     noStroke(); fill(239,71,71,55 + sin(frameCount*0.7)*18); circle(p.x,p.y-30*sz,88*sz);
     noFill(); stroke(255,95,55,135); strokeWeight(4); circle(p.x,p.y-30*sz,(72+sin(frameCount*0.45)*9)*sz);
+  }
+  if (p.cid === 'swordsman' && p.senkuWind > 0) {
+    const q = 1 - p.senkuWind / SENKU_WIND;
+    noStroke(); fill(120,220,245,28 + q*55); circle(p.x,p.y-32*sz,(70+q*48)*sz);
+    noFill(); stroke(220,248,255,120 + q*100); strokeWeight(2+q*3); circle(p.x,p.y-32*sz,(52+q*36)*sz);
+    stroke('#ffffff'); strokeWeight(3+q*3); line(p.x+p.f*8,p.y-38*sz,p.x+p.f*(42+q*24),p.y-(50+q*8)*sz);
   }
   push();
   translate(p.x, p.y); scale(sz); translate(0, -30);
@@ -2353,7 +2430,11 @@ function drawFighter(p) {
   } else if (p.cid === 'bomber') {
     stroke('#24323c'); strokeWeight(2); line(-10, -25, 10, -25); noStroke(); fill('#ffd166'); circle(p.f * 5, -25, 7); circle(-p.f * 2, -25, 7);
   } else if (p.cid === 'yankee') {
-    fill('#24323c'); noStroke(); triangle(-10,-31,0,-42,10,-31); if (rageOn(p)) { fill('#ef4747'); circle(0,-24,8); }
+    // リーゼント：前方へ大きく張り出す黒髪
+    noStroke(); fill('#171b1e');
+    rect(-10,-36,18,8,3); ellipse(p.f*5,-39,28,13); ellipse(p.f*15,-41,27,13); ellipse(p.f*25,-40,21,11);
+    fill('#2b3238'); ellipse(p.f*28,-41,9,5);
+    if (rageOn(p)) { noFill(); stroke('#ef4747'); strokeWeight(3); ellipse(p.f*15,-40,48,22); noStroke(); fill('#ef4747'); circle(p.f*4,-24,6); }
   } else if (p.cid === 'swordsman') {
     stroke('#eef3f6'); strokeWeight(2); line(-9,-31,9,-31);
   } else if (p.cid === 'lancer') {
