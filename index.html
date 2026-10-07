@@ -285,9 +285,9 @@ const RAGE_MAX = 100, RAGE_T = 600, RAGE_FREEZE = 44; // ヤンキー：10秒覚
 const RAGE_PASSIVE_FILL = RAGE_MAX / (65 * 60), RAGE_HIT_GAIN = 1.55; // 放置なら約65秒、被弾なら一気に溜まる
 const RAGE_DMG = 1.85, RAGE_KB = 1.75, RAGE_SPD = 1.22, RAGE_JUMP = 1.10, RAGE_WT = 0.78;
 const RAGE_PUNCH_MIN_KB = 16.5;                 // 怒り中の通常パンチは撃墜択になる
-const SENKU_MAX = 100, SENKU_FILL = 100 / (18 * 60), SENKU_WIND = 42; // KOゲージ級：約18秒＋0.7秒の予告
-const LANCE_CHARGE_MAX = 60;                    // 最大まで溜めたら自動で突撃
-const GUN_MAX = 8, GUN_RELOAD = 72;             // ガンマン：8発、約1.2秒リロード
+const SENKU_MAX = 100, SENKU_FILL = 100 / (18 * 60), SENKU_WIND = 18, SENKU_FREEZE = 28, SENKU_RANGE = 520; // 約18秒でREADY→短い予告→黒背景の必殺停止
+const LANCE_CHARGE_MAX = 60;                    // MAXまで保持可能。離した瞬間に突撃
+const GUN_MAX = 6, GUN_RELOAD = 72, GUN_SHOT_COOL = 27; // 6発リボルバー。約0.45秒に1発
 const COLORS = ['#e63946', '#1f8ef1', '#f4a261', '#2a9d8f', '#9b5de5', '#ef476f', '#06d6a0', '#ff9f1c'];
 
 const CHARS = {
@@ -317,16 +317,16 @@ const CHARS = {
             ab: 'タフで動ける。怒り中は超高火力・高機動・さらにタフ。飛び道具で怯まない' },
   swordsman: { name: '剣士', en: 'SWORDSMAN', mark: '剣', spd: 1.00, jump: 1.0, jumps: 2, wt: 0.96, pow: 1.14, size: 1.0,
             ctx: 0, back: false, ctc: 1.0, dgc: 1.0, dgs: 1.0, st: [3, 4, 4],
-            sp: '旋空：KOゲージ級に溜めて使用。予告演出の後、前方を超長距離の一閃で薙ぐ', up: '斬り上げ：上昇しながら頭上を斬る',
-            ab: '通常攻撃が剣。拳より長いリーチと少し高い火力を持つ' },
+            sp: '旋空：ゲージMAXで使用。構えの後に画面が止まり、超長い刀身で前方を一瞬で薙ぐ', up: '斬り上げ：上昇しながら頭上を斬る',
+            ab: '剣攻撃で波動拳・手裏剣・銃弾などの飛び道具を斬り払える' },
   lancer: { name: '槍使い', en: 'LANCER', mark: '槍', spd: 0.92, jump: 0.96, jumps: 2, wt: 0.92, pow: 1.02, size: 1.0,
             ctx: 0, back: false, ctc: 1.0, dgc: 1.05, dgs: 0.98, st: [2, 4, 5],
             sp: '突撃：特殊を長押しして溜め、離すと槍を構えて突進。溜めるほど強い', up: '上薙ぎ：ジャンプせず、槍の長いリーチで頭上を薙ぎ払う',
-            ab: '通常・溜め攻撃のリーチが非常に長い。突撃は最大チャージで自動発動する' },
+            ab: '突撃はMAXを保持したまま移動可能。当てれば強烈だが、溜めるほど外した後の硬直が長い' },
   gunman: { name: 'ガンマン', en: 'GUNMAN', mark: '銃', spd: 1.02, jump: 1.0, jumps: 2, wt: 1.03, pow: 0.96, size: 1.0,
             ctx: 0, back: false, ctc: 1.0, dgc: 0.95, dgs: 1.0, st: [3, 4, 5],
-            sp: '射撃：高火力の8連装。短い間隔で連射可能。0発で自動、長押しで任意リロード', up: '上ショットガン：ジャンプせず頭上へ強力な散弾を撃つ',
-            ab: '弾数管理型の遠距離キャラ。リロードの隙をどう作るかが重要' }
+            sp: 'リボルバー：高火力の6発装填。約0.45秒に1発。0発で自動、長押しで任意リロード', up: '上ショットガン：ジャンプせず頭上へ散弾を撃つ（火力は控えめ）',
+            ab: '一発が重い射撃型。連射できないので確実に狙い、6発ごとにリロードする' }
 };
 const CC = id => CHARS[id] || CHARS.karate;
 function clampInt(v, lo, hi, fallback) { const n = parseInt(v, 10); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : fallback; }
@@ -829,7 +829,7 @@ function stateOf(f) {
     am: f.arm > 0 ? 1 : 0, cid: f.cid,
     d: Math.round(f.d), s: f.s, o: f.out ? 1 : 0, ko: Math.round(f.ko), g: f.g ? 1 : 0,
     rg: Math.round(f.rage || 0), rt: Math.round(f.rageT || 0), sk: Math.round(f.senku || 0), sw: Math.round(f.senkuWind || 0),
-    bl: f.bullets ?? GUN_MAX, rl: Math.round(f.reloadT || 0),
+    bl: f.bullets ?? GUN_MAX, rl: Math.round(f.reloadT || 0), lg: Math.round(f.lanceLag || 0),
     stats: f.stats || null, rd: curRound, ts: Date.now() };
 }
 
@@ -874,7 +874,7 @@ function updateRemote() {
     Object.assign(f, { x, y, r, vx: s.vx, f: s.f, a: s.a, ch: s.ch, ct: s.ct, cs: s.cs, stn: s.stn, dg: s.dg,
       ivf: s.iv, kb: s.kb, w: s.w || null, sh: s.sh, sph: s.sph, rise: s.ri, arm: s.am || 0, cid: s.cid || f.cid,
       d: s.d, s: s.s, ko: s.ko, g: s.g, rage: s.rg || 0, rageT: s.rt || 0, senku: s.sk || 0, senkuWind: s.sw || 0,
-      bullets: s.bl ?? f.bullets, reloadT: s.rl || 0, stats: s.stats || f.stats });
+      bullets: s.bl ?? f.bullets, reloadT: s.rl || 0, lanceLag: s.lg || 0, stats: s.stats || f.stats });
     f.mv = mkMv(s.mk, s.w);
     if (s.o && !f.out) { f.out = true; if (!elim.includes(f.id)) elim.push(f.id); }
     while (f.buf.length > 2 && f.buf[1].ts < rt - 300) f.buf.shift();
@@ -889,6 +889,7 @@ function onEvent(e) {
   else if (e.k === 'ctr') doCounter(e);
   else if (e.k === 'vfx') vfx(e);
   else if (e.k === 'rage') doRageTransform(e, true);
+  else if (e.k === 'senkuCine') doSenkuCinematic(e, true);
   else if (e.k === 'proj') {
     projs.push({ ...e.q, local: false });
     if (e.q.kind === 'hado') sfxHado(); else if (e.q.kind === 'shuri') sfxShuri();
@@ -897,7 +898,7 @@ function onEvent(e) {
   else if (e.k === 'pg') {
     const i = projs.findIndex(q => q.pid === e.pid);
     if (i >= 0) projs.splice(i, 1);
-    if (e.sl) fxSlash(e.x, e.y);
+    if (e.sl === 2) fxProjectileParry(e.x, e.y); else if (e.sl) fxSlash(e.x, e.y);
   }
   else if (e.k === 'bomb') { bombs.push({ ...e.b }); sfxThrow(); }
   else if (e.k === 'bx') {
@@ -962,7 +963,7 @@ function makeFighter(m, i) {
     d: 0, s: battleStocks, kb: 0, r: 0, a: 0, mv: null, ch: 0, cd: 0, ct: 0, cs: 0, ctc: 0, stn: 0,
     dg: 0, dgd: 1, dgc: 0, qa: 0, airDg: false, inv: 0, jn: 0, out: false, hit: {},
     w: null, am: 0, sh: 0, plk: 0, spc: 0, sph: 0, ko: 0, rec: false, rise: 0, arm: 0,
-    rage: 0, rageT: 0, senku: 0, senkuWind: 0, bullets: GUN_MAX, reloadT: 0,
+    rage: 0, rageT: 0, senku: 0, senkuWind: 0, bullets: GUN_MAX, reloadT: 0, lanceLag: 0,
     groundPl: -1, dropPl: -1, dropT: 0, stats: { dealt: 0, deaths: 0, counters: 0, dodges: 0 },
     prev: blankInput(), ai: m.cpu ? { inp: blankInput(), t: 40, hold: 0, shold: 0 } : null };
 }
@@ -1011,7 +1012,7 @@ function applyCharChange(id) {
   const p = byId(myId);
   if (!p || p.out || p.cid === id) return;
   p.cid = id; p.ko = 0; p.spc = 0; p.sph = 0; p.arm = 0;
-  p.rage = 0; p.rageT = 0; p.senku = 0; p.senkuWind = 0; p.bullets = GUN_MAX; p.reloadT = 0;
+  p.rage = 0; p.rageT = 0; p.senku = 0; p.senkuWind = 0; p.bullets = GUN_MAX; p.reloadT = 0; p.lanceLag = 0;
   clearActs(p);
   p.inv = Math.max(p.inv, 40);
   burst(p.x, p.y - 30, 24, 7, '#ffffff', 9); ring(p.x, p.y - 30, 10, 14);
@@ -1121,7 +1122,7 @@ function startSpecial(p) {
     else if (!p.cpu) sfxNo();
   } else if (p.cid === 'swordsman') {
     if (p.senku >= SENKU_MAX && p.senkuWind <= 0) {
-      p.senku = 0; p.senkuWind = SENKU_WIND; p.spc = SENKU_WIND + 34; p.sh = SENKU_WIND;
+      p.senku = 0; p.senkuWind = SENKU_WIND; p.spc = SENKU_WIND + SENKU_FREEZE + 34; p.sh = SENKU_WIND;
       p.vx *= 0.2;
       const e = { k:'vfx', v:'senkuCharge', id:p.id, x:Math.round(p.x), y:Math.round(p.y - 34) };
       vfx(e); send(e);
@@ -1150,15 +1151,33 @@ function doRageTransform(e, remote) {
   shake = 8; sfxRage();
 }
 
+function startSenkuCinematic(p) {
+  if (!p || p.out) return;
+  const e = { k:'senkuCine', id:p.id, x:Math.round(p.x), y:Math.round(p.y - 34), f:p.f };
+  doSenkuCinematic(e, false); send(e);
+}
+function doSenkuCinematic(e, remote) {
+  const p = byId(e.id); if (!p) return;
+  p.senkuWind = 0; p.vx *= 0.12;
+  // 予告を見て回避・カウンターを選ぶ時間は直前にある。ここからは必殺カットとして全員停止。
+  freezeT = SENKU_FREEZE; freezeMax = SENKU_FREEZE; fzType = 'senku';
+  fz = { x:e.x, y:e.y, att:e.id, cnt:null, dir:e.f || p.f };
+  if (isLocal(p)) p.inv = Math.max(p.inv, SENKU_FREEZE + 5);
+  shake = 3; sfxSenkuCharge();
+}
+
 function fireLanceRush(p, hold) {
-  const C = CC(p.cid), pw = constrain((hold - 1) / 55, 0, 1);
-  p.mv = { ...mkMv('lancerush'), dm: (11 + 15 * pw) * C.pow, k0: (8 + 11 * pw) * C.pow,
-    ks: 0.085 + 0.035 * pw, up: 0.42, lunge: 9 + 16 * pw, reach: 58 + 16 * pw, glow: 5 };
-  p.a = 1; p.hit = {}; p.sph = 0; p.spc = 24; sfxWindup();
+  const C = CC(p.cid), pw = constrain((hold - 1) / (LANCE_CHARGE_MAX - 1), 0, 1);
+  // 軽く押した時は小回りが利く。MAXは超長距離・高火力だが、外すと約0.8秒の大硬直。
+  const lag = Math.round(3 + 45 * Math.pow(pw, 1.6));
+  p.mv = { ...mkMv('lancerush'), dm: (10 + 17 * pw) * C.pow, k0: (7.5 + 13 * pw) * C.pow,
+    ks: 0.08 + 0.045 * pw, up: 0.42, lunge: 8 + 24 * pw, reach: 56 + 24 * pw, glow: 5,
+    lanceLag: lag, chargePower: pw };
+  p.a = 1; p.hit = {}; p.sph = 0; p.spc = Math.round(10 + 20 * pw); sfxWindup();
 }
 function fireGunmanShot(p) {
   if (p.bullets <= 0 || p.reloadT > 0) { beginReload(p); return; }
-  p.bullets--; p.spc = 3; p.sh = 5; spawnProj(p, 'gunshot'); sfxShot(); p.vx -= p.f * 0.45;
+  p.bullets--; p.spc = GUN_SHOT_COOL; p.sh = 5; spawnProj(p, 'gunshot'); sfxShot(); p.vx -= p.f * 0.65;
   if (p.bullets <= 0) beginReload(p);
 }
 
@@ -1193,7 +1212,7 @@ function upSpecial(p, dir) {
   } else if (p.cid === 'lancer') {
     p.mv = { ...mkMv('lanceup'), dm: 11 * C.pow, k0: 8 * C.pow, ks: 0.07, up: 1.10, charSpear: true }; p.a = 1; sfxSlash();
   } else if (p.cid === 'gunman') {
-    p.mv = { ...mkMv('shotgunup'), dm: 15, k0: 11.5, ks: 0.085, up: 1.35, blockOnly: true }; p.a = 1; p.sh = 10; sfxShot();
+    p.mv = { ...mkMv('shotgunup'), dm: 10, k0: 7.5, ks: 0.055, up: 1.05, blockOnly: true }; p.a = 1; p.sh = 10; sfxShot();
     burst(p.x, p.y - 80, 18, 7, '#ffd166', 8);
   }
 }
@@ -1238,8 +1257,8 @@ function stepFighter(p, inp) {
   if (p.senkuWind > 0 && p.kb === 0 && p.stn === 0) {
     p.senkuWind--;
     p.vx *= 0.45; p.r *= 0.35;
-    if (p.senkuWind === 24 || p.senkuWind === 10) { ring(p.x, p.y - 34, 18 + (SENKU_WIND - p.senkuWind) * 0.7, 10); }
-    if (p.senkuWind === 0) fireSenkuSlash(p);
+    if (p.senkuWind === 10 || p.senkuWind === 4) { ring(p.x, p.y - 34, 18 + (SENKU_WIND - p.senkuWind) * 1.2, 10); }
+    if (p.senkuWind === 0) startSenkuCinematic(p);
   } else if (p.kb > 0) {
     p.kb--;
     p.r += p.vx * 0.06 + p.f * 0.05;
@@ -1250,6 +1269,11 @@ function stepFighter(p, inp) {
     p.vx *= 0.8;
     p.r = sin(frameCount * 0.2) * 0.15;
     clearActs(p);
+  } else if (p.lanceLag > 0) {
+    // 突撃後の硬直。MAXを外した時はここが非常に長い。被弾した場合はノックバックが優先。
+    p.lanceLag--;
+    p.vx *= 0.72; p.r *= 0.45;
+    p.ch = 0; p.ct = 0; p.dg = 0; p.sph = 0;
   } else if (p.dg > 0) {
     p.dg++;
     p.vx = p.dgd * DG_SPD * C.dgs * (1 - 0.6 * p.dg / DG_T);
@@ -1269,7 +1293,7 @@ function stepFighter(p, inp) {
   } else {
     p.r *= 0.5;
     const dir = (inp.r ? 1 : 0) - (inp.l ? 1 : 0);
-    const slow = p.ch > 0 ? 0.35 : (p.cid === 'lancer' && p.sph > 0 ? 0.12 : (p.a > 0 ? 0.5 : 1));
+    const slow = p.ch > 0 ? 0.35 : (p.cid === 'lancer' && p.sph > 0 ? 0.65 : (p.a > 0 ? 0.5 : 1));
     const moveSpd = C.spd * (rageOn(p) ? RAGE_SPD : 1);
     p.vx += dir * (p.g ? 1.0 : 0.65) * slow * moveSpd;
     p.vx *= p.g ? 0.80 : 0.90;
@@ -1310,8 +1334,9 @@ function stepFighter(p, inp) {
         else { throwBomb(p); p.sph = 0; p.spc = 20; }
       } else if (p.cid === 'lancer') {
         if (inp.s) {
-          p.sph++;
-          if (p.sph >= LANCE_CHARGE_MAX) fireLanceRush(p, LANCE_CHARGE_MAX);
+          // 通常の溜め攻撃と同じ。MAXになっても勝手に出ず、そのまま保持できる。
+          p.sph = Math.min(LANCE_CHARGE_MAX, p.sph + 1);
+          if (p.sph === LANCE_CHARGE_MAX && !p.cpu) sfxChargeFull();
         } else fireLanceRush(p, p.sph);
       } else if (p.cid === 'gunman') {
         if (inp.s) { p.sph++; if (p.sph >= 24) beginReload(p); }
@@ -1330,7 +1355,7 @@ function stepFighter(p, inp) {
     if (p.a > 0 && p.mv) {
       p.a++;
       if (p.mv.lunge && p.a === p.mv.act0) p.vx += p.f * p.mv.lunge;
-      if (p.a > p.mv.end) { p.cd = p.mv.cd || 5; p.a = 0; p.mv = null; }
+      if (p.a > p.mv.end) { const lag = p.mv.lanceLag || 0; p.cd = p.mv.cd || 5; p.a = 0; p.mv = null; if (lag > 0) p.lanceLag = Math.max(p.lanceLag, lag); }
     }
   }
 
@@ -1384,6 +1409,7 @@ function respawn(p) {
   if (p.cid === 'yankee') { p.rage = 0; p.rageT = 0; }
   if (p.cid === 'swordsman') p.senku = Math.min(p.senku, 50);
   if (p.cid === 'gunman') { p.bullets = GUN_MAX; p.reloadT = 0; }
+  p.lanceLag = 0;
 }
 
 // ========================================================
@@ -1547,6 +1573,13 @@ function startKOFreeze(e) {
 }
 
 function endFreeze() {
+  if (fzType === 'senku') {
+    const a = fz ? byId(fz.att) : null;
+    if (a && isLocal(a) && !a.out) fireSenkuSlash(a);
+    // 最後に白い閃光を残して通常時間へ戻す。
+    if (fz) { burst(fz.x + (fz.dir || 1) * 35, fz.y, 34, 12, '#ffffff', 9); ring(fz.x, fz.y, 36, 18); }
+    shake = 16; return;
+  }
   if (fzType === 'rage') {
     sfxCounterBoom();
     if (fz) { burst(fz.x, fz.y, 55, 17, '#ef4747', 14); burst(fz.x, fz.y, 24, 10, '#ffd166', 10); ring(fz.x, fz.y, 30, 24); }
@@ -1591,8 +1624,8 @@ function spawnProj(p, kind) {
   if (kind === 'hado')   Object.assign(q, { vx: p.f * 5, life: 150, r: 14, dm: 7, k0: 6, ks: 0.06, up: 0.5 });
   if (kind === 'shuri')  Object.assign(q, { vx: p.f * 14, life: 22, r: 8, dm: 4, k0: 3.5, ks: 0.03, up: 0.35 });
   if (kind === 'bullet') Object.assign(q, { vx: p.f * 16, life: 55, r: 6, dm: 8, k0: 6.5, ks: 0.07, up: 0.45 });
-  if (kind === 'gunshot') Object.assign(q, { vx: p.f * 21, life: 50, r: 7, dm: 10.5, k0: 8.2, ks: 0.075, up: 0.42 });
-  if (kind === 'senku') Object.assign(q, { vx: 0, dir: p.f, life: 11, r: 26, range: 520, dm: 26, k0: 17, ks: 0.115, up: 0.32, senku: true, resolved: false });
+  if (kind === 'gunshot') Object.assign(q, { vx: p.f * 21, life: 50, r: 7, dm: 10.2, k0: 7.8, ks: 0.07, up: 0.40 });
+  if (kind === 'senku') Object.assign(q, { vx: 0, dir: p.f, life: 9, age: 0, r: 24, range: SENKU_RANGE, dm: 20, k0: 14, ks: 0.095, up: 0.30, senku: true, resolved: false });
   send({ k: 'proj', q: { ...q } });
   q.local = true;
   projs.push(q);
@@ -1600,11 +1633,10 @@ function spawnProj(p, kind) {
 
 function fireSenkuSlash(p) {
   if (!p || p.out) return;
-  p.sh = 16; p.vx *= 0.25;
+  p.sh = 16; p.vx *= 0.18;
   spawnProj(p, 'senku');
-  popups.push({ x:p.x + p.f * 52, y:p.y - 88, txt:'旋空!!', life:32, max:32, size:30, c:'#ffffff' });
-  burst(p.x + p.f * 28, p.y - 38, 24, 8, '#ffffff', 10); ring(p.x + p.f * 34, p.y - 38, 24, 16);
-  shake = Math.max(shake, 13); sfxSenku();
+  burst(p.x + p.f * 32, p.y - 40, 30, 9, '#ffffff', 9); ring(p.x + p.f * 34, p.y - 40, 30, 14);
+  shake = Math.max(shake, 16); sfxSenku();
 }
 
 function fireGun(p) {
@@ -1666,20 +1698,32 @@ function fxSlash(x, y) {
   sfxSlash();
 }
 
+function fxProjectileParry(x, y) {
+  burst(x, y, 18, 8, '#ffffff', 7); burst(x, y, 8, 5, '#ffd166', 6); ring(x, y, 8, 12);
+  popups.push({ x, y:y-24, txt:'PARRY!', life:24, max:24, size:22, c:'#ffd166' });
+  sfxBlock();
+}
+
+
 function stepProjs() {
   for (let i = projs.length - 1; i >= 0; i--) {
     const q = projs[i];
     if (q.kind === 'senku') {
-      q.life--; q.rot += 0.15;
+      q.life--; q.age = (q.age || 0) + 1;
       if (q.local && !q.resolved) {
         q.resolved = true;
         for (const t of fighters) {
           if (t.id === q.o || t.out) continue;
           const tsz = CC(t.cid).size;
-          const dx = (t.x - q.x) * q.dir;
-          const dy = Math.abs((t.y - 32 * tsz) - q.y);
-          if (dx >= 12 && dx <= q.range && dy <= 54 + 12 * tsz) {
-            const Q = { o:q.o, x:q.x, vx:0, dir:q.dir, dm:q.dm, k0:q.k0, ks:q.ks, up:q.up, senku:true };
+          const rx = (t.x - q.x) * q.dir;
+          const ry = (t.y - 32 * tsz) - q.y;
+          const dist = Math.hypot(rx, ry);
+          const ang = Math.abs(Math.atan2(ry, Math.max(rx, 1)));
+          // ビームではなく、剣士を中心に超長い刀身が扇状に一閃する判定。
+          if (rx >= 18 && dist <= q.range + 14 * tsz && ang <= 0.62) {
+            const tip = constrain((dist - 70) / Math.max(q.range - 70, 1), 0, 1);
+            const Q = { o:q.o, x:q.x, vx:0, dir:q.dir,
+              dm:20 + 8 * tip, k0:14 + 7 * tip, ks:0.095 + 0.035 * tip, up:0.30, senku:true };
             if (isLocal(t)) resolveProj(Q, t); else send({ k:'ph', to:t.id, q:Q });
           }
         }
@@ -1691,12 +1735,17 @@ function stepProjs() {
     let gone = q.life <= 0 || q.x < -100 || q.x > stage.w + 100;
     if (!gone && q.local) {
       if (q.kind !== 'senku') for (const f of fighters) {
-        if (f.id === q.o || f.out || f.w !== 'sword' || !isActive(f)) continue;
+        if (f.id === q.o || f.out || !isActive(f)) continue;
+        const swordItem = f.w === 'sword';
+        const swordsmanParry = f.cid === 'swordsman' && f.mv && ['normal','charge','swordup'].includes(f.mv.kind);
+        if (!swordItem && !swordsmanParry) continue;
         const sz = CC(f.cid).size;
-        if (Math.hypot(q.x - (f.x + f.f * f.mv.reach * sz), q.y - (f.y - 34 * sz)) < f.mv.R * sz + q.r) {
+        const hx = f.x + f.f * (f.mv.reach || 28) * sz;
+        const hy = f.y - (f.mv.yo || 34) * sz;
+        if (Math.hypot(q.x - hx, q.y - hy) < (f.mv.R || 28) * sz + q.r) {
           gone = true;
-          fxSlash(q.x, q.y);
-          send({ k: 'pg', pid: q.pid, sl: 1, x: Math.round(q.x), y: Math.round(q.y) });
+          if (swordsmanParry) fxProjectileParry(q.x, q.y); else fxSlash(q.x, q.y);
+          send({ k: 'pg', pid: q.pid, sl: swordsmanParry ? 2 : 1, x: Math.round(q.x), y: Math.round(q.y) });
           break;
         }
       }
@@ -1980,12 +2029,13 @@ function drawSenkuThreat() {
   const p = fighters.find(f => !f.out && f.cid === 'swordsman' && f.senkuWind > 0);
   if (!p || freezeT > 0) return;
   const q = 1 - p.senkuWind / SENKU_WIND;
-  noStroke(); fill(3, 9, 16, 24 + q * 40); rect(0, 0, W, WH);
-  noFill(); stroke(190, 242, 255, 55 + q * 145); strokeWeight(2 + q * 4);
-  rect(5, 5, W - 10, WH - 10, 12);
-  if (p.senkuWind <= 14 && frameCount % 4 < 2) {
-    stroke(255, 255, 255, 170); strokeWeight(2);
-    line(W * 0.12, WH * 0.18, W * 0.88, WH * 0.18);
+  // ここはまだ反応可能。徐々に周囲が静まり、最後に黒背景の停止演出へ入る。
+  noStroke(); fill(0, 0, 0, 22 + q * 72); rect(0, 0, W, WH);
+  const sx = p.x * (W / stage.w), sy = (p.y - 42) * (W / stage.w);
+  noFill(); stroke(255,255,255,75 + q*145); strokeWeight(1.5 + q*2.5);
+  circle(sx, sy, 32 + q*42);
+  if (p.senkuWind <= 6 && frameCount % 4 < 2) {
+    stroke(255,255,255,190); strokeWeight(2); line(W*0.18,WH*0.20,W*0.82,WH*0.20);
   }
 }
 
@@ -2021,8 +2071,12 @@ function drawHUD() {
       fill(60); rect(x + 40, y + h - 5, w - 46, 3); fill(p.senku >= 100 ? '#ffffff' : '#90e0ef');
       rect(x + 40, y + h - 5, (w - 46) * p.senku / SENKU_MAX, 3);
     } else if (p.cid === 'gunman') {
-      fill('#ffd166'); textSize(9); noStroke(); textAlign(RIGHT,CENTER);
-      text(p.reloadT > 0 ? 'RELOAD' : `BULLET ${p.bullets}`, x + w - 5, y + h - 5);
+      noStroke(); textAlign(RIGHT,CENTER); textSize(9); fill('#ffd166');
+      if (p.reloadT > 0) text('RELOAD', x+w-5, y+h-6);
+      else {
+        let dots=''; for (let b=0;b<GUN_MAX;b++) dots += b < p.bullets ? '●' : '○';
+        text(dots, x+w-5, y+h-6);
+      }
     }
     pop();
   });
@@ -2071,6 +2125,19 @@ function drawPopups() {
 function drawFreezeWorld() {
   if (!fz) return;
   const a = byId(fz.att), c = byId(fz.cnt);
+  if (fzType === 'senku') {
+    const el = freezeMax - freezeT, q = constrain(el / Math.max(freezeMax,1),0,1);
+    // 完全な黒背景。剣士と刀の光だけを残す必殺カット。
+    noStroke(); fill(0,0,0,248); rect(-400,-400,stage.w+800,stage.h+800);
+    if (a) drawFighter(a);
+    push(); translate(fz.x, fz.y); scale(fz.dir || 1, 1);
+    const pulse = 0.55 + 0.45 * sin(el * 0.75);
+    stroke(255,255,255,120 + 120*q); strokeWeight(2 + 3*q);
+    line(20,-8,110 + 70*q,-24);
+    noStroke(); fill(255,255,255,160*pulse); circle(34,-10,8 + 10*q);
+    pop();
+    return;
+  }
   if (fzType === 'rage') {
     const el = freezeMax - freezeT; noStroke(); fill(45, 0, 0, 205); rect(-300,-300,stage.w+600,stage.h+600);
     push(); translate(fz.x,fz.y);
@@ -2117,6 +2184,17 @@ function drawFreezeWorld() {
 
 function drawFreezeText() {
   const el = freezeMax - freezeT, t = el / freezeMax;
+  if (fzType === 'senku') {
+    if (el < 3) { noStroke(); fill(255,255,255,220*(1-el/3)); rect(0,0,W,WH); }
+    push();
+    textAlign(CENTER,CENTER); textStyle(BOLD);
+    // 大技名は控えめに。黒の静寂と刀の光を主役にする。
+    const a = constrain(t*1.5,0,1);
+    fill(255,255,255,220*a); noStroke(); textSize(34); text('旋  空', W*0.78, WH*0.78);
+    stroke(255,255,255,150*a); strokeWeight(2); line(W*0.60, WH*0.72, W*0.93, WH*0.72);
+    pop();
+    return;
+  }
   if (fzType === 'rage') {
     if (el < 4) { noStroke(); fill(255,80,50,210*(1-el/4)); rect(0,0,W,WH); }
     push(); translate(W/2, WH/2-40); rotate(-0.07); textAlign(CENTER,CENTER); textStyle(BOLDITALIC);
@@ -2208,12 +2286,21 @@ function drawProjs() {
       push(); translate(q.x, q.y); rotate(q.rot); noStroke(); fill('#5b7383');
       for (let k = 0; k < 4; k++) { rotate(HALF_PI); triangle(0, -3, 0, 3, 11, 0); } fill('#24323c'); circle(0, 0, 5); pop();
     } else if (q.kind === 'senku') {
-      push(); translate(q.x,q.y); scale(q.dir || 1,1); noFill();
-      const fade = constrain(q.life / 11, 0, 1);
-      stroke(144,224,239,105 * fade); strokeWeight(18); bezier(18,24,150,-52,360,-48,q.range,-7);
-      stroke(255,255,255,235 * fade); strokeWeight(7); bezier(18,20,150,-46,360,-42,q.range,-6);
-      stroke(220,248,255,190 * fade); strokeWeight(2); bezier(12,31,165,-30,365,-29,q.range+8,2);
-      noStroke(); fill(255,255,255,150 * fade); circle(q.range,-7,10); pop();
+      // エネルギービームではなく「一瞬だけ数百pxまで伸びた刀身」そのものを高速で振る。
+      push(); translate(q.x,q.y); scale(q.dir || 1,1);
+      const age = q.age || (9-q.life), pr = constrain(age/8,0,1);
+      const ang = lerp(-0.68, 0.34, 1 - Math.pow(1-pr,3));
+      const fade = constrain(q.life/5,0,1);
+      rotate(ang);
+      // 残像の円弧
+      noFill(); stroke(255,255,255,65*fade); strokeWeight(10);
+      arc(0,0,q.range*1.75,q.range*1.10,-0.18,0.18);
+      // 超長い刀身。細く硬い実体感を優先。
+      noStroke(); fill(225,234,240,245*fade);
+      beginShape(); vertex(18,-5); vertex(q.range,-9); vertex(q.range+24,0); vertex(q.range,9); vertex(18,5); endShape(CLOSE);
+      fill(255,255,255,255*fade); beginShape(); vertex(28,-2); vertex(q.range+8,-3); vertex(q.range+22,0); vertex(q.range+8,3); vertex(28,2); endShape(CLOSE);
+      stroke(110,170,195,170*fade); strokeWeight(2); line(25,5,q.range,8);
+      pop();
     } else {
       stroke(255, 209, 102); strokeWeight(5); line(q.x - q.vx * 0.9, q.y, q.x, q.y);
       stroke(255); strokeWeight(2); line(q.x - q.vx * 0.4, q.y, q.x, q.y);
@@ -2387,7 +2474,7 @@ function drawFighter(p) {
     } else if (p.cid === 'bomber') {
       drawWeapon('bomb', -p.f * 16, -4, 1, 'icon', p.sph > 10);
     } else if (p.cid === 'lancer') {
-      const q = Math.min(p.sph / 60, 1);
+      const q = Math.min(p.sph / LANCE_CHARGE_MAX, 1);
       noFill(); stroke(255,209,102,120 + q*120); strokeWeight(4 + q*3); circle(-p.f*18,-3,18 + q*34);
       hand = { x: -p.f * 18, y: -3 };
     } else if (p.cid === 'gunman') {
@@ -2460,9 +2547,7 @@ function drawFighter(p) {
     text(p.label, p.x, top - 10);
     drawCool(p.x + 26, top - 10, p.ctc, CT_COOL * C.ctc, '#3a86ff', 'C');
     if (p.cid === 'sumo') drawCool(p.x + 44, top - 10, p.spc, 150, '#9b5de5', 'S');
-    if (p.cid === 'yankee') { noStroke(); fill('#24323c'); rect(p.x-28,top+5,56,4); fill(rageOn(p)?'#ef4747':'#ff6b35'); rect(p.x-28,top+5,56*(rageOn(p)?p.rageT/RAGE_T:p.rage/RAGE_MAX),4); }
-    if (p.cid === 'swordsman') { noStroke(); fill('#24323c'); rect(p.x-28,top+5,56,4); fill('#90e0ef'); rect(p.x-28,top+5,56*p.senku/SENKU_MAX,4); }
-    if (p.cid === 'gunman') { noStroke(); fill('#ffd166'); textSize(10); text(p.reloadT>0?'RELOAD':`B${p.bullets}`,p.x-28,top-10); }
+    // 固有ゲージ・弾数は頭上には表示しない。HUDへ集約。
     if (p.w === 'gun') { noStroke(); fill('#24323c'); textSize(11); text(`残${p.am}`, p.x - 28, top - 10); }
   } else {
     stroke('#0d1418'); strokeWeight(3); fill(p.c); textSize(12);
