@@ -56,6 +56,8 @@
   .optrow > span { width: 84px; flex-shrink: 0; }
   .seg { display: flex; gap: 6px; flex: 1; }
   .seg button { flex: 1; padding: 9px 4px; border: 2px solid #0d1418; background: #e8eef2; color: #1d2a33; font-weight: 900; font-size: 13px; }
+  #seg-cpun, #lb-cpun { flex-wrap: wrap; }
+  #seg-cpun button, #lb-cpun button { flex: 1 1 calc(25% - 6px); min-width: 54px; }
   .seg button.sel { background: #ffd166; }
   .nav { width: min(560px, 100%); display: flex; gap: 10px; flex-shrink: 0; }
   .nav button { flex: 1; padding: 13px; font-weight: 900; font-size: 16px; border: 3px solid #0d1418; transform: skewX(-8deg); }
@@ -84,6 +86,12 @@
   .namebox label { flex-shrink:0; font-size:13px; }
   .namebox input { flex:1; min-width:0; padding:8px 10px; border:2px solid #5b7383; border-radius:5px; font:inherit; font-size:15px; font-weight:800; color:#1d2a33; background:#fff; }
   .result-stats { font-size:11px; font-weight:700; color:#5b7383; margin-top:2px; }
+  .roomjoin { width:min(560px,100%); display:flex; flex-direction:column; gap:10px; background:#eef3f6; color:#1d2a33; border:3px solid #0d1418; padding:14px; }
+  .roomjoin .room-code-row { display:flex; gap:8px; }
+  .roomjoin input { flex:1; min-width:0; padding:12px 10px; border:3px solid #5b7383; border-radius:6px; font:inherit; font-size:22px; font-weight:900; letter-spacing:4px; text-align:center; text-transform:uppercase; color:#1d2a33; background:#fff; }
+  .roomjoin button { padding:12px 16px; border:3px solid #0d1418; font-weight:900; font-size:15px; }
+  .roomjoin .joinbtn { background:#3a86ff; color:#fff; flex-shrink:0; }
+  .roomjoin .hint { font-size:12px; font-weight:700; color:#5b7383; text-align:center; }
 
 
   #game { width: 100%; max-width: 800px; display: none; flex-direction: column; align-items: center; }
@@ -118,9 +126,23 @@
 
 <div id="sc-mode" class="screen">
   <div class="hd">MODE</div>
-  <button class="big" id="go-cpu">CPU対戦<small>コンピューターと戦う（1〜3体）</small></button>
-  <button class="big" id="go-online">オンライン対戦<small>部屋を作って、QRで友達を呼ぶ</small></button>
+  <button class="big" id="go-cpu">CPU対戦<small>コンピューターと戦う（1〜7体）</small></button>
+  <button class="big" id="go-online">オンライン対戦<small>部屋を作る／6文字の部屋コードで参加</small></button>
   <button class="big" id="go-howto">あそびかた<small>操作と三すくみのルール</small></button>
+</div>
+
+<div id="sc-online" class="screen">
+  <div class="hd">ONLINE</div>
+  <button class="big" id="online-create">部屋を作る<small>QR・URL・部屋コードで友達を招待</small></button>
+  <div class="roomjoin">
+    <div class="sh" style="margin:0;text-align:center">部屋コードで参加</div>
+    <div class="room-code-row">
+      <input id="room-code-input" type="text" inputmode="text" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABC123" aria-label="6文字の部屋コード">
+      <button class="joinbtn" id="online-join">参加</button>
+    </div>
+    <div class="hint">ホスト画面に表示されている6文字のコードを入力</div>
+  </div>
+  <div class="nav"><button class="back" id="online-back">もどる</button></div>
 </div>
 
 <div id="sc-chars" class="screen" style="z-index:8">
@@ -251,7 +273,7 @@ function initFirebase() {
 // ② 基本設定（数字で調整できます）
 // ========================================================
 const W = 800, WH = 450, H = 500;
-const GRAV = 0.6, DEFAULT_STOCK = 3, MAX_STOCK = 5, MAX_PLAYERS = 6;
+const GRAV = 0.6, DEFAULT_STOCK = 3, MAX_STOCK = 5, MAX_PLAYERS = 8;
 const CH_TH = 12, CH_FULL = 50, CH_WARN = 70, CH_OVER = 100, STUN_T = 80;
 const CT_ON = 3, CT_OFF = 20, CT_END = 46, CT_COOL = 90;
 const DG_T = 18, DG_INV0 = 2, DG_INV1 = 14, DG_COOL = 40, DG_SPD = 9;
@@ -259,7 +281,11 @@ const FREEZE = 28, FREEZE_KO = 36;
 const INTERP = 80, SEND_MS = 33;            // 通信：表示の遅らせ幅・送信間隔
 const FIXED_MS = 1000 / 60, MAX_SIM_STEPS = 5; // 端末FPSに左右されない60Hz固定更新
 // 波動拳は同時発射数の制限なし
-const COLORS = ['#e63946', '#1f8ef1', '#f4a261', '#2a9d8f', '#9b5de5', '#ef476f'];
+const RAGE_MAX = 100, RAGE_T = 600, RAGE_FREEZE = 44; // ヤンキー：10秒覚醒＋変身演出
+const RAGE_DMG = 1.70, RAGE_KB = 1.55, RAGE_SPD = 1.22, RAGE_JUMP = 1.10, RAGE_WT = 0.82;
+const SENKU_MAX = 100, SENKU_FILL = 100 / (12 * 60); // 剣士：約12秒で旋空ゲージMAX
+const GUN_MAX = 8, GUN_RELOAD = 78;             // ガンマン：8発、約1.3秒リロード
+const COLORS = ['#e63946', '#1f8ef1', '#f4a261', '#2a9d8f', '#9b5de5', '#ef476f', '#06d6a0', '#ff9f1c'];
 
 const CHARS = {
   karate: { name: '格闘家', en: 'KARATE', mark: '空', spd: 1.0, jump: 1.0, jumps: 2, wt: 1.0, pow: 1.0, size: 1.0,
@@ -278,10 +304,26 @@ const CHARS = {
             ctx: 0, back: false, ctc: 1.0, dgc: 1.2, dgs: 0.85, st: [1, 5, 5],
             sp: '張り手：溜め攻撃級の一撃をすぐ出せる（クールタイム約2.5秒）', up: 'どすこいジャンプ：アーマー付きで飛び上がる復帰技（攻撃判定なし）',
             ab: '動きは遅いが、とても吹っ飛びにくい' },
-  boxer:  { name: 'ボクサー', en: 'BOXER', mark: '拳', spd: 1.15, jump: 0.95, jumps: 2, wt: 1.0, pow: 1.05, size: 1.0,
-            ctx: 0, back: false, ctc: 0.35, dgc: 0.9, dgs: 1.0, st: [4, 4, 3],
-            sp: 'KOアッパー：ゲージ満タンで一撃必殺。カウンターも貫通する', up: 'ジャンピングアッパー：上昇しながらパンチ',
-            ab: 'カウンターのクールタイムがとても短い。機動力もある' }
+  boxer:  { name: 'ボクサー', en: 'BOXER', mark: '拳', spd: 1.15, jump: 0.95, jumps: 2, wt: 1.0, pow: 1.18, size: 1.0,
+            ctx: 0, back: false, ctc: 0.35, dgc: 0.9, dgs: 1.0, st: [4, 5, 3],
+            sp: 'KOアッパー：ゲージ満タンで放つゲーム最強の一撃。カウンターも貫通', up: 'ジャンピングアッパー：上昇しながらパンチ',
+            ab: '通常パンチも高火力。カウンターのクールタイムがとても短い' },
+  yankee: { name: 'ヤンキー', en: 'YANKEE', mark: '怒', spd: 1.08, jump: 1.0, jumps: 2, wt: 0.84, pow: 1.08, size: 1.03,
+            ctx: 0, back: false, ctc: 1.0, dgc: 1.0, dgs: 1.0, st: [4, 5, 4],
+            sp: '怒り：被弾でゲージ蓄積。MAX時に特殊で10秒間の怒りモードへ変身', up: '根性ジャンプ：大ジャンプする復帰技。攻撃判定なし',
+            ab: 'タフで動ける。怒り中は超高火力・高機動・さらにタフ。飛び道具で怯まない' },
+  swordsman: { name: '剣士', en: 'SWORDSMAN', mark: '剣', spd: 1.00, jump: 1.0, jumps: 2, wt: 0.96, pow: 1.14, size: 1.0,
+            ctx: 0, back: false, ctc: 1.0, dgc: 1.0, dgs: 1.0, st: [3, 4, 4],
+            sp: '旋空：専用ゲージMAXで使用可能。超長リーチ・高火力の横一閃', up: '斬り上げ：上昇しながら頭上を斬る',
+            ab: '通常攻撃が剣。拳より長いリーチと少し高い火力を持つ' },
+  lancer: { name: '槍使い', en: 'LANCER', mark: '槍', spd: 0.92, jump: 0.96, jumps: 2, wt: 0.92, pow: 1.02, size: 1.0,
+            ctx: 0, back: false, ctc: 1.0, dgc: 1.05, dgs: 0.98, st: [2, 4, 5],
+            sp: '突撃：特殊を長押しして溜め、離すと槍を構えて突進。溜めるほど強い', up: '上薙ぎ：ジャンプせず、槍の長いリーチで頭上を薙ぎ払う',
+            ab: '通常・溜め攻撃のリーチが非常に長い。懐と復帰戦が弱点' },
+  gunman: { name: 'ガンマン', en: 'GUNMAN', mark: '銃', spd: 1.02, jump: 1.0, jumps: 2, wt: 1.03, pow: 0.92, size: 1.0,
+            ctx: 0, back: false, ctc: 1.0, dgc: 0.95, dgs: 1.0, st: [3, 2, 5],
+            sp: '射撃：8発装填。0発で自動リロード。特殊長押しで任意リロード', up: '上ショットガン：ジャンプせず頭上へ強力な散弾を撃つ',
+            ab: '弾数管理型の遠距離キャラ。リロードの隙をどう作るかが重要' }
 };
 const CC = id => CHARS[id] || CHARS.karate;
 function clampInt(v, lo, hi, fallback) { const n = parseInt(v, 10); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : fallback; }
@@ -321,7 +363,11 @@ const AI_STYLE = {
   bomber: { counter: 0.85, special: 1.45, retreat: 1.30, aggression: 0.65 },
   ninja:  { counter: 0.90, special: 1.20, retreat: 0.45, aggression: 1.35 },
   sumo:   { counter: 0.90, special: 1.25, retreat: 0.10, aggression: 0.95 },
-  boxer:  { counter: 1.35, special: 1.10, retreat: 0.35, aggression: 1.15 }
+  boxer:  { counter: 1.35, special: 1.10, retreat: 0.35, aggression: 1.15 },
+  yankee: { counter: 0.95, special: 1.35, retreat: 0.15, aggression: 1.35 },
+  swordsman: { counter: 1.00, special: 1.35, retreat: 0.45, aggression: 0.95 },
+  lancer: { counter: 0.95, special: 1.25, retreat: 0.55, aggression: 0.85 },
+  gunman: { counter: 1.05, special: 1.45, retreat: 1.25, aggression: 0.60 }
 };
 
 
@@ -334,9 +380,14 @@ const MOVE_DEF = {
   shoryu: { type: 'normal', act0: 1, act1: 14, end: 20, reach: 12, R: 28, yo: 52, cd: 4 },
   jupper: { type: 'normal', act0: 2, act1: 12, end: 18, reach: 14, R: 28, yo: 54, cd: 4 },
   tsuki:  { type: 'heavy',  act0: 4, act1: 14, end: 20, reach: 4,  R: 32, yo: 66, cd: 6 },
-  blastj: { type: 'normal', act0: 1, act1: 4,  end: 10, reach: 0,  R: 50, yo: 0,  cd: 4 }
+  blastj: { type: 'normal', act0: 1, act1: 4,  end: 10, reach: 0,  R: 50, yo: 0,  cd: 4 },
+  gutsj:  { type: 'normal', act0: 1, act1: 1,  end: 14, reach: 0,  R: 0,  yo: 0,  cd: 4 },
+  swordup:{ type: 'normal', act0: 2, act1: 13, end: 20, reach: 2,  R: 36, yo: 68, cd: 5 },
+  lanceup:{ type: 'heavy',  act0: 5, act1: 14, end: 22, reach: 2,  R: 42, yo: 72, cd: 7 },
+  shotgunup:{ type: 'special', act0: 5, act1: 9, end: 20, reach: 0, R: 52, yo: 76, cd: 8, blockOnly: true },
+  lancerush:{ type: 'heavy', act0: 7, act1: 18, end: 27, reach: 58, R: 26, yo: 34, cd: 8, glow: 6 }
 };
-const RISE_KINDS = ['shoryu', 'jupper', 'tsuki', 'blastj'];
+const RISE_KINDS = ['shoryu', 'jupper', 'tsuki', 'blastj', 'gutsj', 'swordup', 'lanceup', 'shotgunup'];
 function mkMv(kind, w) {
   if (!kind || !MOVE_DEF[kind]) return null;
   const m = { ...MOVE_DEF[kind], kind };
@@ -446,6 +497,8 @@ function sfxWindup() { tone(200, 700, 0.15, 0.12, 'sawtooth'); }
 function sfxNo() { tone(180, 160, 0.08, 0.06, 'square'); }
 function sfxKOReady() { [784, 988, 1175, 1568].forEach((f, i) => tone(f, f, 0.1, 0.08, 'square', i * 0.07)); }
 function sfxRise() { tone(400, 1200, 0.2, 0.08, 'triangle'); noiseHit(0.15, 0.15, 3000, true); }
+function sfxRage() { noiseHit(0.55, 0.65, 1000); tone(120, 55, 0.65, 0.45, 'sawtooth'); tone(520, 900, 0.45, 0.10, 'square'); }
+function sfxSenku() { noiseHit(0.16, 0.55, 6500, true); tone(2200, 700, 0.25, 0.16, 'sawtooth'); tone(3300, 1200, 0.18, 0.08, 'triangle'); }
 function sfxCount() { tone(880, 880, 0.15, 0.15, 'square'); }
 function sfxGo() { tone(1320, 1320, 0.35, 0.18, 'square'); tone(1760, 1760, 0.35, 0.1, 'square'); }
 function sfxGame() { noiseHit(0.8, 0.6, 800); [523, 659, 784, 1047].forEach((f, i) => tone(f, f, 0.25, 0.12, 'square', i * 0.1)); }
@@ -531,27 +584,52 @@ async function createRoom() {
   netTimers.push(setInterval(hostSpawn, 1000));
 }
 
-async function joinRoom() {
-  if (!initFirebase()) return;
-  online = true; isHost = false; roomId = urlRoom;
+function normalizeRoomCode(v) {
+  return String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+}
+
+async function joinRoom(code = urlRoom, fromUrl = !!urlRoom) {
+  if (!initFirebase()) return false;
+  const normalized = normalizeRoomCode(code);
+  if (normalized.length !== 6) {
+    alert('部屋コードは6文字で入力してください。');
+    return false;
+  }
+
+  online = true; isHost = false; roomId = normalized;
   roomRef = db.ref('rooms/' + roomId);
   const snap = await roomRef.child('gm').once('value');
-  if (!snap.val()) { alert('部屋が見つかりません。ホストに新しいQRをもらってください。'); location.href = location.href.split('?')[0]; return; }
-  await joinCommon();
+  if (!snap.val()) {
+    online = false; isHost = false; roomId = null; roomRef = null;
+    alert('その部屋は見つかりません。部屋コードを確認してください。');
+    if (fromUrl) history.replaceState(null, '', location.href.split('?')[0]);
+    return false;
+  }
+
+  const joined = await joinCommon();
+  if (joined === false) {
+    online = false; isHost = false; roomId = null; roomRef = null;
+    return false;
+  }
+  return true;
 }
 
 async function joinCommon() {
-  const ms = await roomRef.child('mem').once('value');
+  const [ms, gs] = await Promise.all([
+    roomRef.child('mem').once('value'),
+    roomRef.child('gm').once('value')
+  ]);
   const existing = ms.val() || {};
+  const gm = gs.val() || {};
   const humans = Object.values(existing).filter(m => m && !m.cpu);
-  if (!isHost && humans.length >= MAX_PLAYERS) {
+  const reservedCpu = Math.max(0, Number(gm.cpuN) || 0);
+  if (!isHost && humans.length + reservedCpu >= MAX_PLAYERS) {
     alert('この部屋は満員です。');
-    location.href = location.href.split('?')[0];
-    return;
+    return false;
   }
   const used = new Set(humans.map(m => Number(m.slot)).filter(Number.isFinite));
   let slot = 0; while (used.has(slot) && slot < MAX_PLAYERS) slot++;
-  if (slot >= MAX_PLAYERS) { alert('この部屋は満員です。'); return; }
+  if (slot >= MAX_PLAYERS) { alert('この部屋は満員です。'); return false; }
   const memRef = roomRef.child('mem/' + myId);
   memRef.onDisconnect().remove();
   roomRef.child('p/' + myId).onDisconnect().remove();
@@ -597,6 +675,7 @@ async function joinCommon() {
   }
   show('sc-lobby');
   renderLobby();
+  return true;
 }
 
 function leaveRoom() {
@@ -678,7 +757,7 @@ function renderLobby() {
     renderStageGrid('lb-stage', g.map, id => roomRef.child('gm').update({ map: id, wpn: MAPS[id].wpn ? 1 : 0 }));
     seg('lb-wpn', ['あり', 'なし'], () => g.wpn ? 0 : 1, i => roomRef.child('gm').update({ wpn: i === 0 ? 1 : 0 }));
     seg('lb-stock', ['1', '2', '3', '4', '5'], () => clampInt(g.stocks, 1, MAX_STOCK, DEFAULT_STOCK) - 1, i => roomRef.child('gm').update({ stocks: i + 1 }));
-    const maxCpu = Math.max(0, Math.min(3, MAX_PLAYERS - mem.length));
+    const maxCpu = Math.max(0, Math.min(7, MAX_PLAYERS - mem.length));
     const labels = []; for (let i = 0; i <= maxCpu; i++) labels.push(i === 0 ? 'なし' : i + '体');
     seg('lb-cpun', labels, () => Math.min(g.cpuN || 0, maxCpu), i => roomRef.child('gm').update({ cpuN: i }));
     seg('lb-cpulv', LV_NAME, () => g.cpuLv || 0, i => roomRef.child('gm').update({ cpuLv: i }));
@@ -745,6 +824,8 @@ function stateOf(f) {
     iv: isInvuln(f) ? 1 : 0, kb: f.kb > 0 ? 1 : 0, w: f.w || '', sh: f.sh > 0 ? 1 : 0, sph: f.sph, ri: f.rise > 0 ? 1 : 0,
     am: f.arm > 0 ? 1 : 0, cid: f.cid,
     d: Math.round(f.d), s: f.s, o: f.out ? 1 : 0, ko: Math.round(f.ko), g: f.g ? 1 : 0,
+    rg: Math.round(f.rage || 0), rt: Math.round(f.rageT || 0), sk: Math.round(f.senku || 0),
+    bl: f.bullets ?? GUN_MAX, rl: Math.round(f.reloadT || 0),
     stats: f.stats || null, rd: curRound, ts: Date.now() };
 }
 
@@ -788,7 +869,8 @@ function updateRemote() {
     }
     Object.assign(f, { x, y, r, vx: s.vx, f: s.f, a: s.a, ch: s.ch, ct: s.ct, cs: s.cs, stn: s.stn, dg: s.dg,
       ivf: s.iv, kb: s.kb, w: s.w || null, sh: s.sh, sph: s.sph, rise: s.ri, arm: s.am || 0, cid: s.cid || f.cid,
-      d: s.d, s: s.s, ko: s.ko, g: s.g, stats: s.stats || f.stats });
+      d: s.d, s: s.s, ko: s.ko, g: s.g, rage: s.rg || 0, rageT: s.rt || 0, senku: s.sk || 0,
+      bullets: s.bl ?? f.bullets, reloadT: s.rl || 0, stats: s.stats || f.stats });
     f.mv = mkMv(s.mk, s.w);
     if (s.o && !f.out) { f.out = true; if (!elim.includes(f.id)) elim.push(f.id); }
     while (f.buf.length > 2 && f.buf[1].ts < rt - 300) f.buf.shift();
@@ -802,7 +884,12 @@ function onEvent(e) {
   else if (e.k === 'fx') playFx(e, true);
   else if (e.k === 'ctr') doCounter(e);
   else if (e.k === 'vfx') vfx(e);
-  else if (e.k === 'proj') { projs.push({ ...e.q, local: false }); if (e.q.kind === 'hado') sfxHado(); else if (e.q.kind === 'shuri') sfxShuri(); else sfxShot(); }
+  else if (e.k === 'rage') doRageTransform(e, true);
+  else if (e.k === 'proj') {
+    projs.push({ ...e.q, local: false });
+    if (e.q.kind === 'hado') sfxHado(); else if (e.q.kind === 'shuri') sfxShuri();
+    else if (e.q.kind === 'senku') sfxSenku(); else sfxShot();
+  }
   else if (e.k === 'pg') {
     const i = projs.findIndex(q => q.pid === e.pid);
     if (i >= 0) projs.splice(i, 1);
@@ -871,6 +958,7 @@ function makeFighter(m, i) {
     d: 0, s: battleStocks, kb: 0, r: 0, a: 0, mv: null, ch: 0, cd: 0, ct: 0, cs: 0, ctc: 0, stn: 0,
     dg: 0, dgd: 1, dgc: 0, qa: 0, airDg: false, inv: 0, jn: 0, out: false, hit: {},
     w: null, am: 0, sh: 0, plk: 0, spc: 0, sph: 0, ko: 0, rec: false, rise: 0, arm: 0,
+    rage: 0, rageT: 0, senku: 0, bullets: GUN_MAX, reloadT: 0,
     groundPl: -1, dropPl: -1, dropT: 0, stats: { dealt: 0, deaths: 0, counters: 0, dodges: 0 },
     prev: blankInput(), ai: m.cpu ? { inp: blankInput(), t: 40, hold: 0, shold: 0 } : null };
 }
@@ -919,6 +1007,7 @@ function applyCharChange(id) {
   const p = byId(myId);
   if (!p || p.out || p.cid === id) return;
   p.cid = id; p.ko = 0; p.spc = 0; p.sph = 0; p.arm = 0;
+  p.rage = 0; p.rageT = 0; p.senku = 0; p.bullets = GUN_MAX; p.reloadT = 0;
   clearActs(p);
   p.inv = Math.max(p.inv, 40);
   burst(p.x, p.y - 30, 24, 7, '#ffffff', 9); ring(p.x, p.y - 30, 10, 14);
@@ -930,6 +1019,31 @@ function applyCharChange(id) {
 // ⑧ キャラの動き
 // ========================================================
 const TIMERS = ['inv', 'cd', 'cs', 'ctc', 'dgc', 'sh', 'plk', 'spc', 'rise', 'arm', 'dropT'];
+
+function rageOn(p) { return !!p && p.cid === 'yankee' && p.rageT > 0; }
+function weightFactor(p) { return CC(p.cid).wt * (rageOn(p) ? RAGE_WT : 1); }
+function gainRage(p, dm) {
+  if (!p || p.cid !== 'yankee' || p.rageT > 0 || !isLocal(p)) return;
+  const before = p.rage;
+  p.rage = Math.min(RAGE_MAX, p.rage + Math.max(0, dm) * 1.35);
+  if (before < RAGE_MAX && p.rage >= RAGE_MAX) {
+    sfxKOReady();
+    popups.push({ x: p.x, y: p.y - 112, txt: 'RAGE READY!', life: 55, max: 55, size: 24, c: '#ef4747' });
+  }
+}
+function gainSenku(p, n) {
+  if (!p || p.cid !== 'swordsman' || !isLocal(p) || p.senku >= SENKU_MAX) return;
+  const before = p.senku; p.senku = Math.min(SENKU_MAX, p.senku + n);
+  if (before < SENKU_MAX && p.senku >= SENKU_MAX) {
+    sfxKOReady(); popups.push({ x: p.x, y: p.y - 112, txt: '旋空 READY!', life: 50, max: 50, size: 22, c: '#bde0fe' });
+  }
+}
+function beginReload(p) {
+  if (!p || p.cid !== 'gunman' || p.reloadT > 0 || p.bullets >= GUN_MAX) return;
+  p.reloadT = GUN_RELOAD; p.sph = 0; p.spc = 0;
+  popups.push({ x: p.x, y: p.y - 105, txt: 'RELOAD...', life: 32, max: 32, size: 18, c: '#ffd166' });
+  sfxMine();
+}
 
 function clearActs(p) { p.a = 0; p.mv = null; p.ch = 0; p.ct = 0; p.dg = 0; p.qa = 0; p.sh = 0; p.sph = 0; p.arm = 0; }
 function isInvuln(p) { return p.remote ? !!p.ivf : (p.inv > 0 || (p.dg >= DG_INV0 && p.dg <= DG_INV1)); }
@@ -969,12 +1083,15 @@ function fireAttack(p, ch) {
     mv = { ...mkMv('normal', p.w), dm: 6, k0: 4.5, ks: 0.05, up: 0.6, lunge: 0 };
   }
   mv.dm *= C.pow; mv.k0 *= C.pow;
+  if (p.cid === 'swordsman') { mv.reach += (mv.kind === 'charge' ? 22 : 18); mv.R += 5; mv.charSword = true; }
+  if (p.cid === 'lancer') { mv.reach += (mv.kind === 'charge' ? 44 : 34); mv.R += 2; mv.charSpear = true; }
+  if (rageOn(p)) { mv.dm *= RAGE_DMG; mv.k0 *= RAGE_KB; mv.ks *= RAGE_KB; }
   if (mv.sword) { mv.dm *= 1.3; mv.k0 *= 1.2; }
   p.mv = mv; p.a = 1; p.hit = {};
 }
 
 function startSpecial(p) {
-  if (p.spc > 0 && p.cid !== 'boxer') { if (!p.cpu) sfxNo(); return; }
+  if (p.spc > 0 && !['boxer','yankee','swordsman','lancer','gunman'].includes(p.cid)) { if (!p.cpu) sfxNo(); return; }
   const C = CC(p.cid);
   if (p.cid === 'karate') {
     spawnProj(p, 'hado'); p.spc = 22; p.sh = 12; sfxHado();
@@ -987,46 +1104,89 @@ function startSpecial(p) {
     p.a = 1; p.hit = {}; p.spc = 150; sfxWindup();
   } else if (p.cid === 'boxer') {
     if (p.ko >= 100) {
-      p.mv = { ...mkMv('upper'), dm: 22 * C.pow, k0: 16 * C.pow, ks: 0.13, up: 1.35, lunge: 3 };
+      p.mv = { ...mkMv('upper'), dm: 30 * C.pow, k0: 22 * C.pow, ks: 0.16, up: 1.5, lunge: 3, ko: true };
       p.a = 1; p.hit = {}; p.ko = 0; sfxWindup();
     } else if (!p.cpu) sfxNo();
+  } else if (p.cid === 'yankee') {
+    if (p.rage >= RAGE_MAX && p.rageT <= 0) triggerRage(p);
+    else if (!p.cpu) sfxNo();
+  } else if (p.cid === 'swordsman') {
+    if (p.senku >= SENKU_MAX) {
+      p.senku = 0; p.spc = 35; p.sh = 16;
+      spawnProj(p, 'senku'); sfxSenku();
+    } else if (!p.cpu) sfxNo();
+  } else if (p.cid === 'lancer') {
+    if (p.spc === 0) { p.sph = 1; sfxWindup(); }
+    else if (!p.cpu) sfxNo();
+  } else if (p.cid === 'gunman') {
+    if (p.reloadT > 0) { if (!p.cpu) sfxNo(); return; }
+    if (p.bullets <= 0) { beginReload(p); return; }
+    if (p.spc === 0) p.sph = 1;
+    else if (!p.cpu) sfxNo();
   }
 }
+
+function triggerRage(p) {
+  const e = { k: 'rage', id: p.id, x: Math.round(p.x), y: Math.round(p.y - 30) };
+  doRageTransform(e, false); send(e);
+}
+function doRageTransform(e, remote) {
+  const p = byId(e.id); if (!p) return;
+  p.rage = 0; p.rageT = RAGE_T; p.sph = 0; p.spc = 0;
+  if (isLocal(p)) { clearActs(p); p.inv = Math.max(p.inv, RAGE_FREEZE + 8); }
+  freezeT = RAGE_FREEZE; freezeMax = RAGE_FREEZE; fzType = 'rage';
+  fz = { x: e.x, y: e.y, att: e.id, cnt: e.id };
+  shake = 8; sfxRage();
+}
+
+function fireLanceRush(p, hold) {
+  const C = CC(p.cid), pw = constrain((hold - 1) / 55, 0, 1);
+  p.mv = { ...mkMv('lancerush'), dm: (11 + 15 * pw) * C.pow, k0: (8 + 11 * pw) * C.pow,
+    ks: 0.085 + 0.035 * pw, up: 0.42, lunge: 9 + 16 * pw, reach: 58 + 16 * pw, glow: 5 };
+  p.a = 1; p.hit = {}; p.sph = 0; p.spc = 24; sfxWindup();
+}
+function fireGunmanShot(p) {
+  if (p.bullets <= 0 || p.reloadT > 0) { beginReload(p); return; }
+  p.bullets--; p.spc = 9; p.sh = 7; spawnProj(p, 'gunshot'); sfxShot(); p.vx -= p.f * 0.7;
+  if (p.bullets <= 0) beginReload(p);
+}
+
 
 // 上＋特殊：キャラごとの上必殺技（空中で1回まで、着地で回復）
 function upSpecial(p, dir) {
   const C = CC(p.cid);
-  p.rec = true; p.jn = C.jumps; p.rise = 20; p.g = false; p.hit = {};
+  const noJump = p.cid === 'lancer' || p.cid === 'gunman';
+  p.rec = true; p.hit = {};
+  if (!noJump) { p.jn = C.jumps; p.rise = 20; p.g = false; }
   if (p.cid === 'karate') {
-    // 強化版・昇龍拳：高火力＋強い上方向吹っ飛ばし
     p.vy = -15.2; p.vx += p.f * 2.6;
     p.mv = { ...mkMv('shoryu'), dm: 15 * C.pow, k0: 11 * C.pow, ks: 0.10, up: 1.45, R: 34, yo: 56 }; p.a = 1;
-    burst(p.x + p.f * 8, p.y - 30, 10, 4.5, '#ff8c3a', 12);
-    ring(p.x + p.f * 8, p.y - 34, 16, 12);
-    sfxRise();
+    burst(p.x + p.f * 8, p.y - 30, 10, 4.5, '#ff8c3a', 12); ring(p.x + p.f * 8, p.y - 34, 16, 12); sfxRise();
   } else if (p.cid === 'boxer') {
-    p.vy = -13.5;
-    p.mv = { ...mkMv('jupper'), dm: 7 * C.pow, k0: 6 * C.pow, ks: 0.06, up: 1.3 }; p.a = 1;
-    sfxRise();
+    p.vy = -13.5; p.mv = { ...mkMv('jupper'), dm: 7 * C.pow, k0: 6 * C.pow, ks: 0.06, up: 1.3 }; p.a = 1; sfxRise();
   } else if (p.cid === 'sumo') {
-    // 復帰専用。見た目のモーションは残すが攻撃判定は一切出さない
-    p.vy = -12.5; p.arm = 16;
-    p.mv = { ...mkMv('tsuki'), noHit: true, dm: 0, k0: 0, ks: 0, up: 0 }; p.a = 1;
-    sfxWindup();
+    p.vy = -12.5; p.arm = 16; p.mv = { ...mkMv('tsuki'), noHit: true, dm: 0, k0: 0, ks: 0, up: 0 }; p.a = 1; sfxWindup();
   } else if (p.cid === 'bomber') {
-    p.vy = -15.5;
-    p.mv = { ...mkMv('blastj'), dm: 8, k0: 7.5, ks: 0.07, up: 0.9 }; p.a = 1;
-    const e = { k: 'vfx', v: 'blast', x: Math.round(p.x), y: Math.round(p.y) };
-    vfx(e); send(e);
+    p.vy = -15.5; p.mv = { ...mkMv('blastj'), dm: 8, k0: 7.5, ks: 0.07, up: 0.9 }; p.a = 1;
+    const e = { k: 'vfx', v: 'blast', x: Math.round(p.x), y: Math.round(p.y) }; vfx(e); send(e);
   } else if (p.cid === 'ninja') {
-    const d = dir || p.f;
-    const e1 = { k: 'vfx', v: 'smoke', x: Math.round(p.x), y: Math.round(p.y - 30) };
-    p.x += d * 50; p.y -= 120; p.vy = -4; p.vx = d * 3;
-    p.inv = Math.max(p.inv, 12);
-    const e2 = { k: 'vfx', v: 'smoke', x: Math.round(p.x), y: Math.round(p.y - 30) };
-    vfx(e1); vfx(e2); send(e1); send(e2);
+    const d = dir || p.f; const e1 = { k: 'vfx', v: 'smoke', x: Math.round(p.x), y: Math.round(p.y - 30) };
+    p.x += d * 50; p.y -= 120; p.vy = -4; p.vx = d * 3; p.inv = Math.max(p.inv, 12);
+    const e2 = { k: 'vfx', v: 'smoke', x: Math.round(p.x), y: Math.round(p.y - 30) }; vfx(e1); vfx(e2); send(e1); send(e2);
+  } else if (p.cid === 'yankee') {
+    p.vy = -15.0 * (rageOn(p) ? 1.08 : 1); p.mv = { ...mkMv('gutsj'), noHit: true, dm: 0, k0: 0, ks: 0, up: 0 }; p.a = 1;
+    burst(p.x, p.y - 8, 12, 5, rageOn(p) ? '#ef4747' : '#ffffff', 9); sfxRise();
+  } else if (p.cid === 'swordsman') {
+    p.vy = -13.8; p.vx += p.f * 1.2;
+    p.mv = { ...mkMv('swordup'), dm: 10 * C.pow, k0: 7.5 * C.pow, ks: 0.075, up: 1.25, charSword: true }; p.a = 1; sfxSlash();
+  } else if (p.cid === 'lancer') {
+    p.mv = { ...mkMv('lanceup'), dm: 11 * C.pow, k0: 8 * C.pow, ks: 0.07, up: 1.10, charSpear: true }; p.a = 1; sfxSlash();
+  } else if (p.cid === 'gunman') {
+    p.mv = { ...mkMv('shotgunup'), dm: 15, k0: 11.5, ks: 0.085, up: 1.35, blockOnly: true }; p.a = 1; p.sh = 10; sfxShot();
+    burst(p.x, p.y - 80, 18, 7, '#ffd166', 8);
   }
 }
+
 
 function vfx(e) {
   if (e.v === 'blast') {
@@ -1050,6 +1210,12 @@ function stepFighter(p, inp) {
   const dp = inp.dc !== prev.dc;
   for (const k of TIMERS) if (p[k] > 0) p[k]--;
   if (p.cid === 'boxer') gainKO(p, 100 / (18 * 60));
+  if (p.cid === 'swordsman') gainSenku(p, SENKU_FILL);
+  if (p.rageT > 0) { p.rageT--; if (p.rageT === 0 && p.cid === 'yankee') popups.push({ x:p.x, y:p.y-105, txt:'RAGE END', life:32, max:32, size:18, c:'#ffffff' }); }
+  if (p.cid === 'gunman' && p.reloadT > 0) {
+    p.reloadT--;
+    if (p.reloadT === 0) { p.bullets = GUN_MAX; p.spc = 0; popups.push({ x:p.x, y:p.y-105, txt:'RELOADED!', life:32, max:32, size:18, c:'#ffd166' }); sfxPickup(); }
+  }
 
   if (xp && p.kb === 0) dropWeapon(p, false);
 
@@ -1083,7 +1249,8 @@ function stepFighter(p, inp) {
     p.r *= 0.5;
     const dir = (inp.r ? 1 : 0) - (inp.l ? 1 : 0);
     const slow = p.ch > 0 ? 0.35 : (p.a > 0 ? 0.5 : 1);
-    p.vx += dir * (p.g ? 1.0 : 0.65) * slow * C.spd;
+    const moveSpd = C.spd * (rageOn(p) ? RAGE_SPD : 1);
+    p.vx += dir * (p.g ? 1.0 : 0.65) * slow * moveSpd;
     p.vx *= p.g ? 0.80 : 0.90;
     if (dir !== 0 && p.a === 0) p.f = dir;
 
@@ -1093,8 +1260,9 @@ function stepFighter(p, inp) {
     }
 
     if (jp) {
-      if (p.g) { p.vy = -12.5 * C.jump; p.g = false; p.groundPl = -1; p.jn = 1; if (!p.cpu) sfxJump(); }
-      else if (p.jn < C.jumps) { p.vy = -11 * C.jump; p.jn++; if (!p.cpu) sfxJump(); burst(p.x, p.y, 6, 3, '#ffffff', 6); }
+      const jmul = rageOn(p) ? RAGE_JUMP : 1;
+      if (p.g) { p.vy = -12.5 * C.jump * jmul; p.g = false; p.groundPl = -1; p.jn = 1; if (!p.cpu) sfxJump(); }
+      else if (p.jn < C.jumps) { p.vy = -11 * C.jump * jmul; p.jn++; if (!p.cpu) sfxJump(); burst(p.x, p.y, 6, 3, '#ffffff', 6); }
     }
 
     let acted = false;
@@ -1116,10 +1284,15 @@ function stepFighter(p, inp) {
       acted = true;
     }
     if (p.sph > 0) {
-      if (inp.s) {
-        p.sph++;
-        if (p.sph >= 18) { placeMine(p); p.sph = 0; p.spc = 20; }
-      } else { throwBomb(p); p.sph = 0; p.spc = 20; }
+      if (p.cid === 'bomber') {
+        if (inp.s) { p.sph++; if (p.sph >= 18) { placeMine(p); p.sph = 0; p.spc = 20; } }
+        else { throwBomb(p); p.sph = 0; p.spc = 20; }
+      } else if (p.cid === 'lancer') {
+        if (inp.s) p.sph = Math.min(60, p.sph + 1); else fireLanceRush(p, p.sph);
+      } else if (p.cid === 'gunman') {
+        if (inp.s) { p.sph++; if (p.sph >= 24) beginReload(p); }
+        else { fireGunmanShot(p); p.sph = 0; }
+      }
     }
     if (!acted) {
       if (p.w === 'gun') {
@@ -1184,6 +1357,9 @@ function respawn(p) {
   p.x = stage.w / 2; p.y = 40; p.vx = 0; p.vy = 0; p.d = 0; p.kb = 0; p.r = 0;
   clearActs(p); p.stn = 0; p.inv = 100; p.w = null; p.am = 0; p.rec = false; p.jn = 0;
   if (p.cid === 'boxer') p.ko = Math.min(p.ko, 60);
+  if (p.cid === 'yankee') { p.rage = 0; p.rageT = 0; }
+  if (p.cid === 'swordsman') p.senku = Math.min(p.senku, 50);
+  if (p.cid === 'gunman') { p.bullets = GUN_MAX; p.reloadT = 0; }
 }
 
 // ========================================================
@@ -1209,7 +1385,7 @@ function meleeCheck(a) {
     if (Math.hypot(hx - t.x, hy - (t.y - 30 * tsz)) < R + 16 * tsz) {
       a.hit[t.id] = true;
       const A = { id: a.id, x: Math.round(a.x), f: a.f, c: a.c,
-                  mv: { type: mv.type, kind: mv.kind, dm: Math.round(mv.dm * 10) / 10, k0: Math.round(mv.k0 * 10) / 10, ks: mv.ks, up: mv.up } };
+                  mv: { type: mv.type, kind: mv.kind, dm: Math.round(mv.dm * 10) / 10, k0: Math.round(mv.k0 * 10) / 10, ks: mv.ks, up: mv.up, ko: !!mv.ko, blockOnly: !!mv.blockOnly } };
       if (isLocal(t)) resolveMelee(A, t);
       else {
         send({ k: 'mh', to: t.id, a: a.id, ax: A.x, f: a.f, c: a.c, mv: A.mv });
@@ -1217,7 +1393,7 @@ function meleeCheck(a) {
         const front = fromFront(t, a.x) || CC(t.cid).back;
         const willCounter = mv.type === 'heavy' && mv.kind !== 'upper' && inCounter(t) && front;
         if (!willCounter && !t.ivf && mv.kind !== 'upper') {
-          const est = (A.mv.k0 + (t.d + A.mv.dm) * A.mv.ks) * CC(t.cid).wt;
+          const est = (A.mv.k0 + (t.d + A.mv.dm) * A.mv.ks) * weightFactor(t);
           localHitFx(t.id, t.x, t.y - 30 * tsz, est);
           predicted[a.id] = Date.now();
         }
@@ -1230,8 +1406,9 @@ function resolveMelee(A, t) {
   const mv = A.mv, ty = t.y - 30 * CC(t.cid).size;
   if (isInvuln(t)) { if (t.dg > 0) emitFx({ res: 'evade', t: t.id, a: A.id, x: t.x, y: t.y - 110 }); return; }
   const front = fromFront(t, A.x) || CC(t.cid).back;
+  if (mv.blockOnly && inCounter(t) && front) { emitFx({ res:'block', t:t.id, a:A.id, x:t.x, y:ty }); return; }
   if (mv.type === 'heavy' && mv.kind !== 'upper' && inCounter(t) && front) { startCounter(A, t, mv); return; }
-  const h = { dm: mv.dm, k0: mv.k0, ks: mv.ks, up: mv.up, f: A.f };
+  const h = { dm: mv.dm, k0: mv.k0, ks: mv.ks, up: mv.up, f: A.f, ko: !!mv.ko };
   const bk = mv.kind !== 'upper' && t.ct > 0 && (mv.type === 'normal' || !front);
   if (!bk && mv.type === 'normal' && isArmored(t)) {
     armorHit(t, h, A.id);
@@ -1248,6 +1425,11 @@ function resolveProj(Q, t) {
   const front = fromFront(t, Q.x) || CC(t.cid).back;
   if (inCounter(t) && front) { emitFx({ res: 'block', t: t.id, a: Q.o, x: Q.x, y: ty }); return; }
   const h = { dm: Q.dm, k0: Q.k0, ks: Q.ks, up: Q.up, f: Math.sign(Q.vx) || 1 };
+  if (rageOn(t) && !Q.senku) {
+    t.d += h.dm; addDealt(Q.o, h.dm); gainRage(t, h.dm);
+    t.vx += h.f * 0.35;
+    emitFx({ res: 'armor', t: t.id, a: Q.o, x: t.x, y: ty, gain: 3 }); return;
+  }
   if (isArmored(t)) { armorHit(t, h, Q.o); emitFx({ res: 'armor', t: t.id, a: Q.o, x: t.x, y: ty, gain: 3 }); return; }
   const kb = applyHit(t, h, false, Q.o);
   emitFx({ res: 'hit', t: t.id, a: Q.o, x: t.x, y: ty, kb: Math.round(kb * 10) / 10, bk: 0, up: 0, c: t.c, gain: 5 });
@@ -1257,17 +1439,22 @@ function addDealt(attackerId, dm) { const a = byId(attackerId); if (a && a.stats
 
 function armorHit(t, h, attackerId) {
   t.d += h.dm; addDealt(attackerId, h.dm);
-  gainKO(t, h.dm * 1.2);
+  gainKO(t, h.dm * 1.2); gainRage(t, h.dm);
 }
 
 function applyHit(t, h, bk, attackerId) {
-  const C = CC(t.cid), m = bk ? 1.4 : 1;
-  t.d += h.dm * m; addDealt(attackerId, h.dm * m);
-  gainKO(t, h.dm * 1.2);
-  const kb = (h.k0 + t.d * h.ks) * m * C.wt;
-  t.vx = h.f * kb;
-  t.vy = -kb * (h.up || 0.6) - 2;
-  t.kb = Math.floor(10 + kb * 1.8);
+  const m = bk ? 1.4 : 1;
+  const dealt = h.dm * m;
+  t.d += dealt; addDealt(attackerId, dealt);
+  gainKO(t, h.dm * 1.2); gainRage(t, dealt);
+  let kb = (h.k0 + t.d * h.ks) * m * weightFactor(t);
+  if (h.ko) {
+    // KOアッパー専用：重量補正を超えて確実に撃墜圏へ運ぶ最強吹っ飛ばし
+    kb = Math.max(kb, 36);
+    t.vx = h.f * 22; t.vy = -36; t.kb = 110;
+  } else {
+    t.vx = h.f * kb; t.vy = -kb * (h.up || 0.6) - 2; t.kb = Math.floor(10 + kb * 1.8);
+  }
   t.f = -h.f;
   clearActs(t); t.stn = 0; t.g = false;
   if (kb >= 13 && t.w) dropWeapon(t, true);
@@ -1335,6 +1522,11 @@ function startKOFreeze(e) {
 }
 
 function endFreeze() {
+  if (fzType === 'rage') {
+    sfxCounterBoom();
+    if (fz) { burst(fz.x, fz.y, 55, 17, '#ef4747', 14); burst(fz.x, fz.y, 24, 10, '#ffd166', 10); ring(fz.x, fz.y, 30, 24); }
+    shake = 22; return;
+  }
   if (fzType === 'ko') {
     sfxKOBoom();
     if (fz) {
@@ -1349,7 +1541,7 @@ function endFreeze() {
   if (pending) {
     const a = pending.att;
     a.d += pending.dm;
-    const kb = (pending.kb0 + a.d * 0.07) * CC(a.cid).wt;
+    const kb = (pending.kb0 + a.d * 0.07) * weightFactor(a);
     a.vx = pending.dir * kb; a.vy = -kb * 0.55 - 3;
     a.kb = Math.floor(12 + kb * 1.8);
     a.f = -pending.dir; a.g = false;
@@ -1374,6 +1566,8 @@ function spawnProj(p, kind) {
   if (kind === 'hado')   Object.assign(q, { vx: p.f * 5, life: 150, r: 14, dm: 7, k0: 6, ks: 0.06, up: 0.5 });
   if (kind === 'shuri')  Object.assign(q, { vx: p.f * 14, life: 22, r: 8, dm: 4, k0: 3.5, ks: 0.03, up: 0.35 });
   if (kind === 'bullet') Object.assign(q, { vx: p.f * 16, life: 55, r: 6, dm: 8, k0: 6.5, ks: 0.07, up: 0.45 });
+  if (kind === 'gunshot') Object.assign(q, { vx: p.f * 18, life: 48, r: 6, dm: 7.5, k0: 6.2, ks: 0.055, up: 0.38 });
+  if (kind === 'senku') Object.assign(q, { vx: p.f * 44, life: 20, r: 20, dm: 24, k0: 15, ks: 0.105, up: 0.35, senku: true });
   send({ k: 'proj', q: { ...q } });
   q.local = true;
   projs.push(q);
@@ -1444,7 +1638,7 @@ function stepProjs() {
     q.x += q.vx; q.life--; q.rot += 0.5;
     let gone = q.life <= 0 || q.x < -100 || q.x > stage.w + 100;
     if (!gone && q.local) {
-      for (const f of fighters) {
+      if (q.kind !== 'senku') for (const f of fighters) {
         if (f.id === q.o || f.out || f.w !== 'sword' || !isActive(f)) continue;
         const sz = CC(f.cid).size;
         if (Math.hypot(q.x - (f.x + f.f * f.mv.reach * sz), q.y - (f.y - 34 * sz)) < f.mv.R * sz + q.r) {
@@ -1461,13 +1655,13 @@ function stepProjs() {
           if (Math.abs(q.x - t.x) < 14 * sz + q.r && q.y > t.y - 64 * sz - q.r && q.y < t.y + q.r) {
             if (isInvuln(t)) continue;
             gone = true;
-            const Q = { o: q.o, x: Math.round(q.x), vx: q.vx, dm: q.dm, k0: q.k0, ks: q.ks, up: q.up };
+            const Q = { o: q.o, x: Math.round(q.x), vx: q.vx, dm: q.dm, k0: q.k0, ks: q.ks, up: q.up, senku: q.kind === 'senku' };
             if (isLocal(t)) resolveProj(Q, t);
             else {
               send({ k: 'ph', to: t.id, q: Q });
               const front = fromFront(t, q.x) || CC(t.cid).back;
               if (!(inCounter(t) && front)) {
-                localHitFx(t.id, q.x, q.y, (q.k0 + (t.d + q.dm) * q.ks) * CC(t.cid).wt);
+                localHitFx(t.id, q.x, q.y, (q.k0 + (t.d + q.dm) * q.ks) * weightFactor(t));
                 predicted[q.o] = Date.now();
               }
             }
@@ -1657,6 +1851,15 @@ function aiStep(p) {
   // 真上の相手には上必殺技
   if (dy < -80 && adx < 70 && !p.rec && Math.random() < 0.35) { I.u = true; aiSpecial(I, A, 2); return; }
   if (p.w === 'gun' && adx < 420 && Math.abs(dy) < 50) { I[face] = true; aiTap(I, A); return; }
+  if (p.cid === 'yankee' && p.rage >= RAGE_MAX && p.rageT <= 0) { aiSpecial(I, A, 2); return; }
+  if (p.cid === 'swordsman' && p.senku >= SENKU_MAX && adx > 90 && Math.abs(dy) < 75) { I[face] = true; aiSpecial(I, A, 2); return; }
+  if (p.cid === 'gunman' && Math.abs(dy) < 70) {
+    I[face] = true;
+    if (p.bullets <= 2 && adx > 180) aiSpecial(I, A, 28);
+    else if (p.bullets > 0 && adx < 520) aiSpecial(I, A, 2);
+    return;
+  }
+  if (p.cid === 'lancer' && adx > 75 && adx < 330 && Math.abs(dy) < 65 && Math.random() < L.spec * 2 * P.special) { I[face] = true; aiSpecial(I, A, 22 + Math.floor(Math.random()*28)); return; }
   if ((p.cid === 'karate' || p.cid === 'ninja' || p.cid === 'bomber') && p.spc === 0 && Math.abs(dy) < 70) {
     const lo = p.cid === 'ninja' ? 60 : 110, hi = p.cid === 'ninja' ? 260 : 420;
     if (adx > lo && adx < hi && Math.random() < L.spec * 2 * P.special) {
@@ -1743,6 +1946,16 @@ function drawHUD() {
       fill(60); rect(x + 40, y + h - 5, w - 46, 3);
       fill(p.ko >= 100 && frameCount % 10 < 5 ? '#ffffff' : '#ffd166');
       rect(x + 40, y + h - 5, (w - 46) * p.ko / 100, 3);
+    } else if (p.cid === 'yankee') {
+      fill(60); rect(x + 40, y + h - 5, w - 46, 3);
+      fill(p.rageT > 0 ? '#ef4747' : (p.rage >= 100 && frameCount % 10 < 5 ? '#ffffff' : '#ff6b35'));
+      const rr = p.rageT > 0 ? p.rageT / RAGE_T : p.rage / RAGE_MAX; rect(x + 40, y + h - 5, (w - 46) * rr, 3);
+    } else if (p.cid === 'swordsman') {
+      fill(60); rect(x + 40, y + h - 5, w - 46, 3); fill(p.senku >= 100 ? '#ffffff' : '#90e0ef');
+      rect(x + 40, y + h - 5, (w - 46) * p.senku / SENKU_MAX, 3);
+    } else if (p.cid === 'gunman') {
+      fill('#ffd166'); textSize(9); noStroke(); textAlign(RIGHT,CENTER);
+      text(p.reloadT > 0 ? 'RELOAD' : `BULLET ${p.bullets}`, x + w - 5, y + h - 5);
     }
     pop();
   });
@@ -1791,6 +2004,13 @@ function drawPopups() {
 function drawFreezeWorld() {
   if (!fz) return;
   const a = byId(fz.att), c = byId(fz.cnt);
+  if (fzType === 'rage') {
+    const el = freezeMax - freezeT; noStroke(); fill(45, 0, 0, 205); rect(-300,-300,stage.w+600,stage.h+600);
+    push(); translate(fz.x,fz.y);
+    for (let i=0;i<34;i++) { const ang=random(TWO_PI), r1=random(30,70), r2=r1+random(180,600); stroke(i%2?'#ef4747':'#ffd166'); strokeWeight(random(2,6)); line(cos(ang)*r1,sin(ang)*r1,cos(ang)*r2,sin(ang)*r2); }
+    noFill(); stroke(239,71,71,220); strokeWeight(10); circle(0,0,80+el*3); pop();
+    if (a) drawFighter(a); return;
+  }
   if (fzType === 'ko') {
     const el = freezeMax - freezeT;
     noStroke(); fill(12, 4, 6, 215); rect(-300, -300, stage.w + 600, stage.h + 600);
@@ -1830,6 +2050,12 @@ function drawFreezeWorld() {
 
 function drawFreezeText() {
   const el = freezeMax - freezeT, t = el / freezeMax;
+  if (fzType === 'rage') {
+    if (el < 4) { noStroke(); fill(255,80,50,210*(1-el/4)); rect(0,0,W,WH); }
+    push(); translate(W/2, WH/2-40); rotate(-0.07); textAlign(CENTER,CENTER); textStyle(BOLDITALIC);
+    textSize(96 + sin(el*0.8)*6); stroke('#0d1418'); strokeWeight(12); fill('#ef4747'); text('RAGE!!',0,0);
+    textSize(24); strokeWeight(6); fill('#ffd166'); text('怒りモード',0,72); pop(); return;
+  }
   if (fzType === 'ko') {
     if (el < 3) { noStroke(); fill(255); rect(0, 0, W, WH); }
     else if (el < 6) { noStroke(); fill(0, 0, 0, 220); rect(0, 0, W, WH); }
@@ -1912,11 +2138,11 @@ function drawProjs() {
       fill(110, 200, 255, 160); circle(q.x, q.y, q.r * 2.2);
       fill(255); circle(q.x, q.y, q.r * 1.1);
     } else if (q.kind === 'shuri') {
-      push(); translate(q.x, q.y); rotate(q.rot);
-      noStroke(); fill('#5b7383');
-      for (let k = 0; k < 4; k++) { rotate(HALF_PI); triangle(0, -3, 0, 3, 11, 0); }
-      fill('#24323c'); circle(0, 0, 5);
-      pop();
+      push(); translate(q.x, q.y); rotate(q.rot); noStroke(); fill('#5b7383');
+      for (let k = 0; k < 4; k++) { rotate(HALF_PI); triangle(0, -3, 0, 3, 11, 0); } fill('#24323c'); circle(0, 0, 5); pop();
+    } else if (q.kind === 'senku') {
+      push(); translate(q.x,q.y); scale(Math.sign(q.vx)||1,1); noFill(); stroke('#ffffff'); strokeWeight(9); line(-85,0,35,0);
+      stroke('#90e0ef'); strokeWeight(4); line(-100,0,45,0); noStroke(); fill(255,255,255,150); triangle(45,0,20,-18,20,18); pop();
     } else {
       stroke(255, 209, 102); strokeWeight(5); line(q.x - q.vx * 0.9, q.y, q.x, q.y);
       stroke(255); strokeWeight(2); line(q.x - q.vx * 0.4, q.y, q.x, q.y);
@@ -1947,9 +2173,13 @@ function drawFighter(p) {
   const blink = !dodging && invOn && frameCount % 6 < 3;
   const col = flash[id] > 0 ? '#ffffff' : p.c;
   const walk = p.g ? sin(frameCount * 0.35) * Math.min(Math.abs(p.vx || 0), 4) * 3 : 6;
-  const warn = p.ch >= CH_WARN, bw = p.cid === 'sumo' ? 7 : 5;
+  const warn = p.ch >= CH_WARN, bw = p.cid === 'sumo' ? 7 : (p.cid === 'yankee' ? 6 : 5);
   let hand = { x: p.f * 14, y: 2 - walk * 0.4 }, wmode = 'hold';
 
+  if (rageOn(p)) {
+    noStroke(); fill(239,71,71,55 + sin(frameCount*0.7)*18); circle(p.x,p.y-30*sz,88*sz);
+    noFill(); stroke(255,95,55,135); strokeWeight(4); circle(p.x,p.y-30*sz,(72+sin(frameCount*0.45)*9)*sz);
+  }
   push();
   translate(p.x, p.y); scale(sz); translate(0, -30);
   rotate(p.r || 0);
@@ -2022,8 +2252,13 @@ function drawFighter(p) {
           circle(p.f * 1, -7, 11 + sin(frameCount * 1.1) * 2);
           circle(-p.f * 2, -20, 8 + sin(frameCount * 1.3) * 2);
         } else if (mv.kind === 'tsuki') {
-          stroke(255, 255, 255, 220); strokeWeight(6); arc(0, -46, 72, 40, -PI, 0);
-          noStroke(); fill(col); ellipse(p.f * 6, -44, 16, 22);
+          stroke(255, 255, 255, 220); strokeWeight(6); arc(0, -46, 72, 40, -PI, 0); noStroke(); fill(col); ellipse(p.f * 6, -44, 16, 22);
+        } else if (mv.kind === 'swordup') {
+          stroke('#eef3f6'); strokeWeight(8); arc(0,-42,82,64,-PI,0); stroke('#90e0ef'); strokeWeight(3); arc(0,-42,92,72,-PI,0);
+        } else if (mv.kind === 'lanceup') {
+          stroke('#eef3f6'); strokeWeight(6); arc(0,-52,105,70,-PI*0.95,-PI*0.05);
+        } else if (mv.kind === 'shotgunup') {
+          stroke('#ffd166'); strokeWeight(5); line(-24,-44,-50,-86); line(0,-48,0,-96); line(24,-44,50,-86);
         } else {
           stroke(255, 209, 102, 230); arc(p.f * 6, -20, 56, 66, -PI * 0.85, -PI * 0.15);
         }
@@ -2072,8 +2307,16 @@ function drawFighter(p) {
       else if (full) fill(255, 209, 102, 230);
       else fill(255, 220, 80, 90 + p.ch * 2);
       circle(-p.f * 14, -2, 10 + Math.min(p.ch, CH_FULL) * 0.6 + (full ? sin(frameCount * 0.6) * 3 : 0));
-    } else {
+    } else if (p.cid === 'bomber') {
       drawWeapon('bomb', -p.f * 16, -4, 1, 'icon', p.sph > 10);
+    } else if (p.cid === 'lancer') {
+      const q = Math.min(p.sph / 60, 1);
+      noFill(); stroke(255,209,102,120 + q*120); strokeWeight(4 + q*3); circle(-p.f*18,-3,18 + q*34);
+      hand = { x: -p.f * 18, y: -3 };
+    } else if (p.cid === 'gunman') {
+      const q = Math.min(p.sph / 24, 1);
+      noStroke(); fill(255,209,102,90 + q*140); circle(-p.f*14,-3,10 + q*12);
+      hand = { x: -p.f * 14, y: -3 };
     }
   } else if (p.kb > 0) {
     line(0, -8, -12, -20); line(0, -8, 12, -20);
@@ -2082,6 +2325,12 @@ function drawFighter(p) {
     line(0, -8, p.f * 14, 2 - walk * 0.4); line(0, -8, -p.f * 12, 4);
   }
 
+  if (p.cid === 'swordsman' && !p.w) drawWeapon('sword', hand.x, hand.y, p.f, wmode, false);
+  if (p.cid === 'lancer' && !p.w) {
+    push(); translate(hand.x,hand.y); scale(p.f,1); rotate(wmode==='back' ? -2.6 : wmode==='swing' ? -0.1 : -0.45);
+    stroke('#8d6e63'); strokeWeight(5); line(-8,0,58,0); stroke('#eef3f6'); strokeWeight(4); line(58,0,76,0); line(76,0,64,-7); line(76,0,64,7); pop();
+  }
+  if (p.cid === 'gunman' && !p.w) drawWeapon('gun', hand.x, hand.y, p.f, wmode, false);
   if (p.cid === 'boxer' && !p.w) {
     noStroke(); fill(p.ko >= 100 && frameCount % 10 < 5 ? '#ffd166' : '#ef4747');
     circle(hand.x, hand.y, 14);
@@ -2102,9 +2351,15 @@ function drawFighter(p) {
     stroke('#ef4747'); strokeWeight(4); line(-10, -28, 10, -28);
     strokeWeight(3); line(-p.f * 9, -28, -p.f * 17, -24);
   } else if (p.cid === 'bomber') {
-    stroke('#24323c'); strokeWeight(2); line(-10, -25, 10, -25);
-    noStroke(); fill('#ffd166');
-    circle(p.f * 5, -25, 7); circle(-p.f * 2, -25, 7);
+    stroke('#24323c'); strokeWeight(2); line(-10, -25, 10, -25); noStroke(); fill('#ffd166'); circle(p.f * 5, -25, 7); circle(-p.f * 2, -25, 7);
+  } else if (p.cid === 'yankee') {
+    fill('#24323c'); noStroke(); triangle(-10,-31,0,-42,10,-31); if (rageOn(p)) { fill('#ef4747'); circle(0,-24,8); }
+  } else if (p.cid === 'swordsman') {
+    stroke('#eef3f6'); strokeWeight(2); line(-9,-31,9,-31);
+  } else if (p.cid === 'lancer') {
+    fill('#8d6e63'); noStroke(); rect(-10,-34,20,5,2);
+  } else if (p.cid === 'gunman') {
+    fill('#24323c'); noStroke(); rect(-12,-35,24,5,2); rect(-8,-41,16,7,2);
   }
   pop();
 
@@ -2124,6 +2379,9 @@ function drawFighter(p) {
     text(p.label, p.x, top - 10);
     drawCool(p.x + 26, top - 10, p.ctc, CT_COOL * C.ctc, '#3a86ff', 'C');
     if (p.cid === 'sumo') drawCool(p.x + 44, top - 10, p.spc, 150, '#9b5de5', 'S');
+    if (p.cid === 'yankee') { noStroke(); fill('#24323c'); rect(p.x-28,top+5,56,4); fill(rageOn(p)?'#ef4747':'#ff6b35'); rect(p.x-28,top+5,56*(rageOn(p)?p.rageT/RAGE_T:p.rage/RAGE_MAX),4); }
+    if (p.cid === 'swordsman') { noStroke(); fill('#24323c'); rect(p.x-28,top+5,56,4); fill('#90e0ef'); rect(p.x-28,top+5,56*p.senku/SENKU_MAX,4); }
+    if (p.cid === 'gunman') { noStroke(); fill('#ffd166'); textSize(10); text(p.reloadT>0?'RELOAD':`B${p.bullets}`,p.x-28,top-10); }
     if (p.w === 'gun') { noStroke(); fill('#24323c'); textSize(11); text(`残${p.am}`, p.x - 28, top - 10); }
   } else {
     stroke('#0d1418'); strokeWeight(3); fill(p.c); textSize(12);
@@ -2347,7 +2605,7 @@ function buildMenus() {
         `<div class="stat"><b>${l}</b><div class="gauge"><i style="width:${C.st[i] * 20}%"></i></div></div>`).join('');
   };
   renderChars();
-  seg('seg-cpun', ['1体', '2体', '3体'], () => settings.cpuN - 1, i => settings.cpuN = i + 1);
+  seg('seg-cpun', ['1体', '2体', '3体', '4体', '5体', '6体', '7体'], () => settings.cpuN - 1, i => settings.cpuN = i + 1);
   seg('seg-cpulv', LV_NAME, () => settings.cpuLv, i => settings.cpuLv = i);
 
   const renderStages = () => renderStageGrid('stage-grid', settings.map, id => {
@@ -2370,11 +2628,31 @@ function buildMenus() {
   lobbyName.addEventListener('blur', e => applyName(e.target.value));
 
   document.getElementById('sc-title').onclick = () => {
-    if (urlRoom && !online) joinRoom();          // QRから来た人はそのまま部屋へ
+    if (urlRoom && !online) joinRoom(urlRoom, true);   // QR/URLから来た人はそのまま部屋へ
     else show('sc-mode');
   };
   document.getElementById('go-cpu').onclick = () => openChars('cpu');
-  document.getElementById('go-online').onclick = () => createRoom();   // すぐに部屋を作る
+  document.getElementById('go-online').onclick = () => show('sc-online');
+  document.getElementById('online-create').onclick = () => createRoom();
+  document.getElementById('online-back').onclick = () => show('sc-mode');
+  const roomCodeInput = document.getElementById('room-code-input');
+  roomCodeInput.addEventListener('input', e => {
+    const v = normalizeRoomCode(e.target.value);
+    if (e.target.value !== v) e.target.value = v;
+  });
+  const joinByTypedCode = async () => {
+    const code = normalizeRoomCode(roomCodeInput.value);
+    roomCodeInput.value = code;
+    const btn = document.getElementById('online-join');
+    if (btn.disabled) return;
+    btn.disabled = true; btn.innerText = '確認中…';
+    try { await joinRoom(code, false); }
+    finally { btn.disabled = false; btn.innerText = '参加'; }
+  };
+  document.getElementById('online-join').onclick = joinByTypedCode;
+  roomCodeInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); joinByTypedCode(); }
+  });
   document.getElementById('go-howto').onclick = () => { howtoFrom = 'sc-mode'; show('sc-howto'); };
   document.getElementById('chars-back').onclick = () => {
     if (charMode === 'battle') closeBattleChars();
