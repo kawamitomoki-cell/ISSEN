@@ -15,7 +15,7 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}html,body{width:100%;height:100%;height:100dvh;overflow:hidden;background:var(--bg);color:var(--paper);font-family:'Hiragino Kaku Gothic ProN','Yu Gothic','Noto Sans JP',system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}button,input{font:inherit}button{cursor:pointer;border:0;color:inherit}button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:3px}button{transition:transform .12s,background .12s,box-shadow .12s}button:active{transform:translateY(2px) scale(.985)}input{user-select:text;-webkit-user-select:text}svg{display:block}button small{pointer-events:none}body{padding:env(safe-area-inset-top) max(8px,env(safe-area-inset-right)) env(safe-area-inset-bottom) max(8px,env(safe-area-inset-left))}
 .screen{position:fixed;inset:0;z-index:5;display:none;flex-direction:column;align-items:center;justify-content:safe center;gap:20px;padding:64px 28px 28px;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;background:radial-gradient(ellipse at 90% 30%,#26334688,transparent 60%),repeating-linear-gradient(120deg,transparent 0 139px,#ffffff03 140px 141px),var(--bg)}.screen:before{content:'STICK BATTLE ONLINE';position:absolute;top:max(20px,env(safe-area-inset-top));left:28px;letter-spacing:3px;font-size:10px;font-weight:900;color:#c9d0dc}.screen>*{flex-shrink:0}.hd{width:min(1100px,100%);font-size:clamp(28px,5vw,50px);font-weight:950;font-style:italic;letter-spacing:-1px;line-height:1.1;border-left:7px solid var(--red);padding-left:16px}.hd small{display:block;color:var(--muted);font-size:11px;letter-spacing:3px;font-weight:500;font-style:normal;margin-top:8px}
 /* Title: a full-bleed versus illustration and oversized identity. */
-#sc-title{padding:30px;isolation:isolate;justify-content:center;background:radial-gradient(ellipse at 65% 25%,#293747,#0c1019 70%);cursor:pointer}#sc-title:before{content:'RE:IGNITE EDITION / 09 FIGHTERS';color:#aeb9ca}#sc-title:after{content:'スティックバトルオンライン';position:absolute;bottom:20px;left:28px;font-size:11px;letter-spacing:3px;color:#aeb9ca}.title-art{position:absolute;inset:0;z-index:-1;overflow:hidden}.title-art svg{height:100%;width:100%;object-fit:cover}.title-art:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#0c1019b0,transparent 70%)}.title-content{width:min(1100px,100%);position:relative}.title-kicker{color:var(--gold);letter-spacing:5px;font-size:11px;font-weight:900;margin-bottom:20px}.logo{font-family:Impact,'Arial Black',system-ui,sans-serif;font-weight:1000;font-style:italic;font-size:clamp(68px,12vw,154px);line-height:.83;letter-spacing:-4px;text-shadow:0 5px 0 #0005;transform:skew(-5deg);width:max-content}.logo em{display:block;color:var(--red);font-style:inherit}.logo small{display:block;letter-spacing:clamp(8px,2vw,22px);font-size:clamp(22px,4vw,40px);line-height:1.2;margin-top:12px;color:var(--paper);font-style:normal}.title-desc{font-size:12px;letter-spacing:3px;color:#b6c0d0;margin-top:25px}.tap{display:inline-flex;margin-top:34px;background:var(--paper);color:#131720;padding:17px 30px;font-size:14px;font-weight:900;letter-spacing:1px;clip-path:polygon(0 0,100% 0,calc(100% - 13px) 100%,0 100%);animation:breathe 2.5s ease-in-out infinite}.tap:after{content:'↗';margin-left:32px;font-size:18px}.version-label{color:#ffffff40;font-size:10px;position:absolute;bottom:20px;right:28px;letter-spacing:2px}@keyframes breathe{50%{box-shadow:0 0 32px #ff493f50;filter:brightness(.88)}}
+#sc-title{padding:30px;isolation:isolate;justify-content:center;background:radial-gradient(ellipse at 65% 25%,#293747,#0c1019 70%);cursor:pointer}#sc-title:before{content:'SENKU EDITION / 09 FIGHTERS';color:#aeb9ca}#sc-title:after{content:'スティックバトルオンライン';position:absolute;bottom:20px;left:28px;font-size:11px;letter-spacing:3px;color:#aeb9ca}.title-art{position:absolute;inset:0;z-index:-1;overflow:hidden}.title-art svg{height:100%;width:100%;object-fit:cover}.title-art:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#0c1019b0,transparent 70%)}.title-content{width:min(1100px,100%);position:relative}.title-kicker{color:var(--gold);letter-spacing:5px;font-size:11px;font-weight:900;margin-bottom:20px}.logo{font-family:Impact,'Arial Black',system-ui,sans-serif;font-weight:1000;font-style:italic;font-size:clamp(68px,12vw,154px);line-height:.83;letter-spacing:-4px;text-shadow:0 5px 0 #0005;transform:skew(-5deg);width:max-content}.logo em{display:block;color:var(--red);font-style:inherit}.logo small{display:block;letter-spacing:clamp(8px,2vw,22px);font-size:clamp(22px,4vw,40px);line-height:1.2;margin-top:12px;color:var(--paper);font-style:normal}.title-desc{font-size:12px;letter-spacing:3px;color:#b6c0d0;margin-top:25px}.tap{display:inline-flex;margin-top:34px;background:var(--paper);color:#131720;padding:17px 30px;font-size:14px;font-weight:900;letter-spacing:1px;clip-path:polygon(0 0,100% 0,calc(100% - 13px) 100%,0 100%);animation:breathe 2.5s ease-in-out infinite}.tap:after{content:'↗';margin-left:32px;font-size:18px}.version-label{color:#ffffff40;font-size:10px;position:absolute;bottom:20px;right:28px;letter-spacing:2px}@keyframes breathe{50%{box-shadow:0 0 32px #ff493f50;filter:brightness(.88)}}
 /* Main navigation */
 .mode-grid{width:min(1100px,100%);display:grid;grid-template-columns:1.3fr 1fr;gap:16px}.big{position:relative;text-align:left;overflow:hidden;padding:28px;background:var(--paper);color:#161b25;font-weight:900;min-height:110px;width:min(560px,100%);display:flex;flex-direction:column;justify-content:flex-end;gap:9px;border-radius:3px;isolation:isolate}.big small{font-size:12px;font-weight:600;opacity:.75;line-height:1.5}.big b{font-size:clamp(24px,4vw,42px);font-style:italic;letter-spacing:-1px}.big .mode-no{position:absolute;top:20px;left:24px;font-size:11px;letter-spacing:3px;opacity:.7}.mode-grid .big{width:100%;min-height:230px}.mode-grid #go-cpu{background:var(--red);color:white;grid-row:span 2;min-height:390px}.mode-grid #go-online{background:var(--gold)}.mode-grid #go-howto{min-height:145px;background:#253044;color:#e9edf5}.mode-art{position:absolute;width:200px;height:200px;right:-15px;top:20px;opacity:.28;z-index:-1;transform:rotate(-12deg)}
 /* Fighter selection */
@@ -32,6 +32,26 @@
 @media(orientation:landscape) and (max-height:560px){#game{position:relative;padding-left:120px;padding-right:158px;gap:0}#bar{position:absolute;top:0;left:0;width:100%;height:38px;padding:2px 0}#title{max-width:none;font-size:10px}#title small{display:inline;margin-left:6px}#arena-shell{width:100%;height:100%;padding:40px 0 18px;gap:6px;justify-content:center}#match-info{font-size:8px}#wrap{max-height:calc(100dvh - 135px);height:auto;width:min(100%,calc((100dvh - 135px)*16/9));aspect-ratio:16/9}#battle-roster{gap:5px}.hud-card{height:47px;padding-bottom:4px}.hud-portrait{height:35px;width:32px}.hud-damage{font-size:22px}.hud-name{font-size:8px}.hud-skill{font-size:7px}.hud-card.crowded{height:43px}.hud-card.crowded .hud-damage{font-size:18px}#pad{display:contents}#stick-zone{position:absolute;left:0;bottom:8px;width:112px;height:calc(100% - 48px)}#acts{position:absolute;right:0;bottom:16px;width:148px;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:53px 58px 65px;grid-template-areas:'v s' 'c j' 'a a';gap:7px}#combat-hint{position:absolute;bottom:0;left:120px;right:158px;font-size:8px;padding:0;min-height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.left-handed #game{padding-left:158px;padding-right:120px}.left-handed #stick-zone{left:auto;right:0}.left-handed #acts{left:0;right:auto}.left-handed #combat-hint{left:158px;right:120px}.screen{justify-content:flex-start;padding-top:46px}.fighter-layout{display:grid;grid-template-columns:.8fr 1.2fr}.fighter-left{display:block}.fighter-preview{height:210px}.fighter-preview>svg{width:100%;height:240px}.fighter-preview .fighter-name{bottom:10px}.ci{min-height:88px}.ci svg{height:65px}.logo{font-size:75px}.logo small{font-size:22px;margin-top:6px}.title-kicker{margin-bottom:10px}.title-desc{display:none}.tap{margin-top:22px;padding:12px 24px}.mode-grid{grid-template-columns:1.1fr 1fr}.mode-grid #go-cpu{grid-row:span 2}.mode-grid .big{min-height:130px}#sc-title{justify-content:center}.title-content{padding-top:20px}.stage-grid{grid-template-columns:repeat(3,1fr)}.stc{display:block}.stc .stage-meta{padding:12px}.stc b{font-size:14px}.winner-art{height:100px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
 
+/* Input-specific layout: a mouse/keyboard PC does not reserve phone controls. */
+#keyboard-guide{display:none;flex-shrink:0;color:#9faec4;font-size:11px;gap:16px;align-items:center;justify-content:center;min-height:32px;white-space:nowrap}
+#keyboard-guide kbd{display:inline-block;background:#253145;color:#edf2fa;border:1px solid #536079;border-bottom-width:2px;border-radius:4px;padding:2px 6px;margin-right:3px;font-size:10px;font-family:inherit}
+body.desktop-controls #game{max-width:none;width:100%;padding:0;gap:6px}
+body.desktop-controls #bar{position:static;height:44px;padding:5px 12px;flex-shrink:0}
+body.desktop-controls #title{max-width:none;font-size:14px}body.desktop-controls #title small{display:inline;font-size:10px;margin-left:8px}
+body.desktop-controls #arena-shell{height:auto;min-height:0;flex:1;padding:0;gap:8px;justify-content:center}
+body.desktop-controls #wrap{max-width:none;max-height:none;height:auto;aspect-ratio:16/9}
+body.desktop-controls #match-info,body.desktop-controls #battle-roster{max-width:none}
+body.desktop-controls #battle-roster{grid-template-columns:repeat(var(--pc-columns,2),minmax(0,1fr));gap:8px}
+body.desktop-controls .hud-card{height:66px}body.desktop-controls .hud-card.crowded{height:60px}
+body.desktop-controls .hud-card.crowded .hud-portrait{display:block;width:37px}
+body.desktop-controls .hud-card.crowded .hud-damage{font-size:26px}
+body.desktop-controls #pad,body.desktop-controls #acts,body.desktop-controls #stick-zone{display:none!important}
+body.desktop-controls #keyboard-guide{display:flex}
+body.desktop-controls #combat-hint{position:static;min-height:16px;max-height:18px;padding:0 6px 3px;font-size:10px}
+#pref-controls{max-width:55%;padding:8px 6px;background:#263449;color:white;border:1px solid #5a6980;border-radius:4px;font-size:12px}
+@media(max-width:900px){body.desktop-controls #keyboard-guide{font-size:9px;gap:8px;min-height:28px}body.desktop-controls #keyboard-guide kbd{font-size:9px;padding:1px 4px}body.desktop-controls .hud-card{height:53px}body.desktop-controls .hud-portrait{width:35px}body.desktop-controls .hud-card.crowded .hud-portrait{display:none}body.desktop-controls .hud-card.crowded .hud-damage{font-size:22px}body.desktop-controls #bar{height:38px}}
+@media(max-width:600px){body.desktop-controls #keyboard-guide{max-width:100%;justify-content:flex-start;overflow-x:auto;touch-action:pan-x}body.desktop-controls #title{font-size:10px}}
+
 </style>
 </head>
 <body>
@@ -39,7 +59,7 @@
 <div id="sc-title" class="screen" style="display:flex">
  <div class="title-art"></div><div class="title-content"><div class="title-kicker">ONE ARENA. NO LIMITS.</div>
  <h1 class="logo">STICK<em>BATTLE</em><small>ONLINE</small></h1><p class="title-desc">9人のファイター。勝負を決める、ただ一撃。</p>
- <button class="tap" id="title-tap">タップしてスタート</button></div><div class="version-label">RE:IGNITE / 03</div>
+ <button class="tap" id="title-tap">タップしてスタート</button></div><div class="version-label">SENKU / 04</div>
 </div>
 <div id="sc-mode" class="screen">
  <div class="hd">CHOOSE YOUR BATTLE<small>モードを選択</small></div><div class="mode-grid">
@@ -161,10 +181,12 @@
       <button id="btn-j">跳ぶ<small>JUMP</small></button>
     </div>
   </div>
-  <div id="combat-hint">移動：左エリア ／ 攻撃：長押しで溜め</div>
+  <div id="keyboard-guide"><span><kbd>A</kbd><kbd>D</kbd> 移動</span><span><kbd>SPACE</kbd> ジャンプ</span><span><kbd>J</kbd> 攻撃・長押し溜め</span><span><kbd>K</kbd> 特殊</span><span><kbd>W</kbd>＋<kbd>K</kbd> 上技</span><span><kbd>L</kbd> カウンター</span></div>
+<div id="combat-hint">移動：左エリア ／ 攻撃：長押しで溜め</div>
 </div>
 
 <dialog id="settings-dialog"><h2>AUDIO & CONTROLS</h2>
+<label class="setting-row">操作画面<select id="pref-controls"><option value="auto">自動判定</option><option value="keyboard">PC：キーボード</option><option value="touch">スマホ：タッチ</option></select></label>
 <label class="setting-row">全体音量<input id="pref-volume" type="range" min="0" max="1" step=".05"></label>
 <label class="setting-row">バトルBGM<input id="pref-music" type="checkbox"></label>
 <label class="setting-row">画面の揺れ<input id="pref-shake" type="checkbox"></label>
@@ -208,7 +230,7 @@ const RAGE_MAX = 100, RAGE_T = 600, RAGE_FREEZE = 44; // ヤンキー：10秒覚
 const RAGE_PASSIVE_FILL = RAGE_MAX / (65 * 60), RAGE_HIT_GAIN = 1.55; // 放置なら約65秒、被弾なら一気に溜まる
 const RAGE_DMG = 1.85, RAGE_KB = 1.75, RAGE_SPD = 1.22, RAGE_JUMP = 1.10, RAGE_WT = 0.78;
 const RAGE_PUNCH_MIN_KB = 16.5;                 // 怒り中の通常パンチは撃墜択になる
-const SENKU_MAX = 100, SENKU_FILL = 100 / (18 * 60), SENKU_WIND = 42; // 旧予告演出との互換用。新しい閃空は待機なしでSENKU_STOPへ移行
+const SENKU_MAX = 100, SENKU_FILL = 100 / (18 * 60), SENKU_WIND = 42; // 旧予告演出との互換用。新しい旋空は待機なしでSENKU_STOPへ移行
 const LANCE_CHARGE_MAX = 60;                    // 最大まで溜めたら自動で突撃
 const GUN_MAX = 8, GUN_RELOAD = 72;             // ガンマン：8発、約1.2秒リロード
 const COLORS = ['#e63946', '#1f8ef1', '#f4a261', '#2a9d8f', '#9b5de5', '#ef476f', '#06d6a0', '#ff9f1c'];
@@ -240,7 +262,7 @@ const CHARS = {
             ab: 'タフで動ける。怒り中は超高火力・高機動・さらにタフ。飛び道具で怯まない' },
   swordsman: { name: '剣士', en: 'SWORDSMAN', mark: '剣', spd: 1.00, jump: 1.0, jumps: 2, wt: 0.96, pow: 1.14, size: 1.0,
             ctx: 0, back: false, ctc: 1.0, dgc: 1.0, dgs: 1.0, st: [3, 4, 4],
-            sp: '閃空：ゲージMAXで即時発動。時を止め、前方の敵をガード・アーマーごと一閃する', up: '斬り上げ：上昇しながら頭上を斬る',
+            sp: '旋空：ゲージMAXで即時発動。時を止め、前方の敵をガード・アーマーごと一閃する', up: '斬り上げ：上昇しながら頭上を斬る',
             ab: '通常攻撃が剣。拳より長いリーチと少し高い火力を持つ' },
   lancer: { name: '槍使い', en: 'LANCER', mark: '槍', spd: 0.92, jump: 0.96, jumps: 2, wt: 0.92, pow: 1.02, size: 1.0,
             ctx: 0, back: false, ctc: 1.0, dgc: 1.05, dgs: 0.98, st: [2, 4, 5],
@@ -434,7 +456,7 @@ function sfxGame() { noiseHit(0.8, 0.6, 800); [523, 659, 784, 1047].forEach((f, 
 // ④ p5.js メインループ
 // ========================================================
 function setup() {
-  pixelDensity(1);                          // スマホで重くならないよう等倍で描く
+  pixelDensity(window.matchMedia('(hover: hover) and (pointer: fine)').matches?2:1);                          // スマホで重くならないよう等倍で描く
   const c = createCanvas(W, H);
   c.parent('wrap');
   textFont('sans-serif');
@@ -974,7 +996,7 @@ function gainSenku(p, n) {
   if (!p || p.cid !== 'swordsman' || !isLocal(p) || p.senku >= SENKU_MAX) return;
   const before = p.senku; p.senku = Math.min(SENKU_MAX, p.senku + n);
   if (before < SENKU_MAX && p.senku >= SENKU_MAX) {
-    sfxKOReady(); popups.push({ x: p.x, y: p.y - 112, txt: '閃空 READY!', life: 50, max: 50, size: 22, c: '#bde0fe' });
+    sfxKOReady(); popups.push({ x: p.x, y: p.y - 112, txt: '旋空 READY!', life: 50, max: 50, size: 22, c: '#bde0fe' });
   }
 }
 function beginReload(p) {
@@ -2024,6 +2046,7 @@ function drawProjs() {
 
 function drawFighter(p) {
   if (!p || p.out) return;
+  if(p.cid==='swordsman'&&senkuActive&&senkuActive.id===p.id&&fzType==='senku'&&freezeT>0){drawSenkuActor(p,(SENKU_STOP-freezeT)/SENKU_STOP);return;}
   const C = CC(p.cid), sz = C.size, id = p.id, mv = p.mv;
 
   const tr = trails[id] || (trails[id] = []);
@@ -2204,7 +2227,7 @@ function drawFighter(p) {
     line(0, -8, p.f * 14, 2 - walk * 0.4); line(0, -8, -p.f * 12, 4);
   }
 
-  if (p.cid === 'swordsman' && !p.w) drawWeapon('sword', hand.x, hand.y, p.f, wmode, false);
+  if (p.cid === 'swordsman' && !p.w) drawKatana(hand.x, hand.y, p.f, wmode);
   if (p.cid === 'lancer' && !p.w) {
     push(); translate(hand.x,hand.y); scale(p.f,1); rotate(wmode==='back' ? -2.6 : wmode==='swing' ? -0.1 : -0.45);
     stroke('#8d6e63'); strokeWeight(5); line(-8,0,58,0); stroke('#eef3f6'); strokeWeight(4); line(58,0,76,0); line(76,0,64,-7); line(76,0,64,7); pop();
@@ -2219,12 +2242,12 @@ function drawFighter(p) {
 
   stroke("#0a1526"); strokeWeight(2); fill(col);
   circle(0, -24, 20);
-  noStroke(); fill("#eef8ff"); ellipse(p.f*4,-25,5,2.5);
+
   noStroke();
   if (p.cid === 'sumo') {
     fill('#24323c'); ellipse(0, -36, 10, 7);
   } else if (p.cid === 'ninja') {
-    fill('#24323c'); arc(0, -24, 20, 20, 0, PI);
+    fill('#24323c'); rect(-10,-33,20,3,1);
     stroke('#24323c'); strokeWeight(3);
     const wv = sin(visualFrame * 0.3) * 3;
     line(-p.f * 8, -27, -p.f * 22, -31 + wv); line(-p.f * 8, -27, -p.f * 20, -22 + wv);
@@ -2232,15 +2255,15 @@ function drawFighter(p) {
     stroke('#ef4747'); strokeWeight(4); line(-10, -28, 10, -28);
     strokeWeight(3); line(-p.f * 9, -28, -p.f * 17, -24);
   } else if (p.cid === 'bomber') {
-    stroke('#24323c'); strokeWeight(2); line(-10, -25, 10, -25); noStroke(); fill('#ffd166'); circle(p.f * 5, -25, 7); circle(-p.f * 2, -25, 7);
+    noStroke(); fill('#343e4c'); arc(0,-26,23,22,PI,TWO_PI); fill('#ffb861');rect(-12,-30,24,3,1);
   } else if (p.cid === 'yankee') {
     // リーゼント：前方へ大きく張り出す黒髪
     noStroke(); fill('#171b1e');
     rect(-10,-36,18,8,3); ellipse(p.f*5,-39,28,13); ellipse(p.f*15,-41,27,13); ellipse(p.f*25,-40,21,11);
     fill('#2b3238'); ellipse(p.f*28,-41,9,5);
-    if (rageOn(p)) { noFill(); stroke('#ef4747'); strokeWeight(3); ellipse(p.f*15,-40,48,22); noStroke(); fill('#ef4747'); circle(p.f*4,-24,6); }
+    if (rageOn(p)) { noFill(); stroke('#ef4747'); strokeWeight(3); ellipse(p.f*15,-40,48,22);  }
   } else if (p.cid === 'swordsman') {
-    stroke('#eef3f6'); strokeWeight(2); line(-9,-31,9,-31);
+    // Plain blank head; the collar and uniform carry the character identity.
   } else if (p.cid === 'lancer') {
     fill('#8d6e63'); noStroke(); rect(-10,-34,20,5,2);
   } else if (p.cid === 'gunman') {
@@ -2566,7 +2589,7 @@ function buildMenus() {
   };
 }
 // Presentation and accessibility settings: no physics or combat parameters are modified.
-const prefs = {volume:.55,music:false,shake:true,left:false};
+const prefs = {volume:.55,music:false,shake:true,left:false,controls:'auto'};
 try { const saved=JSON.parse(localStorage.getItem('sbo.preferences')||'{}'); for(const k of Object.keys(prefs))if(typeof saved[k]===typeof prefs[k])prefs[k]=saved[k];prefs.volume=Math.max(0,Math.min(1,prefs.volume)); } catch(_) {}
 let audioMaster=null,audioFX=null,audioMusic=null,musicStep=0,musicNext=0;
 function audioBus(){
@@ -2631,15 +2654,35 @@ function paintCostume(p,col){
  if(p.cid==='bomber'){fill('#2b3540');rect(-10,-16,20,24,5);fill('#ffb468');rect(-7,-12,4,13,1);rect(3,-12,4,13,1);fill('#71e5ff');rect(-3,-8,6,3,1);}
  if(p.cid==='boxer'){fill(col);rect(-9,5,18,10,3);fill('#e9f5ff');rect(-9,5,18,3);}
  if(p.cid==='yankee'){fill('#172235');quad(-9,-16,9,-16,13,14,-13,14);fill('#f3c979');triangle(-8,-16,-2,-3,-3,-16);triangle(8,-16,2,-3,3,-16);fill(col);rect(-2,-12,4,17,1);}
- if(p.cid==='swordsman'){fill('#123039');quad(-9,-16,9,-16,13,15,-13,15);stroke('#87ffe0');strokeWeight(1.5);line(-5,-13,-2,11);line(5,-13,2,11);noStroke();fill('#5e9294');rect(-12,-15,8,5,2);}
+ if(p.cid==='swordsman'){
+  const flap=Math.sin(visualFrame*.10)*1.5+Math.min(Math.abs(p.vx||0),4);
+  fill('#151e2e');quad(-9,-17,8,-17,12,9,-12,9);
+  fill('#9f2d3f');quad(-9,-17,-2,-15,-1,7,-12,9);
+  fill('#313f51');quad(0,-15,8,-17,12,7,2,7);
+  fill('#111a28');triangle(-11,7,-17-flap,22,-3,14);triangle(1,7,13,9,10+flap,23);
+  fill('#b23447');triangle(-11,8,-17-flap,22,-10,17);
+  fill('#c9c5b5');quad(-9,-17,8,-18,10,-12,-9,-11);
+  fill('#e0d5b7');rect(-11,5,23,3,1);fill('#a18c60');rect(-1,4,4,5,1);
+  fill('#566174');rect(-13,-16,7,5,2);fill(col);rect(-13,-15,6,2,1);
+  stroke('#0a101a');strokeWeight(4);line(-p.f*7,8,-p.f*29,20);stroke('#79858c');strokeWeight(1);line(-p.f*8,7,-p.f*28,19);
+ }
  if(p.cid==='lancer'){fill('#71859a');quad(-8,-15,8,-15,10,5,-10,5);fill('#cce7ee');triangle(-5,-13,5,-13,0,3);fill(col);rect(-10,5,20,5,2);}
  if(p.cid==='gunman'){fill('#8c654e');quad(-9,-15,9,-15,13,14,-13,14);fill('#e9c38a');triangle(-7,-15,7,-15,0,-4);fill('#192538');rect(-2,-3,4,17);}
  pop();
 }
 function portrait(id){
+ if(id==='swordsman')return `<svg viewBox="0 0 100 82" aria-hidden="true"><ellipse cx="49" cy="76" rx="32" ry="4" fill="#050c1880"/><circle cx="48" cy="40" r="34" fill="#bb485315"/>
+ <path d="M46 58L30 74M51 58l20 15" stroke="#1e2b3c" stroke-width="8" stroke-linecap="round"/><path d="M28 72l-1 3m42-4l4 3" stroke="#99acbf" stroke-width="3" stroke-linecap="round"/>
+ <path d="M35 34L56 32 65 61 51 58 42 68 27 64z" fill="#192536"/><path d="M35 34L44 36 45 58 29 65z" fill="#a33445"/><path d="M46 36L56 32 65 61 51 58z" fill="#344252"/>
+ <path d="M33 52l28 1" stroke="#dcd3b9" stroke-width="4"/><path d="M32 56L16 70" stroke="#0b1421" stroke-width="5"/><path d="M31 56L16 69" stroke="#697a8a" stroke-width="1"/>
+ <path d="M35 38L29 49 48 48M55 38L63 50 48 48" stroke="#4b5b6d" stroke-width="6" fill="none" stroke-linecap="round"/>
+ <path d="M47 48L87 21 96 10 89 24 49 51z" fill="#eeecdb"/><path d="M46 44l5 9" stroke="#c7ac75" stroke-width="2"/><circle cx="46" cy="49" r="3" fill="#bfcbd3"/>
+ <circle cx="45" cy="22" r="11" fill="#c0cbd2"/><path d="M35 32L55 31 58 37 35 39z" fill="#d4d1c4"/><path d="M35 34l-9 9 8-1" fill="#a33645"/>
+ <path d="M32 35l8 1-1 6-8-2z" fill="#627283"/></svg>`;
+
  const idx=Object.keys(CHARS).indexOf(id),colors=['#73deff','#ffb16c','#a7a1ff','#e7c295','#ff7c85','#ffb377','#98d9e2','#b5c7e9','#dab18a'],c=colors[idx];
- const costume={karate:'<path d="M38 38h24l-3 26H41z" fill="#e1edf5"/><path d="M39 59h22" stroke="#26384b" stroke-width="5"/><path d="M39 23h22" stroke="#ff9976" stroke-width="4"/>',bomber:'<rect x="36" y="37" width="28" height="28" rx="6" fill="#343d4b"/><path d="M42 43v16m16-16v16" stroke="#ffb16c" stroke-width="4"/><rect x="39" y="24" width="22" height="7" rx="3" fill="#ffcf80"/>',ninja:'<path d="M40 27h20v8H40zM36 38h28v24H36z" fill="#29334d"/><path d="M39 36L15 29l7 11z" fill="#a7a1ff"/>',sumo:'<ellipse cx="50" cy="49" rx="21" ry="17" fill="'+c+'"/><path d="M30 57h40" stroke="#283649" stroke-width="7"/><ellipse cx="50" cy="14" rx="7" ry="4" fill="#26384b"/>',boxer:'<path d="M39 56h22v12H39z" fill="#e25a6f"/><circle cx="29" cy="40" r="9" fill="#ff6d80"/><circle cx="71" cy="40" r="9" fill="#ff6d80"/>',yankee:'<path d="M37 37h26l6 30H31z" fill="#243449"/><path d="M42 39l8 9 8-9" fill="none" stroke="#e7bf70" stroke-width="3"/><path d="M39 20q2-16 34-10q4 12-17 10" fill="#364458"/>',swordsman:'<path d="M37 38h26l6 29H31z" fill="#173d49"/><path d="M42 40l5 21m11-21l-5 21" stroke="#93ffe2" stroke-width="2"/><path d="M72 16L63 65" stroke="#d6efff" stroke-width="4"/><path d="M39 22h22" stroke="#fff" stroke-width="2"/>',lancer:'<path d="M37 38h26l-4 25H41z" fill="#8eabbf"/><path d="M74 70V19" stroke="#cbb59a" stroke-width="3"/><path d="M74 7l-5 15h10z" fill="#e2f4ff"/>',gunman:'<path d="M36 37h28l5 29H31z" fill="#98705a"/><path d="M34 20h32M41 18v-9h18v9" fill="#344357" stroke="#344357" stroke-width="5"/><path d="M69 40h13v5H71" fill="#b9d5e6"/>'};
- return `<svg viewBox="0 0 100 82" aria-hidden="true"><ellipse cx="50" cy="75" rx="29" ry="4" fill="#050c1880"/><circle cx="50" cy="40" r="33" fill="${c}0c"/><g stroke="${c}" stroke-width="6" stroke-linecap="round" fill="none"><path d="M50 36v23m0-17L30 50m20-8l20 8M50 59L38 73m12-14l12 14"/></g><circle cx="50" cy="26" r="12" fill="${c}"/>${costume[id]}<path d="M52 27h5" stroke="#f8fbff" stroke-width="2" stroke-linecap="round"/></svg>`;
+ const costume={karate:'<path d="M38 38h24l-3 26H41z" fill="#e1edf5"/><path d="M39 59h22" stroke="#26384b" stroke-width="5"/><path d="M39 23h22" stroke="#ff9976" stroke-width="4"/>',bomber:'<rect x="36" y="37" width="28" height="28" rx="6" fill="#343d4b"/><path d="M42 43v16m16-16v16" stroke="#ffb16c" stroke-width="4"/><path d="M37 19q13-18 26 0" fill="#394656"/><path d="M36 19h28" stroke="#ffd081" stroke-width="3"/>',ninja:'<path d="M39 16h22v4H39zM36 38h28v24H36z" fill="#29334d"/><path d="M39 36L15 29l7 11z" fill="#a7a1ff"/>',sumo:'<ellipse cx="50" cy="49" rx="21" ry="17" fill="'+c+'"/><path d="M30 57h40" stroke="#283649" stroke-width="7"/><ellipse cx="50" cy="14" rx="7" ry="4" fill="#26384b"/>',boxer:'<path d="M39 56h22v12H39z" fill="#e25a6f"/><circle cx="29" cy="40" r="9" fill="#ff6d80"/><circle cx="71" cy="40" r="9" fill="#ff6d80"/>',yankee:'<path d="M37 37h26l6 30H31z" fill="#243449"/><path d="M42 39l8 9 8-9" fill="none" stroke="#e7bf70" stroke-width="3"/><path d="M39 20q2-16 34-10q4 12-17 10" fill="#364458"/>',swordsman:'<path d="M37 38h26l6 29H31z" fill="#173d49"/><path d="M42 40l5 21m11-21l-5 21" stroke="#93ffe2" stroke-width="2"/><path d="M72 16L63 65" stroke="#d6efff" stroke-width="4"/><path d="M39 22h22" stroke="#fff" stroke-width="2"/>',lancer:'<path d="M37 38h26l-4 25H41z" fill="#8eabbf"/><path d="M74 70V19" stroke="#cbb59a" stroke-width="3"/><path d="M74 7l-5 15h10z" fill="#e2f4ff"/>',gunman:'<path d="M36 37h28l5 29H31z" fill="#98705a"/><path d="M34 20h32M41 18v-9h18v9" fill="#344357" stroke="#344357" stroke-width="5"/><path d="M69 40h13v5H71" fill="#b9d5e6"/>'};
+ return `<svg viewBox="0 0 100 82" aria-hidden="true"><ellipse cx="50" cy="75" rx="29" ry="4" fill="#050c1880"/><circle cx="50" cy="40" r="33" fill="${c}0c"/><g stroke="${c}" stroke-width="6" stroke-linecap="round" fill="none"><path d="M50 36v23m0-17L30 50m20-8l20 8M50 59L38 73m12-14l12 14"/></g><circle cx="50" cy="26" r="12" fill="${c}"/>${costume[id]}</svg>`;
 }
 function updateControlUI(){
  const p=fighters.find(f=>f.id===myId);if(!p)return;
@@ -2700,63 +2743,112 @@ function releaseSenku(){
  shake=Math.max(shake,14);sfxSenkuRelease();
 }
 function sfxSenkuLock(){
- tone(1800,90,.10,.18,'sine');noiseHit(.045,.12,5600,true);tone(78,68,.5,.2,'sine');
- tone(2200,2900,.22,.04,'sine',.13);
+ tone(2600,1600,.13,.08,'triangle');noiseHit(.09,.11,6400,true);tone(88,65,.35,.12,'sine');
+ noiseHit(.15,.25,3900,true,.16);tone(1250,280,.18,.09,'sawtooth',.16);
 }
 function sfxSenkuRelease(){
  noiseHit(.12,.42,5800,true);tone(2500,330,.13,.12,'sawtooth');tone(82,35,.48,.38,'sine');
  tone(1100,730,.23,.07,'triangle',.06);
 }
-function paintSenkuWorld(){
- if(!senkuActive)return;const e=senkuActive,t=(SENKU_STOP-freezeT)/SENKU_STOP;
- push();noStroke();fill(2,9,18,205);rect(-300,-300,stage.w+600,stage.h+600);
- // Frozen fighters remain visible under a technical lock-on overlay.
- for(const f of fighters){if(f.out)continue;drawFighter(f);if(e.targets.includes(f.id)){
-  const y=f.y-32*CC(f.cid).size;stroke(142,255,234,120);strokeWeight(1);noFill();rect(f.x-22,y-32,44,64);line(f.x-30,y,f.x+30,y);}}
- const x=e.x,y=e.y,dir=e.dir;
- if(t<.34){const q=t/.34;noFill();stroke(121,255,230,180);strokeWeight(1);circle(x,y,96-q*55);circle(x,y,124-q*80);strokeWeight(2);line(x-22,y,x+22,y);line(x,y-22,x,y+22);}
- else{
-  const q=Math.min(1,(t-.34)/.12),end=x+dir*520*q;
-  stroke(58,255,210,35);strokeWeight(26);line(x,y,end,y-7);
-  stroke(109,255,231,130);strokeWeight(9);line(x,y,end,y-7);
-  stroke('#eefff9');strokeWeight(2);line(x-dir*18,y,end,y-7);
-  for(let i=0;i<16;i++){const xx=x+dir*(35+i*30),yy=y+Math.sin(i*9.7)*15;stroke(142,255,234,110);strokeWeight(1);line(xx,yy,xx+dir*(12+i%4*5),yy-7);}
-  noFill();stroke(170,255,241,130);strokeWeight(2);arc(x+dir*40,y,130,180,dir>0?-1.3:1.84,dir>0?1.3:4.44);
+// Draw the extended blade as a single connected sword sweep, not a projectile.
+// The 12-frame swing is a visual reference to a 0.2-second activation at 60 fps.
+function senkuSweep(x,y,dir,progress,alpha=1,after=false){
+ const q=Math.max(0,Math.min(1,progress)),start=-1.13,angle=start+q*1.19,R=520;
+ push();translate(x,y);scale(dir,1);noStroke();
+ if(q>0){
+  fill(255,236,178,42*alpha);beginShape();vertex(0,0);for(let a=start;a<=angle+.001;a+=.025)vertex(Math.cos(a)*R,Math.sin(a)*R*.12);vertex(Math.cos(angle)*R,Math.sin(angle)*R*.12);endShape(CLOSE);
+  // Broad crescent at the tip: the far end carries the strongest visual weight.
+  fill(255,250,222,110*alpha);beginShape();
+  for(let a=Math.max(start,angle-.46);a<=angle+.001;a+=.018)vertex(Math.cos(a)*R,Math.sin(a)*R*.12);
+  for(let a=angle;a>=Math.max(start,angle-.46);a-=.018)vertex(Math.cos(a)*(R-42),Math.sin(a)*(R-42)*.12);endShape(CLOSE);
+  noFill();stroke(255,250,220,210*alpha);strokeWeight(2);beginShape();for(let a=start;a<=angle;a+=.018)vertex(Math.cos(a)*R,Math.sin(a)*R*.12);endShape();
  }
+ if(!after){
+  const ex=Math.cos(angle)*R,ey=Math.sin(angle)*R*.12;
+  stroke(255,206,111,40*alpha);strokeWeight(17);line(0,0,ex,ey);
+  noStroke();fill(255,249,218,235*alpha);quad(0,-2,ex,ey-2,ex+5,ey,0,3);
+  stroke(255,255,248,255*alpha);strokeWeight(1.5);line(0,-1,ex,ey-2);
+  stroke('#e0c18b');strokeWeight(4);line(-12,0,0,0);stroke('#222b38');strokeWeight(3);line(-10,0,-2,0);
+ }
+ pop();
+}
+function drawSenkuActor(p,progress){
+ if(!p||p.out)return;
+ const q=Math.max(0,Math.min(1,progress)),wind=q<.26,cut=q>=.26&&q<.58;
+ push();translate(p.x,p.y);scale(CC(p.cid).size);scale(p.f,1);
+ // Low stance, both hands at the hilt, then a clean extended follow-through.
+ stroke('#111a28');strokeWeight(8);strokeCap(ROUND);line(-3,-19,-18,0);line(1,-19,22,0);
+ stroke(p.c);strokeWeight(3);line(-17,-4,-18,0);line(20,-4,22,0);
+ noStroke();fill('#141d2b');quad(-15,-49,6,-49,17,-13,-17,-12);
+ fill('#a42e3b');quad(-15,-49,-5,-47,-3,-16,-18,-13);fill('#303e50');quad(-6,-47,6,-49,17,-13,2,-16);
+ fill('#dfd6bd');rect(-13,-24,25,4);fill('#b93744');triangle(-13,-21,-30,-11,-20,-29);
+ stroke('#47556a');strokeWeight(5);line(-27,-18,8,-34);stroke('#c2bda9');strokeWeight(1);line(-27,-19,7,-35);
+ // Completely blank head. The short tie sits behind the head, never across a face.
+ noStroke();fill(p.c);circle(wind?-7:-2,wind?-57:-59,20);
+ fill('#d7d4c8');quad(-14,-48,6,-49,9,-43,-13,-41);
+ stroke('#b8c2ca');strokeWeight(1);line(-12,-46,6,-46);
+ const hx=wind?3:26,hy=wind?-33:-36;
+ stroke('#313f51');strokeWeight(7);line(-9,-43,wind?-10:9,wind?-29:-34);line(wind?-10:9,wind?-29:-34,hx,hy);
+ stroke('#232e40');strokeWeight(6);line(5,-44,wind?13:18,-28);line(wind?13:18,-28,hx-3,hy+1);
+ noStroke();fill(p.c);circle(hx,hy,5);circle(hx-4,hy+2,5);
+ if(!cut){push();translate(hx,hy);rotate(wind?-2.83:.08);drawKatana(0,0,1,'swing');pop();}
+ pop();
+}
+function paintSenkuWorld(){
+ if(!senkuActive)return;const e=senkuActive,el=SENKU_STOP-freezeT,t=el/SENKU_STOP;
+ push();noStroke();fill(6,8,14,175);rect(-300,-300,stage.w+600,stage.h+600);
+ for(const f of fighters)if(!f.out&&f.id!==e.id)drawFighter(f);
+ const actor=byId(e.id);drawSenkuActor(actor,t);
+ if(el>=10&&el<22)senkuSweep(e.x,e.y,e.dir,(el-10)/12,1);
+ else if(el>=22)senkuSweep(e.x,e.y,e.dir,1,Math.max(.15,1-(el-22)/19),true);
+ if(el>=18){for(const id of e.targets){const f=byId(id);if(!f||f.out)continue;const y=f.y-32*CC(f.cid).size;stroke(255,240,195,160);strokeWeight(1);line(f.x-18,y+13,f.x+21,y-15);}}
  pop();
 }
 function paintSenkuCutin(){
- if(!senkuActive)return;const e=senkuActive,t=(SENKU_STOP-freezeT)/SENKU_STOP;
- push();noStroke();
- if(t<.09){fill(181,255,235,110*(1-t/.09));rect(0,0,W,WH);}
- const enter=Math.min(1,t/.14),exit=t>.83?(1-t)/.17:1;
- fill('#030811');rect(0,0,W,38*enter);rect(0,WH-38*enter,W,38*enter);
- fill('#8effdc');textStyle(BOLD);textAlign(LEFT,CENTER);textSize(11);text('S E N K U  /  S Y S T E M   L O C K',22,20*enter);
- textAlign(RIGHT,CENTER);fill('#839eb4');text('TIME  00:00.000',W-22,WH-19*enter);
- if(t<.55){
-  const slide=(1-enter)*250;push();translate(-slide,58);fill('#071b26');quad(0,0,320,0,270,122,0,122);
-  fill('#6bffda');quad(0,0,320,0,316,3,0,3);
-  // Original stylized swordsman portrait: tactical coat, eye highlight and long blade.
-  push();translate(85,90);rotate(-.14);fill('#d7fff3');ellipse(0,-50,29,30);fill('#1c3546');arc(0,-53,34,29,Math.PI,Math.PI*2);fill('#8bffe3');rect(3,-54,12,2);
-  fill('#122e3d');quad(-18,-35,20,-35,36,28,-31,28);stroke('#86ffe0');strokeWeight(3);line(-12,-32,-4,17);line(16,-32,6,17);
-  stroke('#2e6471');strokeWeight(11);line(10,-20,42,-39);stroke('#e9fff9');strokeWeight(3);line(42,-39,150,-70);pop();
-  fill('#d9fff2');textAlign(LEFT,CENTER);textStyle(BOLDITALIC);textSize(38);text('閃空',152,51);textStyle(NORMAL);textSize(10);fill('#8eafbb');text('S W O R D S M A N',155,88);pop();
+ if(!senkuActive)return;const e=senkuActive,el=SENKU_STOP-freezeT,t=el/SENKU_STOP;
+ const enter=Math.min(1,t/.12),fade=t>.70?(1-t)/.30:1;
+ push();noStroke();fill('#050811');rect(0,0,W,24*enter);rect(0,WH-24*enter,W,24*enter);
+ // A lower framing cut-in leaves the actual extended blade and its targets readable.
+ if(t<.45){
+  const slide=(1-enter)*200;push();translate(-slide,43);
+  fill('#100f17');quad(0,0,304,0,274,127,0,127);fill('#a22f40');quad(0,0,12,0,12,127,0,127);
+  push();translate(90,120);scale(1.65);drawSenkuPortrait();pop();
+  textAlign(LEFT,CENTER);textStyle(BOLDITALIC);textSize(42);fill('#f7ecd5');text('旋空',160,49);
+  textStyle(NORMAL);textSize(10);fill('#c29991');text('S E N K U',163,85);pop();
  }
- if(t>.34){
-  const cut=Math.min(1,(t-.34)/.10);push();translate(W*.55,WH*.55);rotate(-.11);stroke(115,255,218,35);strokeWeight(24);line(-W,0,W*cut,0);stroke('#eafffa');strokeWeight(2);line(-W,0,W*cut,0);pop();
-  fill(204,255,241,255*exit);textStyle(BOLDITALIC);textAlign(RIGHT,CENTER);textSize(48);text('一 閃',W-34,WH-89);
-  textStyle(NORMAL);textSize(11);fill(151,232,212,255*exit);text('O N E   S T R I K E',W-34,WH-53);
+ if(t>=.26){
+  if(el===11||el===12){fill(255,247,216,el===11?75:30);rect(0,0,W,WH);}
+  textAlign(RIGHT,CENTER);textStyle(BOLDITALIC);textSize(44);fill(255,244,220,255*fade);text('一 刀 両 断',W-28,WH-72);
+  textSize(10);textStyle(NORMAL);fill(220,200,174,255*fade);text('S W O R D   E X T E N S I O N',W-30,WH-40);
  }
  pop();
 }
+function drawSenkuPortrait(){
+ // Face-free silhouette in the same burgundy / graphite uniform as the fighter.
+ stroke('#141c2a');strokeWeight(7);strokeCap(ROUND);line(-7,-11,-20,0);line(0,-12,23,0);
+ noStroke();fill('#182232');quad(-16,-45,8,-45,15,-10,-21,-10);fill('#9c293b');quad(-16,-45,-6,-43,-3,-12,-21,-10);
+ fill('#e0d6bc');rect(-16,-20,28,4);fill('#d5d9de');circle(-5,-56,21);
+ fill('#c5c4b9');quad(-14,-45,7,-46,10,-40,-13,-38);
+ stroke('#3e4b5e');strokeWeight(6);line(-11,-39,-14,-26);line(-14,-26,7,-29);line(5,-38,16,-24);line(16,-24,7,-29);
+ stroke('#4b5769');strokeWeight(4);line(-27,-15,8,-30);stroke('#e3dbc3');strokeWeight(1);line(-27,-16,7,-31);
+ noStroke();fill('#c8ccd5');circle(7,-29,5);circle(4,-27,4);
+}
 function paintSenkuAfter(){
  if(!senkuAfter)return;const e=senkuAfter,q=e.life/e.max;
- push();stroke(107,255,226,50*q);strokeWeight(24*q);line(e.x,e.y,e.x+e.dir*520,e.y-7);stroke(212,255,245,230*q);strokeWeight(2*q);line(e.x-10*e.dir,e.y,e.x+e.dir*520,e.y-7);
- for(let i=0;i<12;i++){const x=e.x+e.dir*(24+i*41),y=e.y+(1-q)*(i%2?1:-1)*(25+i*4);stroke(146,255,224,140*q);strokeWeight(1);line(x,y,x+e.dir*28*q,y-8*q);}pop();
+ senkuSweep(e.x,e.y,e.dir,1,q*.6,true);
+ push();for(let i=0;i<10;i++){const x=e.x+e.dir*(45+i*45),y=e.y+(1-q)*(i%2?1:-1)*(18+i*2);stroke(250,227,183,130*q);strokeWeight(1);line(x,y,x+e.dir*14*q,y-5*q);}pop();
  if(freezeT===0&&--e.life<=0)senkuAfter=null;
 }
+function drawKatana(x,y,dir,mode){
+ push();translate(x,y);scale(dir,1);rotate(mode==='back'?-2.55:mode==='swing'?.04:-.70);
+ stroke('#0a101a');strokeWeight(4);line(-8,0,0,0);stroke('#b3aa91');strokeWeight(1);line(-7,-1,-1,-1);
+ stroke('#c4ac79');strokeWeight(2);line(1,-5,1,5);
+ noStroke();fill('#e7e8dd');beginShape();vertex(3,-1.5);vertex(43,-3);vertex(53,-7);vertex(47,-1);vertex(3,2.5);endShape(CLOSE);
+ stroke('#ffffff');strokeWeight(.8);line(4,-1.5,43,-3);line(43,-3,53,-7);
+ pop();
+}
 
-const fighterPalette=['#f45349','#e99c48','#8171d4','#ba9376','#dc6178','#d58b4a','#55bda5','#7d9ed0','#b58b63'];
+const fighterPalette=['#f45349','#e99c48','#8171d4','#ba9376','#dc6178','#d58b4a','#ab4554','#7d9ed0','#b58b63'];
 const fighterRoles={karate:'BALANCED / 接近戦',bomber:'EXPLOSIVE / 爆破',ninja:'SPEED / 機動力',sumo:'POWER / 重量級',boxer:'KNOCKOUT / 一撃',yankee:'RAGE / 怒り',swordsman:'SENKU / 一閃',lancer:'REACH / 突撃',gunman:'SHOOTER / 射撃'};
 function updateFighterShowcase(){
  const id=settings.cid,C=CC(id),i=Object.keys(CHARS).indexOf(id),col=fighterPalette[i];
@@ -2775,12 +2867,13 @@ function drawHUD(){
  fighters.forEach((p,i)=>{const el=roster.children[i];if(!el)return;el.classList.toggle('out',p.out);el.querySelector('.hud-name').textContent=(p.id===myId?'P1 / ':p.cpu?'CPU / ':'')+p.label;
  const d=el.querySelector('.hud-damage');d.textContent=Math.round(p.d)+'%';d.style.color=p.d<60?'#fff9e9':p.d<110?'#ffc363':'#ff6453';
  const stock=el.querySelector('.hud-stocks');if(stock.childElementCount!==Math.max(0,p.s))stock.innerHTML='<i></i>'.repeat(Math.max(0,p.s));
- let m=0,label='';if(p.cid==='boxer'){m=p.ko;label=m>=100?'KO READY':'KO';}if(p.cid==='swordsman'){m=p.senku;label=m>=100?'閃空 READY':'閃空';}if(p.cid==='yankee'){m=p.rageT>0?p.rageT/RAGE_T*100:p.rage;label=p.rageT>0?'RAGE!':m>=100?'RAGE READY':'RAGE';}if(p.cid==='gunman'){m=p.bullets/GUN_MAX*100;label=p.reloadT>0?'RELOAD':p.bullets+' / 8';}
+ let m=0,label='';if(p.cid==='boxer'){m=p.ko;label=m>=100?'KO READY':'KO';}if(p.cid==='swordsman'){m=p.senku;label=m>=100?'旋空 READY':'旋空';}if(p.cid==='yankee'){m=p.rageT>0?p.rageT/RAGE_T*100:p.rage;label=p.rageT>0?'RAGE!':m>=100?'RAGE READY':'RAGE';}if(p.cid==='gunman'){m=p.bullets/GUN_MAX*100;label=p.reloadT>0?'RELOAD':p.bullets+' / 8';}
  el.style.setProperty('--meter',Math.max(0,Math.min(100,m))+'%');el.querySelector('.hud-skill').textContent=label;
  });
+ roster.style.setProperty('--pc-columns',Math.max(1,fighters.length));
  document.getElementById('match-label').textContent=online?'ONLINE MATCH':'LOCAL BATTLE';document.getElementById('match-stage').textContent=stage.name;
 }
-function titleIllustration(){return `<svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="heroRed" x2="1" y2="1"><stop stop-color="#ff6550"/><stop offset="1" stop-color="#b42a31"/></linearGradient><linearGradient id="heroIce" x2="1" y2="1"><stop stop-color="#a7fff1"/><stop offset="1" stop-color="#3eacb1"/></linearGradient></defs><path d="M840-80h420L810 980H390z" fill="#ff493f09"/><path d="M1060-80h5L600 980h-5z" fill="#ff493f50"/><circle cx="1090" cy="400" r="290" fill="none" stroke="#98b3c014" stroke-width="1"/><circle cx="1090" cy="400" r="265" fill="none" stroke="#98b3c012" stroke-width="35"/><g transform="translate(1020 540) rotate(-12)"><ellipse cx="10" cy="230" rx="210" ry="20" fill="#0005"/><g stroke="#080d19" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"><path d="M0-110L20 48-100 190M20 48l140 130M-4-76l-110 20-62-80M0-80l118-48 56-56" fill="none"/></g><g stroke="url(#heroRed)" stroke-width="23" stroke-linecap="round" stroke-linejoin="round"><path d="M0-110L20 48-100 190M20 48l140 130M-4-76l-110 20-62-80M0-80l118-48 56-56" fill="none"/></g><path d="M-25-110h45L48 16H-17z" fill="#172537"/><path d="M-18-104L0-28l14-76" fill="#f0dfb2"/><circle cx="-10" cy="-156" r="42" fill="url(#heroRed)" stroke="#0c1420" stroke-width="6"/><path d="M-48-166h76M-48-166l-45 30" stroke="#f4dcc1" stroke-width="9"/><path d="M0-156h18" stroke="#ffeae0" stroke-width="5"/><circle cx="172" cy="-190" r="25" fill="#ff8b68"/></g><g transform="translate(1200 240) scale(.8) rotate(18)"><g stroke="#78dfce" stroke-width="19" stroke-linecap="round"><path d="M0-34v100l-70 83M0 66l75 67M0-22l-60 38M0-22l58 25 39-32" fill="none"/></g><path d="M-25-40h50l17 115H-39z" fill="#193d4d"/><path d="M-17-33l14 77M18-33L3 44" stroke="#8ffff0" stroke-width="3"/><circle cx="0" cy="-70" r="30" fill="url(#heroIce)"/><path d="M-30-78q20-43 58 0" fill="#102635"/><path d="M6-71h15" stroke="white" stroke-width="3"/><path d="M100-33L-160-185" stroke="#baffec" stroke-width="5"/></g><path d="M540 520L1430 50" stroke="#88ffe02a" stroke-width="60"/><path d="M540 520L1430 50" stroke="#baffe5a0" stroke-width="2"/><path d="M760 790L1430 470" stroke="#ff82642a" stroke-width="30"/></svg>`;}
+function titleIllustration(){return `<svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="heroRed" x2="1" y2="1"><stop stop-color="#ff6550"/><stop offset="1" stop-color="#b42a31"/></linearGradient><linearGradient id="heroIce" x2="1" y2="1"><stop stop-color="#a7fff1"/><stop offset="1" stop-color="#3eacb1"/></linearGradient></defs><path d="M840-80h420L810 980H390z" fill="#ff493f09"/><path d="M1060-80h5L600 980h-5z" fill="#ff493f50"/><circle cx="1090" cy="400" r="290" fill="none" stroke="#98b3c014" stroke-width="1"/><circle cx="1090" cy="400" r="265" fill="none" stroke="#98b3c012" stroke-width="35"/><g transform="translate(1020 540) rotate(-12)"><ellipse cx="10" cy="230" rx="210" ry="20" fill="#0005"/><g stroke="#080d19" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"><path d="M0-110L20 48-100 190M20 48l140 130M-4-76l-110 20-62-80M0-80l118-48 56-56" fill="none"/></g><g stroke="url(#heroRed)" stroke-width="23" stroke-linecap="round" stroke-linejoin="round"><path d="M0-110L20 48-100 190M20 48l140 130M-4-76l-110 20-62-80M0-80l118-48 56-56" fill="none"/></g><path d="M-25-110h45L48 16H-17z" fill="#172537"/><path d="M-18-104L0-28l14-76" fill="#f0dfb2"/><circle cx="-10" cy="-156" r="42" fill="url(#heroRed)" stroke="#0c1420" stroke-width="6"/><path d="M-48-166h76M-48-166l-45 30" stroke="#f4dcc1" stroke-width="9"/><circle cx="172" cy="-190" r="25" fill="#ff8b68"/></g><g transform="translate(1200 240) scale(.8) rotate(18)"><g stroke="#78dfce" stroke-width="19" stroke-linecap="round"><path d="M0-34v100l-70 83M0 66l75 67M0-22l-60 38M0-22l58 25 39-32" fill="none"/></g><path d="M-25-40h50l17 115H-39z" fill="#232d40"/><path d="M-17-33l14 77M18-33L3 44" stroke="#b34d5b" stroke-width="3"/><circle cx="0" cy="-70" r="30" fill="url(#heroIce)"/><path d="M-30-78q20-43 58 0" fill="#102635"/><path d="M100-33L-160-185" stroke="#baffec" stroke-width="5"/></g><path d="M540 520L1430 50" stroke="#88ffe02a" stroke-width="60"/><path d="M540 520L1430 50" stroke="#baffe5a0" stroke-width="2"/><path d="M760 790L1430 470" stroke="#ff82642a" stroke-width="30"/></svg>`;}
 document.querySelector('.title-art').innerHTML=titleIllustration();
 function paintMatchIntro(){
  push();noStroke();
@@ -2799,9 +2892,12 @@ function paintMatchIntro(){
 function fitArena(){
  const shell=document.getElementById('arena-shell'),wrap=document.getElementById('wrap');
  if(!shell.clientWidth||!shell.clientHeight)return;
- const available=shell.clientHeight-parseFloat(getComputedStyle(shell).paddingTop)-parseFloat(getComputedStyle(shell).paddingBottom)-document.getElementById('battle-roster').offsetHeight-document.getElementById('match-info').offsetHeight-20;
- const w=Math.max(96,Math.min(900,shell.clientWidth,Math.max(54,available)*16/9));
+ const cs=getComputedStyle(shell),roster=document.getElementById('battle-roster'),info=document.getElementById('match-info');
+ const available=shell.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-roster.offsetHeight-info.offsetHeight-2*(parseFloat(cs.rowGap)||0);
+ const cap=document.body.classList.contains('desktop-controls')?Infinity:900;
+ const w=Math.max(96,Math.min(cap,shell.clientWidth,Math.max(54,available)*16/9));
  if(Math.abs(parseFloat(wrap.style.width||'0')-w)>.5)wrap.style.width=w+'px';
+ if(document.body.classList.contains('desktop-controls')){roster.style.width=w+'px';info.style.width=w+'px';}else{roster.style.width='';info.style.width='';}
 }
 const arenaObserver=new ResizeObserver(fitArena);arenaObserver.observe(document.getElementById('arena-shell'));arenaObserver.observe(document.getElementById('battle-roster'));
 window.addEventListener('resize',fitArena);
@@ -2822,6 +2918,17 @@ function paintImpactText(){
  textAlign(LEFT,CENTER);textStyle(BOLDITALIC);textSize(fzType==='ko'?49:57);fill('#0d1725');text(theme[0],24-(1-q)*250,y);
  textStyle(BOLD);textSize(11);fill('#e7eef9');text(theme[1],26,y+81);pop();
 }
+
+function applyInputMode(){
+ const mode=['auto','touch','keyboard'].includes(prefs.controls)?prefs.controls:'auto';
+ const desktop=mode==='keyboard'||(mode==='auto'&&window.matchMedia('(hover: hover) and (pointer: fine)').matches);
+ document.body.classList.toggle('desktop-controls',desktop);
+ const controlSelect=document.getElementById('pref-controls');if(controlSelect)controlSelect.value=mode;
+ if(typeof fitArena==='function')requestAnimationFrame(fitArena);
+}
+const fineInputQuery=window.matchMedia('(hover: hover) and (pointer: fine)');fineInputQuery.addEventListener('change',applyInputMode);
+document.getElementById('pref-controls').addEventListener('change',e=>{prefs.controls=e.target.value;applyPrefs();resetTouch();applyInputMode();});
+applyInputMode();
 
 </script>
 </body>
