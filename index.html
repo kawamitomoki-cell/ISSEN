@@ -4,181 +4,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>STICK BATTLE ONLINE</title>
+<title>STICK BATTLE ONLINE — スティックバトルオンライン</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body {
-    background: #1d2a33; color: #eef3f6;
-    font-family: "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
-    height: 100%; overflow: hidden; user-select: none; -webkit-user-select: none; touch-action: none;
-  }
-  body { display: flex; flex-direction: column; align-items: center; padding: env(safe-area-inset-top) 8px env(safe-area-inset-bottom); }
-  button { font-family: inherit; cursor: pointer; }
-
-  .screen {
-    position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center;
-    gap: 12px; padding: 16px; z-index: 5; overflow-y: auto; touch-action: pan-y;
-    background: repeating-linear-gradient(-35deg, #16212a 0 22px, #1a2731 22px 44px);
-  }
-  #sc-lobby { justify-content: flex-start; }
-  .logo {
-    font-size: clamp(56px, 17vw, 120px); font-weight: 900; font-style: italic; line-height: 0.9; text-align: center;
-    color: #ffd166; -webkit-text-stroke: 3px #0d1418; text-shadow: 7px 7px 0 #ef4747; letter-spacing: 2px;
-  }
-  .tap { font-weight: 900; font-size: 18px; animation: blink 1.2s infinite; margin-top: 24px; text-align: center; }
-  @keyframes blink { 50% { opacity: 0.15; } }
-  .hd { font-size: 24px; font-weight: 900; font-style: italic; color: #fff; background: #ef4747; padding: 4px 26px; transform: skewX(-12deg); border: 3px solid #0d1418; flex-shrink: 0; }
-  .big {
-    width: min(440px, 100%); padding: 14px 20px; border: 3px solid #0d1418; background: #eef3f6; color: #1d2a33;
-    font-weight: 900; font-size: 21px; text-align: left; transform: skewX(-8deg); display: flex; flex-direction: column; gap: 2px;
-  }
-  .big small { font-size: 12px; color: #5b7383; }
-  .big:active { background: #ffd166; }
-  .cgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; }
-  #char-grid { width: min(560px, 100%); }
-  .ci {
-    aspect-ratio: 1; border: 3px solid #0d1418; background: #24323c; color: #fff; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; font-weight: 900; font-size: clamp(22px, 7vw, 38px); line-height: 1.1;
-  }
-  .ci small { font-size: 10px; }
-  .ci.sel { background: #ef4747; outline: 3px solid #ffd166; }
-  .card { width: min(560px, 100%); background: #eef3f6; color: #1d2a33; padding: 12px; font-size: 13px; line-height: 1.6; border: 3px solid #0d1418; flex-shrink: 0; }
-  .card .nm { font-size: 18px; font-weight: 900; }
-  .sh { font-weight: 900; font-size: 15px; color: #ef4747; margin-bottom: 6px; }
-  .stat { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; }
-  .stat b { width: 52px; }
-  .gauge { flex: 1; height: 7px; background: #d3dde3; }
-  .gauge i { display: block; height: 100%; background: #ef4747; }
-  .optrow { width: 100%; display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 14px; }
-  .optrow > span { width: 84px; flex-shrink: 0; }
-  .seg { display: flex; gap: 6px; flex: 1; }
-  .seg button { flex: 1; padding: 9px 4px; border: 2px solid #0d1418; background: #e8eef2; color: #1d2a33; font-weight: 900; font-size: 13px; }
-  #seg-cpun, #lb-cpun { flex-wrap: wrap; }
-  #seg-cpun button, #lb-cpun button { flex: 1 1 calc(25% - 6px); min-width: 54px; }
-  .seg button.sel { background: #ffd166; }
-  .nav { width: min(560px, 100%); display: flex; gap: 10px; flex-shrink: 0; }
-  .nav button { flex: 1; padding: 13px; font-weight: 900; font-size: 16px; border: 3px solid #0d1418; transform: skewX(-8deg); }
-  .nav .back { background: #5b7383; color: #fff; }
-  .nav .next { background: #ef4747; color: #fff; }
-  .startbig { width: min(560px, 100%); padding: 16px; font-size: 22px; font-weight: 900; background: #ef4747; color: #fff; border: 3px solid #0d1418; transform: skewX(-8deg); flex-shrink: 0; }
-  .startbig.off { background: #8a9aa5; font-size: 15px; }
-  .stage-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
-  .stc { border: 3px solid #0d1418; background: #eef3f6; color: #1d2a33; padding: 5px; font-weight: 900; font-size: 11px; display: flex; flex-direction: column; gap: 4px; }
-  .stc.sel { background: #ffd166; }
-  #res-win { font-size: clamp(40px, 12vw, 72px); font-weight: 900; font-style: italic; -webkit-text-stroke: 2px #0d1418; text-shadow: 5px 5px 0 #0d1418; text-align: center; }
-  #res-list { width: min(440px, 100%); display: flex; flex-direction: column; gap: 6px; }
-  .rk { display: flex; align-items: center; gap: 10px; background: #eef3f6; color: #1d2a33; padding: 8px 12px; font-weight: 900; border: 3px solid #0d1418; transform: skewX(-8deg); }
-  .rk .no { font-size: 22px; width: 34px; }
-  .mk { width: 34px; height: 34px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; flex-shrink: 0; }
-  .mrow { display: flex; align-items: center; gap: 10px; padding: 4px 0; font-weight: 900; }
-  .mrow small { color: #5b7383; }
-  .tag { background: #1d2a33; color: #ffd166; font-size: 10px; padding: 1px 6px; border-radius: 4px; }
-  .wait { font-weight: 900; color: #ffd166; animation: blink 1.4s infinite; text-align: center; }
-  #lb-qr { background: #fff; padding: 8px; display: inline-block; }
-  .chip { display: inline-block; padding: 0 8px; border-radius: 10px; border: 2px solid #1d2a33; font-weight: 900; font-size: 12px; margin-right: 4px; background: #e8eef2; }
-  .chip.red { background: #ef4747; color: #fff; } .chip.blue { background: #3a86ff; color: #fff; }
-  .chip.pur { background: #9b5de5; color: #fff; } .chip.gray { background: #5b7383; color: #fff; }
-  .card h3 { font-size: 15px; margin: 6px 0 2px; }
-  .namebox { width:min(560px,100%); display:flex; align-items:center; gap:10px; background:#eef3f6; color:#1d2a33; border:3px solid #0d1418; padding:9px 12px; font-weight:900; }
-  .namebox label { flex-shrink:0; font-size:13px; }
-  .namebox input { flex:1; min-width:0; padding:8px 10px; border:2px solid #5b7383; border-radius:5px; font:inherit; font-size:15px; font-weight:800; color:#1d2a33; background:#fff; }
-  .result-stats { font-size:11px; font-weight:700; color:#5b7383; margin-top:2px; }
-  .roomjoin { width:min(560px,100%); display:flex; flex-direction:column; gap:10px; background:#eef3f6; color:#1d2a33; border:3px solid #0d1418; padding:14px; }
-  .roomjoin .room-code-row { display:flex; gap:8px; }
-  .roomjoin input { flex:1; min-width:0; padding:12px 10px; border:3px solid #5b7383; border-radius:6px; font:inherit; font-size:22px; font-weight:900; letter-spacing:4px; text-align:center; text-transform:uppercase; color:#1d2a33; background:#fff; }
-  .roomjoin button { padding:12px 16px; border:3px solid #0d1418; font-weight:900; font-size:15px; }
-  .roomjoin .joinbtn { background:#3a86ff; color:#fff; flex-shrink:0; }
-  .roomjoin .hint { font-size:12px; font-weight:700; color:#5b7383; text-align:center; }
-
-
-  #game { width: 100%; max-width: 800px; display: none; flex-direction: column; align-items: center; }
-  #bar { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 8px 4px; }
-  #title { font-weight: 900; font-style: italic; font-size: 17px; color: #ffd166; }
-  .barbtns { display: flex; gap: 6px; }
-  .barbtn { background: none; border: 1px solid #5b7383; color: #eef3f6; border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 700; }
-  #wrap { width: 100%; border-radius: 10px; overflow: hidden; border: 3px solid #0d1418; }
-  #wrap canvas { width: 100% !important; height: auto !important; display: block; }
-  #pad { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 8px; }
-  #stick { width: 124px; height: 124px; border-radius: 50%; background: rgba(255,255,255,0.07); border: 3px solid #5b7383; position: relative; touch-action: none; flex-shrink: 0; }
-  #knob { width: 54px; height: 54px; border-radius: 50%; background: #e8eef2; border: 3px solid #0d1418; position: absolute; left: 32px; top: 32px; pointer-events: none; }
-  #acts {
-    display: grid; gap: 8px; grid-template-columns: 58px 58px 84px; grid-template-rows: 46px 58px;
-    grid-template-areas: "x c a" "s j a"; align-items: center; justify-items: center;
-  }
-  #acts button { border: 3px solid #0d1418; font-weight: 900; color: #1d2a33; background: #e8eef2; touch-action: none; line-height: 1.15; border-radius: 50%; }
-  #btn-x { grid-area: x; width: 58px; height: 46px; border-radius: 14px !important; font-size: 12px; background: #5b7383 !important; color: #fff !important; }
-  #btn-c { grid-area: c; width: 58px; height: 46px; border-radius: 14px !important; font-size: 10px; background: #3a86ff !important; color: #fff !important; }
-  #btn-s { grid-area: s; width: 58px; height: 58px; font-size: 14px; background: #9b5de5 !important; color: #fff !important; }
-  #btn-j { grid-area: j; width: 58px; height: 58px; font-size: 12px; }
-  #btn-a { grid-area: a; width: 84px; height: 84px; font-size: 17px; background: #ef4747 !important; color: #fff !important; }
-  #acts button.on { filter: brightness(1.35); transform: scale(0.93); }
-/* STICK BATTLE ONLINE — visual layer. Combat values remain in the original engine. */
-:root{--ink:#080e19;--panel:#121e30;--line:#2c4058;--ice:#71e5ff;--fire:#ffad67;--muted:#9aaec6}
-html,body{background:var(--ink);color:#eef5ff;height:100%;height:100dvh}
-body{padding:env(safe-area-inset-top) max(8px,env(safe-area-inset-right)) env(safe-area-inset-bottom) max(8px,env(safe-area-inset-left))}
-button{transition:background .15s,border-color .15s,transform .12s!important}button:focus-visible,input:focus-visible{outline:3px solid var(--ice);outline-offset:3px}
-.screen{background:radial-gradient(ellipse at 15% 0%,#1b3a52 0%,transparent 50%),radial-gradient(ellipse at 100% 85%,#35253b 0%,transparent 50%),#080e19;gap:16px;padding:28px 20px;justify-content:safe center}
-.screen::before{content:'';position:fixed;inset:0;background:linear-gradient(120deg,transparent 49.8%,#71e5ff08 50%,transparent 50.2%);pointer-events:none}
-.logo{font-size:clamp(64px,15vw,126px);line-height:.85;letter-spacing:-5px;color:#f5faff;-webkit-text-stroke:0;text-shadow:0 2px 0 #7a9cb7,0 18px 60px #71e5ff28;transform:none;animation:none;font-style:italic}
-.logo em{color:var(--ice);font-style:inherit}.logo small{display:block;font-size:15px;letter-spacing:12px;color:var(--fire);margin:26px 0 0 12px;font-style:normal;font-weight:700}
-#sc-title{isolation:isolate}#sc-title:after{content:'01  /  ARENA FIGHTING';position:absolute;bottom:28px;color:var(--muted);font-size:10px;letter-spacing:4px}
-.title-kicker{color:var(--muted);letter-spacing:4px;font-size:11px;margin-bottom:12px}.tap{border:1px solid var(--line);padding:16px 36px;border-radius:99px;font-size:14px;letter-spacing:2px;animation:none;color:#eaf7ff;background:#122438}
-.hd{background:none;border:0;box-shadow:none;transform:none;color:var(--ice);font-size:24px;letter-spacing:3px;padding:0 0 12px;border-bottom:1px solid var(--line);width:min(560px,100%);text-align:left}
-.big,.card,.roomjoin,.namebox,.rk{background:linear-gradient(130deg,#19293d,#101b2c);color:#edf5ff;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 32px #0003;transform:none}
-.big{padding:20px 24px;font-size:22px;border-left:3px solid var(--ice);gap:7px}.big small,.mrow small,.result-stats,.roomjoin .hint{color:var(--muted)}.big:active{transform:scale(.98);background:#223a51;box-shadow:none}
-.card{padding:16px 18px;font-size:13px}.card h3{color:var(--ice);margin-top:14px}.card .nm{margin-bottom:8px}.sh{color:var(--fire)}
-.cgrid{grid-template-columns:repeat(3,1fr);gap:8px}.ci{aspect-ratio:auto;min-height:99px;padding:4px;border:1px solid var(--line);border-radius:12px;background:#142137;box-shadow:none;position:relative;overflow:hidden}.ci svg{height:65px;width:100%}.ci small{font-size:11px;color:#bfcee0;margin:0 0 4px}.ci.sel{background:linear-gradient(145deg,#26485c,#142137);outline:0;border-color:var(--ice);box-shadow:inset 0 0 22px #71e5ff15;transform:none}.ci.sel:after{content:'✓';position:absolute;right:8px;top:6px;font-size:15px;color:var(--ice)}
-.gauge{background:#080e19;border:0;height:5px}.gauge i{background:linear-gradient(90deg,#3b91b9,var(--ice))}
-.seg{gap:5px}.seg button{min-height:40px;background:#17273d;color:#c3d2e4;border:1px solid var(--line);box-shadow:none;border-radius:8px}.seg button.sel{background:#71e5ff;color:#08131f;box-shadow:none;transform:none}
-.nav button,.startbig{border:1px solid var(--line);transform:none;box-shadow:none;border-radius:10px;min-height:48px}.nav .back{background:#1b2c43;color:#d7e5f5}.nav .next,.startbig{background:var(--ice);color:#091524}.nav button:active{transform:scale(.98)}
-.stc{background:#142137;color:#dceafd;border:1px solid var(--line);border-radius:12px;overflow:hidden;padding:7px;gap:10px}.stc.sel{background:#213d50;outline:0;border-color:var(--ice)}.stc svg{border-radius:7px}.stage-grid{gap:10px}
-.namebox input,.roomjoin input{background:#0b1525;color:#fff;border:1px solid var(--line)}.chip{background:#233851;color:#edf5ff;border:1px solid #47627e}.tag{background:#243b52;color:var(--ice)}
-#game{height:100%;max-width:900px;min-height:0;gap:8px}#bar{padding:8px 2px;flex-shrink:0;gap:8px}#title{color:#dceaff;letter-spacing:1px;font-size:11px;line-height:1.2;max-width:110px}#title span{color:var(--ice)}.barbtns{gap:4px}.barbtn{min-height:36px;padding:6px 9px;background:#142137;border:1px solid var(--line);font-size:11px}
-#wrap{border:1px solid #30435c;border-radius:16px;box-shadow:0 15px 50px #0006;width:100%;max-width:800px;flex-shrink:0}
-#pad{width:100%;max-width:800px;display:grid;grid-template-columns:minmax(100px,1fr) minmax(190px,1.65fr);gap:10px;flex:1;min-height:180px;max-height:280px;margin:0;padding-bottom:10px;align-items:center}
-#stick-zone{position:relative;min-height:168px;height:100%;touch-action:none;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:18px;background:radial-gradient(ellipse,#1b324633,transparent 70%)}
-#stick-zone:after{content:'MOVE';position:absolute;bottom:8px;font-size:9px;letter-spacing:3px;color:#7c92ac;pointer-events:none}
-#stick{width:104px;height:104px;border:1px solid #6585a580;background:radial-gradient(circle,#233d55aa,#0a1524aa);box-shadow:inset 0 0 0 13px #7fbdde08;pointer-events:none;position:relative;flex-shrink:0}
-#stick:before{content:'↑';position:absolute;top:3px;left:45px;font-size:12px;color:#7c92ac}#stick:after{content:'↓';position:absolute;bottom:3px;left:45px;font-size:12px;color:#7c92ac}
-#knob{width:44px;height:44px;left:29px;top:29px;background:linear-gradient(145deg,#d0eeff,#5d87a5);border:1px solid #a5d3ec;box-shadow:0 6px 12px #0006}
-#acts{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:62px 72px;grid-template-areas:'v c s' 'j a a';gap:8px;align-items:stretch;justify-items:stretch}
-#acts button{width:100%;height:100%;border:1px solid #ffffff30!important;border-radius:15px!important;font-size:13px;color:white!important;box-shadow:inset 0 1px 0 #ffffff22,0 5px 12px #0004;background:#213852!important;position:relative;overflow:hidden;isolation:isolate;white-space:nowrap}
-#acts button small{display:block;font-size:9px;opacity:.65;font-weight:500;margin-top:5px}#acts button:after{content:'';position:absolute;inset:0;background:linear-gradient(to top,#fff2 var(--charge,0%),transparent var(--charge,0%));z-index:-1;pointer-events:none}
-#btn-a{grid-area:a;background:linear-gradient(135deg,#d66c47,#a34436)!important;font-size:20px!important}#btn-s{grid-area:s;background:linear-gradient(135deg,#725ab6,#443a75)!important}#btn-v{grid-area:v}#btn-c{grid-area:c;background:#214c70!important;font-size:11px!important}#btn-j{grid-area:j;background:#d0e8f8!important;color:#132e44!important}#acts button.on{transform:scale(.95);filter:brightness(1.3)}#acts button.ready{border-color:#ffca7a!important;box-shadow:0 0 17px #ffca7a35}
-#combat-hint{font-size:10px;letter-spacing:.3px;color:#9aafc6;text-align:center;min-height:17px;padding:0 8px 6px}.barbtn#btn-x{width:auto;border-radius:6px!important;font-size:10px;background:#142137!important}
-#settings-dialog{background:#0d192b;color:#edf5ff;border:1px solid #48627c;border-radius:20px;padding:24px;width:min(420px,92vw);margin:auto;box-shadow:0 30px 90px #0009}#settings-dialog::backdrop{background:#030914c9;backdrop-filter:blur(8px)}#settings-dialog h2{font-size:20px;margin-bottom:20px;color:var(--ice)}.setting-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;font-size:13px}.setting-row input[type=range]{width:50%;accent-color:var(--ice)}.setting-row input[type=checkbox]{width:22px;height:22px;accent-color:var(--ice)}#settings-dialog p{color:#9aafc6;font-size:11px;line-height:1.7;margin-top:12px}#settings-close{width:100%;margin-top:18px;padding:12px;border:0;border-radius:9px;background:var(--ice);font-weight:800}.left-handed #stick-zone{order:2}.left-handed #pad{grid-template-columns:minmax(190px,1.65fr) minmax(100px,1fr)}
-@media(min-width:600px){.cgrid{grid-template-columns:repeat(5,1fr)}#acts{grid-template-rows:70px 82px}#pad{grid-template-columns:1fr 1fr}.ci{min-height:110px}.ci svg{height:72px}}
-@media(max-width:370px){.screen{padding:18px 12px;gap:11px}#bar{gap:3px}.barbtn{padding:4px 6px;font-size:10px}.barbtns{gap:3px}#title{font-size:9px}#pad{gap:6px;grid-template-columns:minmax(96px,1fr) minmax(190px,1.8fr)}#acts{gap:6px}.ci{min-height:88px}.ci svg{height:53px}}
-@media(orientation:landscape) and (max-height:560px){
-body{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
-#game{max-width:1300px;display:none;position:relative;padding:0 150px 0 125px;gap:4px;justify-content:center}#bar{position:absolute;top:0;left:0;width:100%;padding:3px 0}#title{max-width:none}#wrap{width:auto;max-width:100%;max-height:calc(100dvh - 64px);aspect-ratio:8/5;height:calc(100dvh - 64px);flex-shrink:1;margin-top:30px}#wrap canvas{height:100%!important;width:100%!important;object-fit:contain}#pad{display:contents}#stick-zone{position:absolute;left:0;bottom:8px;width:118px;height:calc(100% - 50px);min-height:0}#acts{position:absolute;right:0;bottom:20px;width:142px;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:54px 60px 65px;grid-template-areas:'v s' 'c j' 'a a';gap:7px}#combat-hint{position:absolute;bottom:2px;left:130px;right:155px;font-size:9px;padding:0;min-height:12px}.left-handed #stick-zone{left:auto;right:0}.left-handed #acts{right:auto;left:0}.left-handed #game{padding-left:150px;padding-right:125px}.screen{justify-content:flex-start;padding-top:18px}.logo{font-size:70px}#sc-title{justify-content:center}.title-kicker{display:none}.logo small{margin-top:12px}.tap{margin-top:6px;padding:10px 28px}#sc-title:after{display:none}
-}
+/* STICK BATTLE ONLINE / RE:IGNITE — complete interface, not a skin override. */
+:root{--bg:#0c1019;--panel:#191f2b;--paper:#f1f0e9;--red:#ff493f;--gold:#ffd55e;--cyan:#79f3e5;--muted:#99a5b9;--edge:#ffffff20;color-scheme:dark}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}html,body{width:100%;height:100%;height:100dvh;overflow:hidden;background:var(--bg);color:var(--paper);font-family:'Hiragino Kaku Gothic ProN','Yu Gothic','Noto Sans JP',system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}button,input{font:inherit}button{cursor:pointer;border:0;color:inherit}button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:3px}button{transition:transform .12s,background .12s,box-shadow .12s}button:active{transform:translateY(2px) scale(.985)}input{user-select:text;-webkit-user-select:text}svg{display:block}button small{pointer-events:none}body{padding:env(safe-area-inset-top) max(8px,env(safe-area-inset-right)) env(safe-area-inset-bottom) max(8px,env(safe-area-inset-left))}
+.screen{position:fixed;inset:0;z-index:5;display:none;flex-direction:column;align-items:center;justify-content:safe center;gap:20px;padding:64px 28px 28px;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;background:radial-gradient(ellipse at 90% 30%,#26334688,transparent 60%),repeating-linear-gradient(120deg,transparent 0 139px,#ffffff03 140px 141px),var(--bg)}.screen:before{content:'STICK BATTLE ONLINE';position:absolute;top:max(20px,env(safe-area-inset-top));left:28px;letter-spacing:3px;font-size:10px;font-weight:900;color:#c9d0dc}.screen>*{flex-shrink:0}.hd{width:min(1100px,100%);font-size:clamp(28px,5vw,50px);font-weight:950;font-style:italic;letter-spacing:-1px;line-height:1.1;border-left:7px solid var(--red);padding-left:16px}.hd small{display:block;color:var(--muted);font-size:11px;letter-spacing:3px;font-weight:500;font-style:normal;margin-top:8px}
+/* Title: a full-bleed versus illustration and oversized identity. */
+#sc-title{padding:30px;isolation:isolate;justify-content:center;background:radial-gradient(ellipse at 65% 25%,#293747,#0c1019 70%);cursor:pointer}#sc-title:before{content:'RE:IGNITE EDITION / 09 FIGHTERS';color:#aeb9ca}#sc-title:after{content:'スティックバトルオンライン';position:absolute;bottom:20px;left:28px;font-size:11px;letter-spacing:3px;color:#aeb9ca}.title-art{position:absolute;inset:0;z-index:-1;overflow:hidden}.title-art svg{height:100%;width:100%;object-fit:cover}.title-art:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#0c1019b0,transparent 70%)}.title-content{width:min(1100px,100%);position:relative}.title-kicker{color:var(--gold);letter-spacing:5px;font-size:11px;font-weight:900;margin-bottom:20px}.logo{font-family:Impact,'Arial Black',system-ui,sans-serif;font-weight:1000;font-style:italic;font-size:clamp(68px,12vw,154px);line-height:.83;letter-spacing:-4px;text-shadow:0 5px 0 #0005;transform:skew(-5deg);width:max-content}.logo em{display:block;color:var(--red);font-style:inherit}.logo small{display:block;letter-spacing:clamp(8px,2vw,22px);font-size:clamp(22px,4vw,40px);line-height:1.2;margin-top:12px;color:var(--paper);font-style:normal}.title-desc{font-size:12px;letter-spacing:3px;color:#b6c0d0;margin-top:25px}.tap{display:inline-flex;margin-top:34px;background:var(--paper);color:#131720;padding:17px 30px;font-size:14px;font-weight:900;letter-spacing:1px;clip-path:polygon(0 0,100% 0,calc(100% - 13px) 100%,0 100%);animation:breathe 2.5s ease-in-out infinite}.tap:after{content:'↗';margin-left:32px;font-size:18px}.version-label{color:#ffffff40;font-size:10px;position:absolute;bottom:20px;right:28px;letter-spacing:2px}@keyframes breathe{50%{box-shadow:0 0 32px #ff493f50;filter:brightness(.88)}}
+/* Main navigation */
+.mode-grid{width:min(1100px,100%);display:grid;grid-template-columns:1.3fr 1fr;gap:16px}.big{position:relative;text-align:left;overflow:hidden;padding:28px;background:var(--paper);color:#161b25;font-weight:900;min-height:110px;width:min(560px,100%);display:flex;flex-direction:column;justify-content:flex-end;gap:9px;border-radius:3px;isolation:isolate}.big small{font-size:12px;font-weight:600;opacity:.75;line-height:1.5}.big b{font-size:clamp(24px,4vw,42px);font-style:italic;letter-spacing:-1px}.big .mode-no{position:absolute;top:20px;left:24px;font-size:11px;letter-spacing:3px;opacity:.7}.mode-grid .big{width:100%;min-height:230px}.mode-grid #go-cpu{background:var(--red);color:white;grid-row:span 2;min-height:390px}.mode-grid #go-online{background:var(--gold)}.mode-grid #go-howto{min-height:145px;background:#253044;color:#e9edf5}.mode-art{position:absolute;width:200px;height:200px;right:-15px;top:20px;opacity:.28;z-index:-1;transform:rotate(-12deg)}
+/* Fighter selection */
+.fighter-layout{width:min(1100px,100%);display:grid;grid-template-columns:minmax(260px,.9fr) minmax(380px,1.25fr);gap:24px;align-items:start}.fighter-preview{position:relative;overflow:hidden;min-height:280px;background:linear-gradient(145deg,var(--fighter-color,#ff493f),#161d2d);border-radius:3px;border-bottom:5px solid var(--fighter-color,#ff493f)}.fighter-preview>svg{width:100%;height:280px;position:relative;filter:drop-shadow(8px 14px 0 #0003);z-index:1}.fighter-preview:before{content:attr(data-en);position:absolute;left:-5px;top:10px;writing-mode:vertical-rl;font-size:58px;font-weight:1000;letter-spacing:-4px;color:#ffffff25;line-height:1}.fighter-preview .fighter-code{position:absolute;top:18px;right:18px;font-size:11px;letter-spacing:3px;font-weight:800}.fighter-name{position:absolute;bottom:16px;left:22px;z-index:2;text-shadow:0 3px 15px #0008}.fighter-name b{display:block;font-size:30px}.fighter-name small{font-size:10px;letter-spacing:4px}.fighter-preview .portrait-circle{opacity:.15}
+.cgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%}.ci{position:relative;isolation:isolate;min-width:0;min-height:118px;background:#252d3c;overflow:hidden;text-align:left;border:2px solid transparent;border-radius:3px;padding:0}.ci:before{content:'';position:absolute;inset:0;background:linear-gradient(130deg,var(--fighter-color,#33445b),transparent);opacity:.34;z-index:-1}.ci svg{width:100%;height:92px;filter:drop-shadow(3px 5px 0 #0003);transition:transform .2s}.ci small{display:block;padding:5px 8px;background:#080c14bb;font-size:12px;font-weight:900;letter-spacing:.3px}.ci .fighter-number{position:absolute;left:8px;top:6px;font-size:9px;font-weight:900;opacity:.5;letter-spacing:1px}.ci.sel{border-color:var(--gold);background:#6b4c2a;box-shadow:0 0 0 1px #000}.ci.sel:after{content:'P1';position:absolute;right:0;top:0;background:var(--gold);color:#141923;padding:4px 7px;font-size:11px;font-weight:1000}.ci.sel svg{transform:scale(1.07)}.card{width:min(700px,100%);background:#1b2331;border:1px solid #ffffff17;border-radius:5px;padding:18px;line-height:1.65;font-size:13px}.card h3{color:var(--gold);font-size:15px;margin:14px 0 5px}.card h3:first-child{margin-top:0}#char-info{width:100%;margin-top:10px;padding:16px}.nm{font-size:18px;font-weight:900}.nm span{font-size:11px;color:#a9b8ce}.ability-line{font-size:12px;line-height:1.65;color:#bbc7d9;margin-bottom:8px}.ability-line b{color:#fff}.ability-detail{font-size:11px;color:#a9b8ce;margin-top:9px}.ability-detail summary{cursor:pointer;min-height:28px;color:var(--gold)}.stat{display:flex;align-items:center;gap:10px;margin-top:6px;font-size:10px;font-weight:700}.stat b{width:62px}.gauge{height:5px;background:#080d16;flex:1}.gauge i{display:block;height:100%;background:var(--fighter-color,var(--gold))}.fighter-right{display:flex;flex-direction:column;gap:14px}.namebox{width:min(700px,100%);display:flex;gap:14px;align-items:center;border-bottom:1px solid #ffffff30;padding:8px 0;font-size:12px;font-weight:800}.namebox input{background:transparent;border:0;color:white;font-size:16px;padding:8px;min-width:0;flex:1}.namebox label{color:#9cacc1;flex-shrink:0}#cpu-opts{width:100%!important;gap:12px!important;margin-top:5px}.optrow{display:flex;align-items:center;gap:14px;width:min(700px,100%);font-size:12px;font-weight:800}.optrow>span{width:80px;flex-shrink:0}.seg{display:flex;flex:1;gap:5px}.seg button{min-height:38px;flex:1;min-width:0;background:#252e3e;border:1px solid #ffffff13;border-radius:3px;font-size:12px;font-weight:800}.seg button.sel{background:var(--paper);color:#121925;border-color:var(--paper)}#seg-cpun,#lb-cpun{flex-wrap:wrap}#lb-cpun button{flex-basis:22%}.nav{display:flex;gap:10px;width:min(1100px,100%)}.nav button,.startbig{padding:16px 22px;min-height:50px;font-weight:900;font-size:15px;border-radius:3px}.nav button{flex:1}.nav .back{background:#2a3343;color:#b9c5d8}.nav .next,.startbig{background:var(--red);color:white}.nav .next{flex:2}.startbig{width:min(700px,100%)}.startbig.off{background:#2a3343;color:#9ca9bb}#sc-chars>.nav{position:sticky;bottom:-28px;padding-top:12px;padding-bottom:12px;background:linear-gradient(transparent,var(--bg) 20%);z-index:3}
+/* Stage selection and rooms */
+.stage-grid{width:min(1100px,100%)!important;display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.stc{border:2px solid transparent;background:#202a3a;overflow:hidden;position:relative;border-radius:3px;text-align:left}.stc svg{width:100%;height:auto;background:#172432}.stc .stage-meta{padding:16px}.stc b{display:block;font-size:18px}.stc small{display:block;font-size:9px;letter-spacing:3px;color:#a5b5cc;margin-top:5px}.stc.sel{border-color:var(--gold)}.stc.sel:after{content:'SELECTED';position:absolute;top:10px;left:10px;padding:5px 8px;background:var(--gold);color:#111924;font-size:9px;font-weight:900;letter-spacing:1px}.sh{color:var(--gold);font-weight:900;font-size:15px;margin-bottom:8px}.roomjoin{width:min(560px,100%);padding:22px;background:#1b2331;border-radius:4px}.room-code-row{display:flex;gap:8px;margin:14px 0}.roomjoin input{width:100%;min-width:0;flex:1;background:#0c121f;border:1px solid #34445d;padding:14px;color:#fff;text-align:center;letter-spacing:4px;font-size:22px}.roomjoin button{background:var(--red);padding:14px 22px;font-weight:900}.hint{font-size:11px;color:#9dafc8}.mrow{display:flex;gap:10px;align-items:center;padding:7px 0;font-weight:800}.mrow small{color:#93a6c1}.mk{display:grid;place-items:center;width:34px;height:34px;border-radius:3px;color:white;font-weight:900;flex-shrink:0}.tag{font-size:9px;background:#334156;color:var(--gold);padding:3px 6px}.wait{color:var(--gold);text-align:center;font-size:13px;font-weight:800}#lb-qr{display:inline-block;padding:10px;background:white}.chip{display:inline-block;background:#334156;color:white;border:0;padding:2px 9px;border-radius:3px;font-size:11px;font-weight:700}.chip.red{background:#bc3e37}.chip.pur{background:#7352a5}.chip.blue{background:#286d9c}.chip.gray{background:#53637a}#sc-lobby{justify-content:flex-start}#res-win{font-size:clamp(40px,8vw,90px);font-style:italic;font-weight:1000;letter-spacing:-3px;text-align:center}.winner-art{height:160px;width:220px;filter:drop-shadow(0 10px 0 #0003)}#res-list{width:min(700px,100%);display:flex;flex-direction:column;gap:8px}.rk{display:flex;align-items:center;gap:14px;background:#202a3a;padding:14px;border-left:4px solid #44516b;font-weight:900}.rk:first-child{background:#f1cd67;color:#181e28;border-color:white}.no{font-size:28px;font-style:italic;width:32px}.result-stats{font-size:10px;font-weight:600;opacity:.65;margin-top:4px}
+/* Battle layout: readable HTML HUD, canvas always keeps its world aspect ratio. */
+#game{display:none;flex-direction:column;width:min(1200px,100%);height:100%;margin:auto;gap:8px;min-height:0}#bar{width:100%;display:flex;align-items:center;justify-content:space-between;padding:9px 2px;gap:8px;flex-shrink:0}#title{font-weight:1000;font-style:italic;font-size:11px;letter-spacing:-.2px;line-height:1.1}#title small{display:block;color:var(--red);font-size:9px;letter-spacing:3px;margin-top:4px}.barbtns{display:flex;gap:4px}.barbtn{background:#202a3a;border:1px solid #ffffff10;border-radius:4px;padding:8px 10px;min-height:36px;font-size:10px;font-weight:800}#btn-x{font-size:9px}#arena-shell{min-height:0;flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px;width:100%}#match-info{display:flex;justify-content:space-between;width:min(900px,100%);font-size:9px;letter-spacing:2px;color:#8d9db5;padding:0 2px}#match-info b{color:var(--gold)}#wrap{width:min(900px,100%,calc((100dvh - 350px)*16/9));aspect-ratio:16/9;border:1px solid #415069;overflow:hidden;background:#07101c;flex-shrink:0;box-shadow:0 16px 50px #0006}#wrap canvas{display:block;width:100%!important;height:100%!important}#battle-roster{display:grid;grid-template-columns:repeat(var(--columns,2),1fr);width:min(900px,100%);gap:7px}.hud-card{position:relative;display:flex;align-items:center;min-width:0;height:70px;background:linear-gradient(110deg,var(--team),#1c2537 36%);border-bottom:3px solid var(--team);overflow:hidden;padding:5px 10px 8px;gap:8px}.hud-card.me{outline:1px solid #f7e6b4;outline-offset:1px}.hud-card.out{opacity:.3}.hud-portrait{width:55px;flex-shrink:0;height:54px}.hud-portrait svg{width:100%;height:100%}.hud-info{min-width:0;flex:1}.hud-name{font-size:9px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;font-weight:800;max-width:130px}.hud-damage{font-size:29px;font-weight:1000;line-height:1.1;font-style:italic;letter-spacing:-1px;text-shadow:2px 2px #090d18}.hud-stocks{position:absolute;right:7px;top:7px;display:flex;gap:3px}.hud-stocks i{height:4px;width:4px;border-radius:50%;background:#fff}.hud-meter{position:absolute;bottom:0;left:0;height:3px;background:var(--gold);width:var(--meter,0%)}.hud-skill{position:absolute;bottom:5px;right:7px;font-size:8px;color:#e8ebf4;letter-spacing:.5px}
+#pad{width:min(820px,100%);margin:0 auto;display:grid;grid-template-columns:minmax(100px,1fr) minmax(190px,1.5fr);gap:12px;height:200px;min-height:168px;flex:0 0 200px;align-items:center}#stick-zone{height:100%;min-width:0;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:10px;touch-action:none}#stick-zone:after{content:'MOVE';position:absolute;bottom:7px;color:#75869f;font-size:9px;letter-spacing:3px;pointer-events:none}#stick{width:108px;height:108px;border-radius:50%;border:1px solid #64758c;background:radial-gradient(circle,#253348 0%,#0c1422 75%);position:relative;pointer-events:none;flex-shrink:0;box-shadow:inset 0 0 0 13px #8296b60b}#stick:before,#stick:after{position:absolute;left:48px;font-size:10px;color:#8d9ab1}#stick:before{content:'↑';top:2px}#stick:after{content:'↓';bottom:2px}#knob{position:absolute;left:31px;top:31px;width:44px;height:44px;border-radius:50%;background:linear-gradient(145deg,#eff1f4,#6c829f);border:1px solid #b4c3d7;box-shadow:0 5px 12px #0008;pointer-events:none}#acts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:63px 72px;grid-template-areas:'v c s' 'j a a';gap:8px;touch-action:none;width:100%}#acts button{position:relative;isolation:isolate;overflow:hidden;touch-action:none;border-radius:9px;border:1px solid #ffffff30;background:#2c3f5a;font-size:13px;font-weight:900;white-space:nowrap;box-shadow:inset 0 2px #ffffff13,0 4px 0 #0005}#acts button small{display:block;font-size:9px;font-weight:500;opacity:.75;margin-top:5px}#acts button:after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(to top,#fff3 var(--charge,0%),transparent var(--charge,0%));pointer-events:none}#btn-a{grid-area:a;background:var(--red)!important;font-size:22px!important}#btn-j{grid-area:j;background:var(--paper)!important;color:#182232}#btn-v{grid-area:v}#btn-s{grid-area:s;background:#6d50a4!important}#btn-c{grid-area:c;background:#27658a!important;font-size:11px!important}#acts button.on{transform:scale(.95);filter:brightness(1.3)}#acts button.ready{background:var(--gold)!important;color:#152035;box-shadow:0 0 20px #ffd55e50;border-color:#fff3c4}#combat-hint{text-align:center;color:#8c9db5;font-size:10px;min-height:18px;padding:0 6px 6px;flex-shrink:0}.left-handed #stick-zone{order:2}.left-handed #pad{grid-template-columns:minmax(190px,1.5fr) minmax(100px,1fr)}
+#settings-dialog{margin:auto;padding:24px;width:min(420px,92vw);border:1px solid #67758a;border-radius:6px;background:#171f2e;color:white;max-height:90dvh;overflow:auto;touch-action:pan-y}#settings-dialog::backdrop{background:#080d18d9;backdrop-filter:blur(8px)}#settings-dialog h2{font-size:20px;color:var(--gold);margin-bottom:15px}.setting-row{display:flex;align-items:center;justify-content:space-between;padding:13px 0;font-size:13px;gap:12px}.setting-row input[type=range]{width:50%;accent-color:var(--red)}.setting-row input[type=checkbox]{width:22px;height:22px;accent-color:var(--red)}#settings-dialog p{font-size:11px;color:#9fafc6;line-height:1.8;margin-top:12px}#settings-close{width:100%;padding:13px;margin-top:20px;background:var(--red);font-weight:900}
+@media(max-width:700px){.screen{padding:54px 16px 18px;gap:16px;justify-content:flex-start}.screen:before{left:16px;top:18px;font-size:9px}.hd{font-size:30px;border-left-width:5px}.fighter-layout{display:flex;flex-direction:column;gap:12px}.fighter-left,.fighter-right{width:100%}.fighter-left{display:contents}.fighter-preview{height:146px;min-height:146px;width:100%;order:0}.fighter-preview>svg{height:185px;width:180px;position:absolute;right:8px;top:-18px}.fighter-preview:before{writing-mode:horizontal-tb;font-size:49px;left:10px;top:7px;letter-spacing:-2px;max-width:95%;overflow:hidden}.fighter-name{left:18px;bottom:16px}.fighter-name b{font-size:25px}.fighter-code{display:none}.fighter-right{order:1}.fighter-left #char-info{order:2}.ci{min-height:94px}.ci svg{height:69px}.ci small{font-size:11px;padding:4px 7px}#sc-chars>.nav{bottom:-18px;padding:10px 0}.namebox{padding:0}#char-info{padding:12px;margin-top:0}.ability-line{font-size:11px}.mode-grid{grid-template-columns:1fr;gap:12px}.mode-grid .big,.mode-grid #go-cpu,.mode-grid #go-howto{min-height:148px;grid-row:auto;padding:22px}.mode-no{top:13px!important;left:22px!important}.mode-art{height:130px;width:130px;right:15px;top:10px}.big b{font-size:32px}.stage-grid{grid-template-columns:1fr}.stc{display:grid;grid-template-columns:45% 55%;align-items:center}.stc b{font-size:16px}.stc .stage-meta{padding:16px 12px}.stc.sel:after{font-size:7px;top:5px;left:5px}.hud-card{height:60px;padding:4px 7px 8px;gap:4px}.hud-portrait{width:38px;height:44px}.hud-damage{font-size:26px}.hud-skill{font-size:7px}.hud-name{font-size:9px}.hud-card.crowded .hud-portrait{display:none}.hud-card.crowded .hud-damage{font-size:23px}.hud-card.crowded{padding-left:7px;height:54px}.hud-card.crowded .hud-name{font-size:8px}#pad{flex-basis:190px;height:190px}#wrap{width:100%}#title{max-width:103px;font-size:10px}.barbtn{padding:7px 7px;font-size:10px}.barbtns{gap:3px}#bar{padding:7px 0}#sc-title{justify-content:center;padding:24px}.title-art svg{width:190%;margin-left:-45%}.title-kicker{font-size:9px;letter-spacing:3px}.title-desc{font-size:10px;letter-spacing:1px}.logo{font-size:clamp(65px,20vw,120px)}.logo small{font-size:24px;letter-spacing:13px}.version-label{display:none}.nav button{padding:14px 12px}.optrow{gap:10px}.optrow>span{width:70px}.seg button{font-size:11px}#cpu-opts .seg button{min-height:36px}}
+@media(max-width:360px){#bar{gap:3px}.barbtn{padding:6px 5px;font-size:9px}#title{font-size:9px;max-width:82px}#btn-x{font-size:8px}#pad{gap:5px;grid-template-columns:minmax(94px,1fr) minmax(190px,1.6fr)}#acts{gap:6px;grid-template-rows:58px 66px}#stick{width:96px;height:96px}#knob{left:25px;top:25px}#stick:before,#stick:after{left:42px}#combat-hint{font-size:9px}.hud-damage{font-size:24px}}
+@media(orientation:landscape) and (max-height:560px){#game{position:relative;padding-left:120px;padding-right:158px;gap:0}#bar{position:absolute;top:0;left:0;width:100%;height:38px;padding:2px 0}#title{max-width:none;font-size:10px}#title small{display:inline;margin-left:6px}#arena-shell{width:100%;height:100%;padding:40px 0 18px;gap:6px;justify-content:center}#match-info{font-size:8px}#wrap{max-height:calc(100dvh - 135px);height:auto;width:min(100%,calc((100dvh - 135px)*16/9));aspect-ratio:16/9}#battle-roster{gap:5px}.hud-card{height:47px;padding-bottom:4px}.hud-portrait{height:35px;width:32px}.hud-damage{font-size:22px}.hud-name{font-size:8px}.hud-skill{font-size:7px}.hud-card.crowded{height:43px}.hud-card.crowded .hud-damage{font-size:18px}#pad{display:contents}#stick-zone{position:absolute;left:0;bottom:8px;width:112px;height:calc(100% - 48px)}#acts{position:absolute;right:0;bottom:16px;width:148px;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:53px 58px 65px;grid-template-areas:'v s' 'c j' 'a a';gap:7px}#combat-hint{position:absolute;bottom:0;left:120px;right:158px;font-size:8px;padding:0;min-height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.left-handed #game{padding-left:158px;padding-right:120px}.left-handed #stick-zone{left:auto;right:0}.left-handed #acts{left:0;right:auto}.left-handed #combat-hint{left:158px;right:120px}.screen{justify-content:flex-start;padding-top:46px}.fighter-layout{display:grid;grid-template-columns:.8fr 1.2fr}.fighter-left{display:block}.fighter-preview{height:210px}.fighter-preview>svg{width:100%;height:240px}.fighter-preview .fighter-name{bottom:10px}.ci{min-height:88px}.ci svg{height:65px}.logo{font-size:75px}.logo small{font-size:22px;margin-top:6px}.title-kicker{margin-bottom:10px}.title-desc{display:none}.tap{margin-top:22px;padding:12px 24px}.mode-grid{grid-template-columns:1.1fr 1fr}.mode-grid #go-cpu{grid-row:span 2}.mode-grid .big{min-height:130px}#sc-title{justify-content:center}.title-content{padding-top:20px}.stage-grid{grid-template-columns:repeat(3,1fr)}.stc{display:block}.stc .stage-meta{padding:12px}.stc b{font-size:14px}.winner-art{height:100px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
-/* Explicit action colors and bottom anchoring keep the thumb controls identifiable. */
-#acts #btn-a{background:linear-gradient(135deg,#d66c47,#a34436)!important}
-#acts #btn-s{background:linear-gradient(135deg,#725ab6,#443a75)!important}
-#acts #btn-c{background:#214c70!important}
-#acts #btn-j{background:#d0e8f8!important;color:#132e44!important}
-@media(orientation:portrait),(min-height:561px){#pad{margin-top:auto;flex:0 1 230px;max-height:230px;min-height:168px}}
 
 </style>
 </head>
 <body>
 
 <div id="sc-title" class="screen" style="display:flex">
-  <div class="title-kicker">NINE FIGHTERS. ONE ARENA.</div><div class="logo">STICK<br><em>BATTLE</em><small>ONLINE</small></div>
-  <div class="tap" id="title-tap">タップしてスタート</div>
+ <div class="title-art"></div><div class="title-content"><div class="title-kicker">ONE ARENA. NO LIMITS.</div>
+ <h1 class="logo">STICK<em>BATTLE</em><small>ONLINE</small></h1><p class="title-desc">9人のファイター。勝負を決める、ただ一撃。</p>
+ <button class="tap" id="title-tap">タップしてスタート</button></div><div class="version-label">RE:IGNITE / 03</div>
 </div>
-
 <div id="sc-mode" class="screen">
-  <div class="hd">MODE</div>
-  <button class="big" id="go-cpu">CPU対戦<small>コンピューターと戦う（1〜7体）</small></button>
-  <button class="big" id="go-online">オンライン対戦<small>部屋を作る／6文字の部屋コードで参加</small></button>
-  <button class="big" id="go-howto">あそびかた<small>操作と三すくみのルール</small></button>
+ <div class="hd">CHOOSE YOUR BATTLE<small>モードを選択</small></div><div class="mode-grid">
+ <button class="big" id="go-cpu"><span class="mode-no">01 / LOCAL BATTLE</span><span class="mode-art" data-portrait="karate"></span><b>SMASH THE CPU.</b><span>CPU対戦</span><small>1〜7体のライバルと。自分の限界を超えろ。</small></button>
+ <button class="big" id="go-online"><span class="mode-no">02 / ONLINE</span><b>BRING YOUR RIVALS.</b><span>オンライン対戦</span><small>部屋コード・QRで、友達と同じアリーナへ。</small></button>
+ <button class="big" id="go-howto"><span class="mode-no">03 / HOW TO PLAY</span><b>LEARN THE RULES.</b><small>操作と三すくみをチェック</small></button></div>
 </div>
 
 <div id="sc-online" class="screen">
@@ -196,19 +63,16 @@ body{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env
 </div>
 
 <div id="sc-chars" class="screen" style="z-index:8">
-  <div class="hd">FIGHTER</div>
-  <div class="namebox"><label for="player-name">プレイヤー名</label><input id="player-name" maxlength="12" autocomplete="off" placeholder="PLAYER"></div>
-  <div id="char-grid" class="cgrid"></div>
-  <div id="char-info" class="card"></div>
-  <div id="cpu-opts" style="width:min(560px,100%);display:flex;flex-direction:column;gap:10px">
-    <div class="optrow"><span>CPUの数</span><div class="seg" id="seg-cpun"></div></div>
-    <div class="optrow"><span>CPUの強さ</span><div class="seg" id="seg-cpulv"></div></div>
-  </div>
-  <div class="nav"><button class="back" id="chars-back">もどる</button><button class="next" id="chars-next">ステージへ</button></div>
+ <div class="hd">CHOOSE YOUR FIGHTER<small>プレイスタイルで選べ。個性で勝て。</small></div>
+ <div class="fighter-layout"><div class="fighter-left"><div class="fighter-preview" id="fighter-showcase"></div><div id="char-info" class="card"></div></div>
+ <div class="fighter-right"><div id="char-grid" class="cgrid"></div>
+ <div class="namebox"><label for="player-name">PLAYER NAME</label><input id="player-name" maxlength="12" autocomplete="off" placeholder="PLAYER"></div>
+ <div id="cpu-opts" style="display:flex;flex-direction:column"><div class="optrow"><span>CPUの数</span><div class="seg" id="seg-cpun"></div></div><div class="optrow"><span>CPUの強さ</span><div class="seg" id="seg-cpulv"></div></div></div></div></div>
+ <div class="nav"><button class="back" id="chars-back">もどる</button><button class="next" id="chars-next">ステージへ →</button></div>
 </div>
 
 <div id="sc-stage" class="screen">
-  <div class="hd">STAGE</div>
+  <div class="hd">SELECT YOUR ARENA<small>勝負の舞台を選択</small></div>
   <div class="stage-grid" id="stage-grid" style="width:min(560px,100%)"></div>
   <div class="optrow" style="width:min(560px,100%)"><span>武器</span><div class="seg" id="seg-wpn"></div></div>
   <div class="optrow" style="width:min(560px,100%)"><span>残機</span><div class="seg" id="seg-stock"></div></div>
@@ -241,7 +105,7 @@ body{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env
 </div>
 
 <div id="sc-result" class="screen">
-  <div class="hd">RESULT</div>
+  <div class="hd">BATTLE RESULT<small>THE FIGHT IS OVER.</small></div><div id="winner-art"></div>
   <div id="res-win"></div>
   <div id="res-list"></div>
   <div id="res-wait" class="wait" style="display:none">ホストの操作を待っています…</div>
@@ -279,14 +143,14 @@ body{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env
 
 <div id="game">
   <div id="bar">
-    <div id="title">STICK BATTLE<br><span>ONLINE</span></div>
-    <div class="barbtns"><button class="barbtn" id="btn-x">武器を捨てる</button><button class="barbtn" id="b-settings">設定</button>
+    <div id="title">STICK BATTLE<small>ONLINE</small></div>
+    <div class="barbtns"><button class="barbtn" id="btn-x">捨てる</button><button class="barbtn" id="b-settings">設定</button>
       <button class="barbtn" id="b-char">キャラ</button>
       <button class="barbtn" id="b-help">操作</button>
       <button class="barbtn" id="b-quit">やめる</button>
     </div>
   </div>
-  <div id="wrap"></div>
+  <div id="arena-shell"><div id="match-info"><b id="match-label">LOCAL BATTLE</b><span id="match-stage"></span></div><div id="wrap"></div><div id="battle-roster" aria-label="ダメージと残機"></div></div>
   <div id="pad">
     <div id="stick-zone"><div id="stick"><div id="knob"></div></div></div>
     <div id="acts">
@@ -331,7 +195,7 @@ function initFirebase() {
 // ========================================================
 // ② 基本設定（数字で調整できます）
 // ========================================================
-const W = 800, WH = 450, H = 500;
+const W = 800, WH = 450, H = 450;
 const GRAV = 0.6, DEFAULT_STOCK = 3, MAX_STOCK = 5, MAX_PLAYERS = 8;
 const CH_TH = 12, CH_FULL = 50, CH_WARN = 70, CH_OVER = 100, STUN_T = 80;
 const CT_ON = 3, CT_OFF = 20, CT_END = 46, CT_COOL = 90;
@@ -344,7 +208,7 @@ const RAGE_MAX = 100, RAGE_T = 600, RAGE_FREEZE = 44; // ヤンキー：10秒覚
 const RAGE_PASSIVE_FILL = RAGE_MAX / (65 * 60), RAGE_HIT_GAIN = 1.55; // 放置なら約65秒、被弾なら一気に溜まる
 const RAGE_DMG = 1.85, RAGE_KB = 1.75, RAGE_SPD = 1.22, RAGE_JUMP = 1.10, RAGE_WT = 0.78;
 const RAGE_PUNCH_MIN_KB = 16.5;                 // 怒り中の通常パンチは撃墜択になる
-const SENKU_MAX = 100, SENKU_FILL = 100 / (18 * 60), SENKU_WIND = 42; // KOゲージ級：約18秒＋0.7秒の予告
+const SENKU_MAX = 100, SENKU_FILL = 100 / (18 * 60), SENKU_WIND = 42; // 旧予告演出との互換用。新しい閃空は待機なしでSENKU_STOPへ移行
 const LANCE_CHARGE_MAX = 60;                    // 最大まで溜めたら自動で突撃
 const GUN_MAX = 8, GUN_RELOAD = 72;             // ガンマン：8発、約1.2秒リロード
 const COLORS = ['#e63946', '#1f8ef1', '#f4a261', '#2a9d8f', '#9b5de5', '#ef476f', '#06d6a0', '#ff9f1c'];
@@ -376,7 +240,7 @@ const CHARS = {
             ab: 'タフで動ける。怒り中は超高火力・高機動・さらにタフ。飛び道具で怯まない' },
   swordsman: { name: '剣士', en: 'SWORDSMAN', mark: '剣', spd: 1.00, jump: 1.0, jumps: 2, wt: 0.96, pow: 1.14, size: 1.0,
             ctx: 0, back: false, ctc: 1.0, dgc: 1.0, dgs: 1.0, st: [3, 4, 4],
-            sp: '旋空：KOゲージ級に溜めて使用。予告演出の後、前方を超長距離の一閃で薙ぐ', up: '斬り上げ：上昇しながら頭上を斬る',
+            sp: '閃空：ゲージMAXで即時発動。時を止め、前方の敵をガード・アーマーごと一閃する', up: '斬り上げ：上昇しながら頭上を斬る',
             ab: '通常攻撃が剣。拳より長いリーチと少し高い火力を持つ' },
   lancer: { name: '槍使い', en: 'LANCER', mark: '槍', spd: 0.92, jump: 0.96, jumps: 2, wt: 0.92, pow: 1.02, size: 1.0,
             ctx: 0, back: false, ctc: 1.0, dgc: 1.05, dgs: 0.98, st: [2, 4, 5],
@@ -575,6 +439,7 @@ function setup() {
   c.parent('wrap');
   textFont('sans-serif');
   buildMenus();
+  document.querySelectorAll('[data-portrait]').forEach(el=>el.innerHTML=portrait(el.dataset.portrait));
   if (urlRoom) document.getElementById('title-tap').innerText = 'タップしてルーム ' + urlRoom + ' に参加';
 }
 
@@ -589,11 +454,14 @@ function simulateFrame() {
   } else if (bt.phase === 'play' || bt.phase === 'game') {
     if (freezeT > 0) {
       freezeT--;
-      if (freezeT === 0) endFreeze();
+      if (freezeT === 0) { endFreeze(); beginNextSenku(); }
     } else if (bt.phase === 'play') {
       if (online) updateRemote();
       for (const f of fighters) if (f.cpu && isLocal(f)) aiStep(f);
-      for (const f of fighters) if (isLocal(f)) stepFighter(f, f.cpu ? f.ai.inp : hin);
+      for (const f of fighters) if (isLocal(f)) {
+        stepFighter(f, f.cpu ? f.ai.inp : hin);
+        if (freezeT>0 && fzType==='senku') return;
+      }
       for (const f of fighters) meleeCheck(f);
       stepItems(); stepProjs(); stepBombs(); stepMines();
       if (!online) { spawnItems(); checkEnd(); }
@@ -789,7 +657,7 @@ function renderLobby() {
     const C = CHARS[id];
     const b = document.createElement('button');
     b.className = 'ci' + (settings.cid === id ? ' sel' : '');
-    b.innerHTML = `${portrait(id)}<small>${C.name}</small>`;
+    b.innerHTML = `<span class="fighter-number">0${Object.keys(CHARS).indexOf(id)+1}</span>${portrait(id)}<small>${C.name}</small>`;
       b.setAttribute("aria-label",C.name);
     b.onclick = () => { settings.cid = id; roomRef.child('mem/' + myId).update({ cid: id }); renderLobby(); };
     cg.appendChild(b);
@@ -949,6 +817,7 @@ function onEvent(e) {
   else if (e.k === 'fx') playFx(e, true);
   else if (e.k === 'ctr') doCounter(e);
   else if (e.k === 'vfx') vfx(e);
+  else if (e.k === 'senku') receiveSenku(e);
   else if (e.k === 'rage') doRageTransform(e, true);
   else if (e.k === 'proj') {
     projs.push({ ...e.q, local: false });
@@ -996,6 +865,7 @@ function startBattleOnline() {
 }
 
 function startBattleCommon(list, mapId, wpn, stocks) {
+  senkuQueue=[];senkuSeen.clear();senkuActive=null;senkuAfter=null;hudKey="";
   resetTouch();
   stage = MAPS[mapId] || MAPS.std;
   battleWpn = wpn;
@@ -1047,6 +917,7 @@ function showResult() {
   const rw = document.getElementById('res-win');
   rw.innerText = !win ? 'DRAW' : (win.id === myId ? 'YOU WIN!' : cleanName(win.label) + ' WIN');
   rw.style.color = win ? win.c : '#ffffff';
+  document.getElementById('winner-art').innerHTML=win?'<div class="winner-art">'+portrait(win.cid)+'</div>':'';
   document.getElementById('res-list').innerHTML = order.map((f, i) =>
     `<div class="rk"><div class="no">${i + 1}</div><div class="mk" style="background:${f.c}">${CC(f.cid).mark}</div><div>${esc(f.label)}　${CC(f.cid).name}` +
     `<div class="result-stats">与ダメ ${Math.round(f.stats?.dealt || 0)}% ／ ミス ${f.stats?.deaths || 0} ／ カウンター ${f.stats?.counters || 0} ／ 回避 ${f.stats?.dodges || 0}</div></div></div>`).join('');
@@ -1103,7 +974,7 @@ function gainSenku(p, n) {
   if (!p || p.cid !== 'swordsman' || !isLocal(p) || p.senku >= SENKU_MAX) return;
   const before = p.senku; p.senku = Math.min(SENKU_MAX, p.senku + n);
   if (before < SENKU_MAX && p.senku >= SENKU_MAX) {
-    sfxKOReady(); popups.push({ x: p.x, y: p.y - 112, txt: '旋空 READY!', life: 50, max: 50, size: 22, c: '#bde0fe' });
+    sfxKOReady(); popups.push({ x: p.x, y: p.y - 112, txt: '閃空 READY!', life: 50, max: 50, size: 22, c: '#bde0fe' });
   }
 }
 function beginReload(p) {
@@ -1182,11 +1053,9 @@ function startSpecial(p) {
     if (p.rage >= RAGE_MAX && p.rageT <= 0) triggerRage(p);
     else if (!p.cpu) sfxNo();
   } else if (p.cid === 'swordsman') {
-    if (p.senku >= SENKU_MAX && p.senkuWind <= 0) {
-      p.senku = 0; p.senkuWind = SENKU_WIND; p.spc = SENKU_WIND + 34; p.sh = SENKU_WIND;
-      p.vx *= 0.2;
-      const e = { k:'vfx', v:'senkuCharge', id:p.id, x:Math.round(p.x), y:Math.round(p.y - 34) };
-      vfx(e); send(e);
+    if (p.senku >= SENKU_MAX) {
+      p.senku=0; p.senkuWind=0; p.spc=34;
+      fireSenkuSlash(p);
     } else if (!p.cpu) sfxNo();
   } else if (p.cid === 'lancer') {
     if (p.spc === 0) { p.sph = 1; sfxWindup(); }
@@ -1565,6 +1434,7 @@ function playFx(e, remote) {
     popups.push({ x: e.x, y: e.y - 24, txt: 'BLOCKED!', life: 30, max: 30, size: 24, c: '#6ec8ff' });
     sfxBlock();
   } else if (e.res === 'hit') {
+    if(e.senku){flash[e.t]=10;burst(e.x,e.y,12,7,'#c6fff0',6);if(e.gain&&a)gainKO(a,e.gain);return;}
     const kb = e.kb, n = 8 + Math.floor(kb);
     if (!pred || e.up) {
       flash[e.t] = 6;
@@ -1609,6 +1479,7 @@ function startKOFreeze(e) {
 }
 
 function endFreeze() {
+  if(fzType==='senku'){releaseSenku();return;}
   if (fzType === 'rage') {
     sfxCounterBoom();
     if (fz) { burst(fz.x, fz.y, 55, 17, '#ef4747', 14); burst(fz.x, fz.y, 24, 10, '#ffd166', 10); ring(fz.x, fz.y, 30, 24); }
@@ -1658,15 +1529,6 @@ function spawnProj(p, kind) {
   send({ k: 'proj', q: { ...q } });
   q.local = true;
   projs.push(q);
-}
-
-function fireSenkuSlash(p) {
-  if (!p || p.out) return;
-  p.sh = 16; p.vx *= 0.25;
-  spawnProj(p, 'senku');
-  popups.push({ x:p.x + p.f * 52, y:p.y - 88, txt:'旋空!!', life:32, max:32, size:30, c:'#ffffff' });
-  burst(p.x + p.f * 28, p.y - 38, 24, 8, '#ffffff', 10); ring(p.x + p.f * 34, p.y - 38, 24, 16);
-  shake = Math.max(shake, 13); sfxSenku();
 }
 
 function fireGun(p) {
@@ -2001,6 +1863,7 @@ function aiStep(p) {
 // ========================================================
 function render() {
   const frozen = freezeT > 0;
+  if(!frozen) visualFrame+=Math.min(deltaTime/FIXED_MS,2);
   background(8,14,25);
   paintArena();
   push();
@@ -2014,6 +1877,7 @@ function render() {
   for (const m of mines) drawMine(m);
   for (const f of fighters) drawFighter(f);
   drawProjs();
+  paintSenkuAfter();
   for (const b of bombs) drawWeapon('bomb', b.x, b.y, 1, 'icon', b.t > 30);
   drawParticles(frozen);
   if (frozen) drawFreezeWorld();
@@ -2021,20 +1885,10 @@ function render() {
   pop();
 
   if (frozen) drawFreezeText();
-  drawSenkuThreat();
+
   drawHUD();
 
-  textAlign(CENTER, CENTER); textStyle(BOLD); stroke('#0d1418'); strokeWeight(12);
-  if (bt.phase === 'count') {
-    const t = bt.t, txt = t > 140 ? '3' : t > 80 ? '2' : t > 20 ? '1' : 'GO!';
-    const loc = t > 140 ? t - 140 : t > 80 ? t - 80 : t > 20 ? t - 20 : t;
-    textSize(txt === 'GO!' ? 120 : 140 - (60 - Math.min(loc, 60)) * 0.4);
-    fill(txt === 'GO!' ? '#ef4747' : '#ffd166');
-    text(txt, W / 2, WH / 2);
-  } else if (bt.phase === 'game') {
-    textSize(130); fill('#ffd166');
-    push(); translate(W / 2, WH / 2); rotate(-0.08); text('GAME!', 0, 0); pop();
-  }
+  paintMatchIntro();
 }
 
 
@@ -2045,49 +1899,10 @@ function drawSenkuThreat() {
   noStroke(); fill(3, 9, 16, 24 + q * 40); rect(0, 0, W, WH);
   noFill(); stroke(190, 242, 255, 55 + q * 145); strokeWeight(2 + q * 4);
   rect(5, 5, W - 10, WH - 10, 12);
-  if (p.senkuWind <= 14 && frameCount % 4 < 2) {
+  if (p.senkuWind <= 14 && visualFrame % 4 < 2) {
     stroke(255, 255, 255, 170); strokeWeight(2);
     line(W * 0.12, WH * 0.18, W * 0.88, WH * 0.18);
   }
-}
-
-function drawHUD() {
-  noStroke(); fill('#0f171d'); rect(0, WH, W, H - WH);
-  const n = fighters.length, cw = Math.min(196, (W - 16) / n), x0 = (W - cw * n) / 2;
-  fighters.forEach((p, i) => {
-    const x = x0 + i * cw + 4, y = WH + 5, w = cw - 8, h = 40;
-    push();
-    if (p.out) drawingContext.globalAlpha = 0.35;
-    noStroke(); fill('#24323c'); rect(x, y, w, h, 6);
-    fill(p.c); rect(x, y, w < 120 ? 3 : 28, h, 6, 0, 0, 6);
-    fill(255); textAlign(CENTER, CENTER); textStyle(BOLD); textSize(18);
-    if(w>=120)text(CC(p.cid).mark, x + 14, y + h / 2 + 1);
-    textAlign(LEFT, CENTER); textSize(10); fill(p.id === myId ? '#ffd166' : 200);
-    text((p.id === myId ? 'YOU' : p.label).slice(0,w<120?7:14), x + (w<120?8:34), y + 10);
-    textSize(w < 120 ? 18 : 24); fill(dmgColor(p.d)); stroke('#0d1418'); strokeWeight(3);
-    text(`${Math.round(p.d)}%`, x + (w<120?8:34), y + 27);
-    noStroke();
-    for (let k = 0; k < battleStocks; k++) {
-      fill(k < p.s ? p.c : 'rgba(255,255,255,0.15)');
-      circle(x + w - 5, y + 5 + k * 7, 4);
-    }
-    if (p.cid === 'boxer') {
-      fill(60); rect(x + 8, y + h - 3, w - 16, 3);
-      fill(p.ko >= 100 && frameCount % 10 < 5 ? '#ffffff' : '#ffd166');
-      rect(x + 8, y + h - 3, (w - 16) * p.ko / 100, 3);
-    } else if (p.cid === 'yankee') {
-      fill(60); rect(x + 8, y + h - 3, w - 16, 3);
-      fill(p.rageT > 0 ? '#ef4747' : (p.rage >= 100 && frameCount % 10 < 5 ? '#ffffff' : '#ff6b35'));
-      const rr = p.rageT > 0 ? p.rageT / RAGE_T : p.rage / RAGE_MAX; rect(x + 8, y + h - 3, (w - 16) * rr, 3);
-    } else if (p.cid === 'swordsman') {
-      fill(60); rect(x + 8, y + h - 3, w - 16, 3); fill(p.senku >= 100 ? '#ffffff' : '#90e0ef');
-      rect(x + 8, y + h - 3, (w - 16) * p.senku / SENKU_MAX, 3);
-    } else if (p.cid === 'gunman') {
-      fill('#ffd166'); textSize(9); noStroke(); textAlign(RIGHT,CENTER);
-      text(p.reloadT > 0 ? 'RELOAD' : `BULLET ${p.bullets}`, x + w - 5, y + h - 5);
-    }
-    pop();
-  });
 }
 
 function burst(x, y, n, spd, c, sz) {
@@ -2123,7 +1938,7 @@ function drawParticles(frozen) {
 function drawPopups() {
   for (let i = popups.length - 1; i >= 0; i--) {
     const q = popups[i];
-    q.life--;
+    if(freezeT===0)q.life--;
     const t = 1 - q.life / q.max;
     const s = q.size * (t < 0.15 ? (t / 0.15) * 1.3 : 1);
     textAlign(CENTER, CENTER); textStyle(BOLD); textSize(Math.max(s, 1));
@@ -2133,87 +1948,8 @@ function drawPopups() {
   }
 }
 
-function drawFreezeWorld() {
-  if (!fz) return;
-  const a = byId(fz.att), c = byId(fz.cnt);
-  if (fzType === 'rage') {
-    const el = freezeMax - freezeT; noStroke(); fill(45, 0, 0, 205); rect(-300,-300,stage.w+600,stage.h+600);
-    push(); translate(fz.x,fz.y);
-    for (let i=0;i<34;i++) { const ang=random(TWO_PI), r1=random(30,70), r2=r1+random(180,600); stroke(i%2?'#ef4747':'#ffd166'); strokeWeight(random(2,6)); line(cos(ang)*r1,sin(ang)*r1,cos(ang)*r2,sin(ang)*r2); }
-    noFill(); stroke(239,71,71,220); strokeWeight(10); circle(0,0,80+el*3); pop();
-    if (a) drawFighter(a); return;
-  }
-  if (fzType === 'ko') {
-    const el = freezeMax - freezeT;
-    noStroke(); fill(12, 4, 6, 215); rect(-300, -300, stage.w + 600, stage.h + 600);
-    push();
-    translate(fz.x, fz.y);
-    for (let i = 0; i < 40; i++) {
-      const ang = random(TWO_PI), r1 = random(40, 80), r2 = r1 + random(300, 900);
-      stroke(i % 2 ? color(255, 209, 102, 230) : color(239, 71, 71, 230));
-      strokeWeight(random(2, 6));
-      line(cos(ang) * r1, sin(ang) * r1, cos(ang) * r2, sin(ang) * r2);
-    }
-    const pulse = 1 + sin(el * 0.8) * 0.12;
-    rotate(el * 0.05);
-    noStroke(); fill('#ffd166');
-    beginShape();
-    for (let k = 0; k < 24; k++) {
-      const rr = (k % 2 ? 34 : 86) * pulse, an = k * TWO_PI / 24;
-      vertex(cos(an) * rr, sin(an) * rr);
-    }
-    endShape(CLOSE);
-    fill('#ffffff'); circle(0, 0, 50 * pulse);
-    pop();
-    if (a) drawFighter(a);
-    if (c) { flash[c.id] = 2; drawFighter(c); }
-    return;
-  }
-  noStroke(); fill(8, 12, 18, 175); rect(-300, -300, stage.w + 600, stage.h + 600);
-  stroke(255, 225, 120, 210);
-  for (let i = 0; i < 28; i++) {
-    const ang = random(TWO_PI), r1 = random(45, 90), r2 = r1 + random(220, 650);
-    strokeWeight(random(1, 4));
-    line(fz.x + cos(ang) * r1, fz.y + sin(ang) * r1, fz.x + cos(ang) * r2, fz.y + sin(ang) * r2);
-  }
-  if (a) drawFighter(a);
-  if (c) drawFighter(c);
-}
-
-function drawFreezeText() {
-  const el = freezeMax - freezeT, t = el / freezeMax;
-  if (fzType === 'rage') {
-    if (el < 4) { noStroke(); fill(255,80,50,210*(1-el/4)); rect(0,0,W,WH); }
-    push(); translate(W/2, WH/2-40); rotate(-0.07); textAlign(CENTER,CENTER); textStyle(BOLDITALIC);
-    textSize(96 + sin(el*0.8)*6); stroke('#0d1418'); strokeWeight(12); fill('#ef4747'); text('RAGE!!',0,0);
-    textSize(24); strokeWeight(6); fill('#ffd166'); text('怒りモード',0,72); pop(); return;
-  }
-  if (fzType === 'ko') {
-    if (el < 3) { noStroke(); fill(255); rect(0, 0, W, WH); }
-    else if (el < 6) { noStroke(); fill(0, 0, 0, 220); rect(0, 0, W, WH); }
-    const s = t < 0.2 ? 130 * (t / 0.2) * 1.3 : 118 + sin(el * 1.1) * 5;
-    push();
-    translate(W / 2 + random(-4, 4), WH / 2 - 30 + random(-4, 4)); rotate(-0.1);
-    textAlign(CENTER, CENTER); textStyle(BOLDITALIC); textSize(Math.max(s, 1));
-    noStroke(); fill('#ffd166'); text('K.O.!!', 8, 8);
-    stroke('#ffffff'); strokeWeight(10); fill('#ef4747');
-    text('K.O.!!', 0, 0);
-    if (t > 0.25) {
-      textSize(26); strokeWeight(6); stroke('#0d1418'); fill('#ffd166');
-      text('UPPERCUT', 0, 78);
-    }
-    pop();
-    return;
-  }
-  if (el < 4) { noStroke(); fill(255, 255, 255, 255 * (1 - el / 4)); rect(0, 0, W, WH); }
-  const s = t < 0.15 ? 92 * (t / 0.15) * 1.25 : 84 + sin(el * 0.9) * 3;
-  push();
-  translate(W / 2, WH / 2 - 50); rotate(-0.08);
-  textAlign(CENTER, CENTER); textStyle(BOLD); textSize(Math.max(s, 1));
-  stroke('#24323c'); strokeWeight(12); fill('#ffd166');
-  text('COUNTER!!', 0, 0);
-  pop();
-}
+function drawFreezeWorld(){if(fzType==='senku')paintSenkuWorld();else paintImpactWorld();}
+function drawFreezeText(){if(fzType==='senku')paintSenkuCutin();else paintImpactText();}
 
 function dmgColor(d) {
   const w = color(255), y = color(255, 209, 102), r = color(239, 71, 71);
@@ -2241,15 +1977,15 @@ function drawWeapon(t, x, y, f, mode, blinkFast) {
     stroke('#8d6e63'); strokeWeight(2); line(4, -6, 8, -12);
     noStroke();
     const sp = blinkFast ? 4 : 10;
-    fill(frameCount % sp < sp / 2 ? '#ffd166' : '#ef4747'); circle(8, -13, 5);
+    fill(visualFrame % sp < sp / 2 ? '#ffd166' : '#ef4747'); circle(8, -13, 5);
   }
   pop();
 }
 
 function drawItem(it) {
-  const bob = it.landed ? sin(frameCount * 0.08) * 3 : 0;
+  const bob = it.landed ? sin(visualFrame * 0.08) * 3 : 0;
   const x = it.x, y = it.y - 16 + bob;
-  noStroke(); fill(255, 255, 255, 110 + sin(frameCount * 0.15) * 50);
+  noStroke(); fill(255, 255, 255, 110 + sin(visualFrame * 0.15) * 50);
   circle(x, y, 38);
   drawWeapon(it.t, it.t === 'sword' ? x - 12 : x - 8, it.t === 'sword' ? y + 10 : y, 1, 'icon');
 }
@@ -2257,7 +1993,7 @@ function drawItem(it) {
 function drawMine(m) {
   noStroke(); fill('#24323c');
   arc(m.x, m.y, 26, 18, PI, TWO_PI);
-  fill(m.arm > 0 ? '#888888' : (frameCount % 20 < 10 ? '#ef4747' : '#5a1a1a'));
+  fill(m.arm > 0 ? '#888888' : (visualFrame % 20 < 10 ? '#ef4747' : '#5a1a1a'));
   circle(m.x, m.y - 6, 6);
 }
 
@@ -2291,8 +2027,8 @@ function drawFighter(p) {
   const C = CC(p.cid), sz = C.size, id = p.id, mv = p.mv;
 
   const tr = trails[id] || (trails[id] = []);
-  if (p.kb > 0 || p.dg > 0 || p.rise > 0) { tr.push({ x: p.x, y: p.y - 30 * sz }); if (tr.length > 8) tr.shift(); }
-  else if (tr.length) tr.shift();
+  if (freezeT===0 && (p.kb > 0 || p.dg > 0 || p.rise > 0)) { tr.push({ x: p.x, y: p.y - 30 * sz }); if (tr.length > 8) tr.shift(); }
+  else if (freezeT===0 && tr.length) tr.shift();
   noStroke();
   for (let i = 0; i < tr.length; i++) {
     const c = color(p.c); c.setAlpha(20 + i * 12); fill(c);
@@ -2300,21 +2036,21 @@ function drawFighter(p) {
   }
 
   if ((mv && mv.glow && p.a <= mv.glow) || p.arm > 0) {
-    noStroke(); fill(255, 209, 102, 110 + sin(frameCount * 0.9) * 60);
+    noStroke(); fill(255, 209, 102, 110 + sin(visualFrame * 0.9) * 60);
     circle(p.x, p.y - 30 * sz, 74 * sz);
   }
 
   const dodging = p.dg > 0;
   const invOn = p.remote ? p.ivf : p.inv > 0;
-  const blink = !dodging && invOn && frameCount % 6 < 3;
+  const blink = !dodging && invOn && visualFrame % 6 < 3;
   const col = flash[id] > 0 ? '#ffffff' : p.c;
-  const walk = p.g ? sin(frameCount * 0.35) * Math.min(Math.abs(p.vx || 0), 4) * 3 : 6;
+  const walk = p.g ? sin(visualFrame * 0.35) * Math.min(Math.abs(p.vx || 0), 4) * 3 : 6;
   const warn = p.ch >= CH_WARN, bw = p.cid === 'sumo' ? 7 : (p.cid === 'yankee' ? 6 : 5);
   let hand = { x: p.f * 14, y: 2 - walk * 0.4 }, wmode = 'hold';
 
   if (rageOn(p)) {
-    noStroke(); fill(239,71,71,55 + sin(frameCount*0.7)*18); circle(p.x,p.y-30*sz,88*sz);
-    noFill(); stroke(255,95,55,135); strokeWeight(4); circle(p.x,p.y-30*sz,(72+sin(frameCount*0.45)*9)*sz);
+    noStroke(); fill(239,71,71,55 + sin(visualFrame*0.7)*18); circle(p.x,p.y-30*sz,88*sz);
+    noFill(); stroke(255,95,55,135); strokeWeight(4); circle(p.x,p.y-30*sz,(72+sin(visualFrame*0.45)*9)*sz);
   }
   if (p.cid === 'swordsman' && p.senkuWind > 0) {
     const q = 1 - p.senkuWind / SENKU_WIND;
@@ -2327,7 +2063,7 @@ function drawFighter(p) {
   rotate(p.r || 0);
   if (dodging) drawingContext.globalAlpha = 0.45;
   else if (blink) drawingContext.globalAlpha = 0.35;
-  if (p.ch > 0) translate(random(-1, 1) * (warn ? 3.5 : 1.5), 0);
+  if (p.ch > 0 && freezeT===0) translate(random(-1, 1) * (warn ? 3.5 : 1.5), 0);
 
   if (p.cid === 'bomber') {
     noStroke(); fill('#24323c'); circle(-p.f * 11, -4, 14);
@@ -2358,7 +2094,7 @@ function drawFighter(p) {
   } else if (p.ct > 0) {
     line(0, -8, p.f * 12, -16); line(0, -8, p.f * 12, 0);
     if (inCounter(p)) {
-      noFill(); stroke(110, 200, 255, 170 + sin(frameCount * 0.8) * 60); strokeWeight(5);
+      noFill(); stroke(110, 200, 255, 170 + sin(visualFrame * 0.8) * 60); strokeWeight(5);
       if (C.back) circle(0, -6, 66);
       else if (p.f > 0) arc(4, -6, 64, 64, -PI / 2.5, PI / 2.5);
       else arc(-4, -6, 64, 64, PI - PI / 2.5, PI + PI / 2.5);
@@ -2391,9 +2127,9 @@ function drawFighter(p) {
           noStroke();
           fill(255, 235, 130, 235); circle(p.f * 9, -43, 24);
           fill(255, 110, 40, 180);
-          circle(-p.f * 5, 7, 14 + sin(frameCount * 0.8) * 3);
-          circle(p.f * 1, -7, 11 + sin(frameCount * 1.1) * 2);
-          circle(-p.f * 2, -20, 8 + sin(frameCount * 1.3) * 2);
+          circle(-p.f * 5, 7, 14 + sin(visualFrame * 0.8) * 3);
+          circle(p.f * 1, -7, 11 + sin(visualFrame * 1.1) * 2);
+          circle(-p.f * 2, -20, 8 + sin(visualFrame * 1.3) * 2);
         } else if (mv.kind === 'tsuki') {
           stroke(255, 255, 255, 220); strokeWeight(6); arc(0, -46, 72, 40, -PI, 0); noStroke(); fill(col); ellipse(p.f * 6, -44, 16, 22);
         } else if (mv.kind === 'swordup') {
@@ -2446,10 +2182,10 @@ function drawFighter(p) {
     if (p.ch > 0) {
       const full = p.ch >= CH_FULL;
       noStroke();
-      if (warn && frameCount % 6 < 3) fill(239, 71, 71, 230);
+      if (warn && visualFrame % 6 < 3) fill(239, 71, 71, 230);
       else if (full) fill(255, 209, 102, 230);
       else fill(255, 220, 80, 90 + p.ch * 2);
-      circle(-p.f * 14, -2, 10 + Math.min(p.ch, CH_FULL) * 0.6 + (full ? sin(frameCount * 0.6) * 3 : 0));
+      circle(-p.f * 14, -2, 10 + Math.min(p.ch, CH_FULL) * 0.6 + (full ? sin(visualFrame * 0.6) * 3 : 0));
     } else if (p.cid === 'bomber') {
       drawWeapon('bomb', -p.f * 16, -4, 1, 'icon', p.sph > 10);
     } else if (p.cid === 'lancer') {
@@ -2475,7 +2211,7 @@ function drawFighter(p) {
   }
   if (p.cid === 'gunman' && !p.w) drawWeapon('gun', hand.x, hand.y, p.f, wmode, false);
   if (p.cid === 'boxer' && !p.w) {
-    noStroke(); fill(p.ko >= 100 && frameCount % 10 < 5 ? '#ffd166' : '#ef4747');
+    noStroke(); fill(p.ko >= 100 && visualFrame % 10 < 5 ? '#ffd166' : '#ef4747');
     circle(hand.x, hand.y, 14);
     fill(255, 255, 255, 120); circle(hand.x - 2, hand.y - 2, 4);
   }
@@ -2490,7 +2226,7 @@ function drawFighter(p) {
   } else if (p.cid === 'ninja') {
     fill('#24323c'); arc(0, -24, 20, 20, 0, PI);
     stroke('#24323c'); strokeWeight(3);
-    const wv = sin(frameCount * 0.3) * 3;
+    const wv = sin(visualFrame * 0.3) * 3;
     line(-p.f * 8, -27, -p.f * 22, -31 + wv); line(-p.f * 8, -27, -p.f * 20, -22 + wv);
   } else if (p.cid === 'karate') {
     stroke('#ef4747'); strokeWeight(4); line(-10, -28, 10, -28);
@@ -2515,7 +2251,7 @@ function drawFighter(p) {
   if (p.stn > 0) {
     textAlign(CENTER, CENTER); textSize(13); noStroke(); fill('#ffd166');
     for (let i = 0; i < 3; i++) {
-      const ang = frameCount * 0.15 + i * TWO_PI / 3;
+      const ang = visualFrame * 0.15 + i * TWO_PI / 3;
       text('★', p.x + cos(ang) * 18, p.y - 62 * sz + sin(ang) * 5);
     }
   }
@@ -2697,7 +2433,7 @@ function renderStageGrid(elId, current, onPick) {
     for (const p of m.plats) rects += `<rect x="${p.x * s}" y="${p.y * s}" width="${p.w * s}" height="${Math.max(p.h * s, 2)}" fill="${themes[id].accent}"/>`;
     const b = document.createElement('button');
     b.className = 'stc' + (current === id ? ' sel' : '');
-    b.innerHTML = `<svg viewBox="0 0 100 56.25" style="width:100%;background:${themes[id].bottom}">${rects}</svg>${m.name}`;
+    b.innerHTML = `<svg viewBox="0 0 100 56.25" style="background:${themes[id].bottom}"><circle cx="76" cy="13" r="9" fill="${themes[id].accent}20"/><path d="M0 50L25 22 40 40 67 19 100 48V57H0Z" fill="#080f1e40"/>${rects}</svg><div class="stage-meta"><b>${m.name}</b><small>${themes[id].name.split(' / ')[0]} / 0${Object.keys(MAPS).indexOf(id)+1}</small></div>`;
     b.onclick = () => onPick(id);
     sg.appendChild(b);
   }
@@ -2728,17 +2464,14 @@ function buildMenus() {
       const C = CHARS[id];
       const b = document.createElement('button');
       b.className = 'ci' + (settings.cid === id ? ' sel' : '');
-      b.innerHTML = `${portrait(id)}<small>${C.name}</small>`;
+      b.innerHTML = `<span class="fighter-number">0${Object.keys(CHARS).indexOf(id)+1}</span>${portrait(id)}<small>${C.name}</small>`;
       b.setAttribute("aria-label",C.name);
       b.onclick = () => { settings.cid = id; renderChars(); };
       grid.appendChild(b);
     }
     const C = CC(settings.cid);
-    document.getElementById('char-info').innerHTML =
-      `<div class="nm">${C.name}　<span style="color:#5b7383;font-size:13px">${C.en}</span></div>` +
-      `<div><b>特殊</b>：${C.sp}</div><div><b>上＋特殊</b>：${C.up}</div><div><b>能力</b>：${C.ab}</div>` +
-      ['スピード', 'パワー', 'おもさ'].map((l, i) =>
-        `<div class="stat"><b>${l}</b><div class="gauge"><i style="width:${C.st[i] * 20}%"></i></div></div>`).join('');
+    document.getElementById('char-info').innerHTML = fighterInfo(C);
+    updateFighterShowcase();
   };
   renderChars();
   seg('seg-cpun', ['1体', '2体', '3体', '4体', '5体', '6体', '7体'], () => settings.cpuN - 1, i => settings.cpuN = i + 1);
@@ -2844,7 +2577,7 @@ function audioBus(){
     audioFX.connect(audioMaster);audioMusic.connect(audioMaster);audioMaster.connect(limiter);limiter.connect(actx.destination);
   }
   audioMaster.gain.setTargetAtTime(prefs.volume,actx.currentTime,.025);
-  audioMusic.gain.setTargetAtTime(prefs.music? .22:0,actx.currentTime,.08);
+  audioMusic.gain.setTargetAtTime(prefs.music? (freezeT>0?.035:.22):0,actx.currentTime,.08);
   return audioFX;
 }
 function musicNote(freq,start,dur,vol,type){
@@ -2884,7 +2617,7 @@ function paintArena(){
   const vignette=c.createRadialGradient(400,220,100,400,220,480);vignette.addColorStop(0,'#00000000');vignette.addColorStop(1,'#030814aa');c.fillStyle=vignette;c.fillRect(0,0,W,WH);
  }
  drawingContext.drawImage(stageCache,0,0);push();noStroke();fill(theme().accent+'50');
- for(let i=0;i<18;i++){const x=(i*137+frameCount*.12)%W,y=45+(i*73)%340+Math.sin(frameCount*.012+i)*8;circle(x,y,i%3===0?2:1);}
+ for(let i=0;i<18;i++){const x=(i*137+visualFrame*.12)%W,y=45+(i*73)%340+Math.sin(visualFrame*.012+i)*8;circle(x,y,i%3===0?2:1);}
  textAlign(LEFT,TOP);textSize(10);textStyle(NORMAL);fill('#a4bfd1');text(th.name,18,16);pop();
 }
 function paintPlatforms(){
@@ -2893,19 +2626,19 @@ function paintPlatforms(){
 }
 function paintCostume(p,col){
  push();noStroke();fill('#101c2d');
- if(['karate','swordsman'].includes(p.cid)){fill('#d9e8f2');quad(-7,-15,7,-15,9,7,-9,7);fill(col);triangle(-7,-15,1,-5,0,6);fill('#182b3d');rect(-9,5,18,4,2);}
- if(p.cid==='ninja'){fill('#152238');quad(-8,-16,7,-16,10,7,-8,7);stroke(col);strokeWeight(3);line(-7,-14,7,5);noStroke();fill(col);triangle(-p.f*7,-13,-p.f*30,-7+Math.sin(frameCount*.17)*4,-p.f*12,-19);}
+ if(p.cid==='karate'){fill('#d9e8f2');quad(-7,-15,7,-15,9,7,-9,7);fill(col);triangle(-7,-15,1,-5,0,6);fill('#182b3d');rect(-9,5,18,4,2);}
+ if(p.cid==='ninja'){fill('#152238');quad(-8,-16,7,-16,10,7,-8,7);stroke(col);strokeWeight(3);line(-7,-14,7,5);noStroke();fill(col);triangle(-p.f*7,-13,-p.f*30,-7+Math.sin(visualFrame*.17)*4,-p.f*12,-19);}
  if(p.cid==='bomber'){fill('#2b3540');rect(-10,-16,20,24,5);fill('#ffb468');rect(-7,-12,4,13,1);rect(3,-12,4,13,1);fill('#71e5ff');rect(-3,-8,6,3,1);}
  if(p.cid==='boxer'){fill(col);rect(-9,5,18,10,3);fill('#e9f5ff');rect(-9,5,18,3);}
  if(p.cid==='yankee'){fill('#172235');quad(-9,-16,9,-16,13,14,-13,14);fill('#f3c979');triangle(-8,-16,-2,-3,-3,-16);triangle(8,-16,2,-3,3,-16);fill(col);rect(-2,-12,4,17,1);}
- if(p.cid==='swordsman'){fill('#53697e');rect(-13,-15,9,7,3);fill(col);rect(-13,-14,8,2);}
+ if(p.cid==='swordsman'){fill('#123039');quad(-9,-16,9,-16,13,15,-13,15);stroke('#87ffe0');strokeWeight(1.5);line(-5,-13,-2,11);line(5,-13,2,11);noStroke();fill('#5e9294');rect(-12,-15,8,5,2);}
  if(p.cid==='lancer'){fill('#71859a');quad(-8,-15,8,-15,10,5,-10,5);fill('#cce7ee');triangle(-5,-13,5,-13,0,3);fill(col);rect(-10,5,20,5,2);}
  if(p.cid==='gunman'){fill('#8c654e');quad(-9,-15,9,-15,13,14,-13,14);fill('#e9c38a');triangle(-7,-15,7,-15,0,-4);fill('#192538');rect(-2,-3,4,17);}
  pop();
 }
 function portrait(id){
  const idx=Object.keys(CHARS).indexOf(id),colors=['#73deff','#ffb16c','#a7a1ff','#e7c295','#ff7c85','#ffb377','#98d9e2','#b5c7e9','#dab18a'],c=colors[idx];
- const costume={karate:'<path d="M38 38h24l-3 26H41z" fill="#e1edf5"/><path d="M39 59h22" stroke="#26384b" stroke-width="5"/><path d="M39 23h22" stroke="#ff9976" stroke-width="4"/>',bomber:'<rect x="36" y="37" width="28" height="28" rx="6" fill="#343d4b"/><path d="M42 43v16m16-16v16" stroke="#ffb16c" stroke-width="4"/><rect x="39" y="24" width="22" height="7" rx="3" fill="#ffcf80"/>',ninja:'<path d="M40 27h20v8H40zM36 38h28v24H36z" fill="#29334d"/><path d="M39 36L15 29l7 11z" fill="#a7a1ff"/>',sumo:'<ellipse cx="50" cy="49" rx="21" ry="17" fill="'+c+'"/><path d="M30 57h40" stroke="#283649" stroke-width="7"/><ellipse cx="50" cy="14" rx="7" ry="4" fill="#26384b"/>',boxer:'<path d="M39 56h22v12H39z" fill="#e25a6f"/><circle cx="29" cy="40" r="9" fill="#ff6d80"/><circle cx="71" cy="40" r="9" fill="#ff6d80"/>',yankee:'<path d="M37 37h26l6 30H31z" fill="#243449"/><path d="M42 39l8 9 8-9" fill="none" stroke="#e7bf70" stroke-width="3"/><path d="M39 20q2-16 34-10q4 12-17 10" fill="#364458"/>',swordsman:'<path d="M37 38h26v26H37z" fill="#d8e8f0"/><path d="M72 16L63 65" stroke="#d6efff" stroke-width="4"/><path d="M39 22h22" stroke="#fff" stroke-width="2"/>',lancer:'<path d="M37 38h26l-4 25H41z" fill="#8eabbf"/><path d="M74 70V19" stroke="#cbb59a" stroke-width="3"/><path d="M74 7l-5 15h10z" fill="#e2f4ff"/>',gunman:'<path d="M36 37h28l5 29H31z" fill="#98705a"/><path d="M34 20h32M41 18v-9h18v9" fill="#344357" stroke="#344357" stroke-width="5"/><path d="M69 40h13v5H71" fill="#b9d5e6"/>'};
+ const costume={karate:'<path d="M38 38h24l-3 26H41z" fill="#e1edf5"/><path d="M39 59h22" stroke="#26384b" stroke-width="5"/><path d="M39 23h22" stroke="#ff9976" stroke-width="4"/>',bomber:'<rect x="36" y="37" width="28" height="28" rx="6" fill="#343d4b"/><path d="M42 43v16m16-16v16" stroke="#ffb16c" stroke-width="4"/><rect x="39" y="24" width="22" height="7" rx="3" fill="#ffcf80"/>',ninja:'<path d="M40 27h20v8H40zM36 38h28v24H36z" fill="#29334d"/><path d="M39 36L15 29l7 11z" fill="#a7a1ff"/>',sumo:'<ellipse cx="50" cy="49" rx="21" ry="17" fill="'+c+'"/><path d="M30 57h40" stroke="#283649" stroke-width="7"/><ellipse cx="50" cy="14" rx="7" ry="4" fill="#26384b"/>',boxer:'<path d="M39 56h22v12H39z" fill="#e25a6f"/><circle cx="29" cy="40" r="9" fill="#ff6d80"/><circle cx="71" cy="40" r="9" fill="#ff6d80"/>',yankee:'<path d="M37 37h26l6 30H31z" fill="#243449"/><path d="M42 39l8 9 8-9" fill="none" stroke="#e7bf70" stroke-width="3"/><path d="M39 20q2-16 34-10q4 12-17 10" fill="#364458"/>',swordsman:'<path d="M37 38h26l6 29H31z" fill="#173d49"/><path d="M42 40l5 21m11-21l-5 21" stroke="#93ffe2" stroke-width="2"/><path d="M72 16L63 65" stroke="#d6efff" stroke-width="4"/><path d="M39 22h22" stroke="#fff" stroke-width="2"/>',lancer:'<path d="M37 38h26l-4 25H41z" fill="#8eabbf"/><path d="M74 70V19" stroke="#cbb59a" stroke-width="3"/><path d="M74 7l-5 15h10z" fill="#e2f4ff"/>',gunman:'<path d="M36 37h28l5 29H31z" fill="#98705a"/><path d="M34 20h32M41 18v-9h18v9" fill="#344357" stroke="#344357" stroke-width="5"/><path d="M69 40h13v5H71" fill="#b9d5e6"/>'};
  return `<svg viewBox="0 0 100 82" aria-hidden="true"><ellipse cx="50" cy="75" rx="29" ry="4" fill="#050c1880"/><circle cx="50" cy="40" r="33" fill="${c}0c"/><g stroke="${c}" stroke-width="6" stroke-linecap="round" fill="none"><path d="M50 36v23m0-17L30 50m20-8l20 8M50 59L38 73m12-14l12 14"/></g><circle cx="50" cy="26" r="12" fill="${c}"/>${costume[id]}<path d="M52 27h5" stroke="#f8fbff" stroke-width="2" stroke-linecap="round"/></svg>`;
 }
 function updateControlUI(){
@@ -2929,6 +2662,166 @@ document.getElementById('settings-close').onclick=()=>settingsDialog.close();
 for(const key of ['volume','music','shake','left']){const el=document.getElementById('pref-'+key);if(key==='volume')el.value=prefs.volume;else el.checked=prefs[key];el.oninput=()=>{prefs[key]=key==='volume'?Number(el.value):el.checked;applyPrefs();};}
 applyPrefs();
 document.addEventListener('click',e=>{if(e.target.closest('button')&&actx)tone(600,880,.035,.035,'sine');});
+
+// SENKU / instant activation. Every owner resolves only its own fighters once.
+const SENKU_STOP=38;
+let senkuQueue=[],senkuSeen=new Set(),senkuActive=null,senkuAfter=null,visualFrame=0;
+function fireSenkuSlash(p){
+ if(!p||p.out)return;
+ const x=Math.round(p.x+p.f*26*CC(p.cid).size),y=Math.round(p.y-36*CC(p.cid).size);
+ const targets=fighters.filter(t=>{const dx=(t.x-x)*p.f;return t.id!==p.id&&!t.out&&dx>=12&&dx<=520&&Math.abs(t.y-32*CC(t.cid).size-y)<=54+12*CC(t.cid).size;}).map(t=>t.id);
+ const e={k:'senku',eid:myId+'_senku_'+objSeq++,id:p.id,x,y,dir:p.f,targets};
+ receiveSenku(e);send(e);
+}
+function receiveSenku(e){
+ if(!e||typeof e.eid!=='string'||senkuSeen.has(e.eid)||!byId(e.id))return;
+ senkuSeen.add(e.eid);if(senkuSeen.size>128)senkuSeen.delete(senkuSeen.values().next().value);
+ senkuQueue.push(e);beginNextSenku();
+}
+function beginNextSenku(){
+ if(freezeT>0||!senkuQueue.length)return;
+ const e=senkuQueue.shift(),p=byId(e.id);if(!p||p.out)return;
+ senkuActive={...e,hits:[]};
+ for(const id of e.targets||[]){const t=byId(id);if(t&&isLocal(t)&&!t.out&&!isInvuln(t))senkuActive.hits.push(id);}
+ if(isLocal(p)){p.sh=16;p.senkuWind=0;p.senku=0;p.spc=34;p.vx*=.25;}
+ freezeT=SENKU_STOP;freezeMax=SENKU_STOP;fzType='senku';fz={x:e.x,y:e.y,att:e.id,cnt:e.id};
+ sfxSenkuLock();
+}
+function releaseSenku(){
+ const e=senkuActive;if(!e)return;senkuActive=null;
+ // Counter / charge armor do not cancel the cinematic strike. Dodge/spawn invulnerability
+ // is captured on entry. Damage, reach and knockback values retain the original move values.
+ for(const id of e.hits){const t=byId(id);if(!t||t.out||!isLocal(t))continue;
+  const kb=applyHit(t,{dm:26,k0:17,ks:.115,up:.32,f:e.dir},false,e.id);
+  emitFx({res:'hit',t:t.id,a:e.id,x:t.x,y:t.y-34*CC(t.cid).size,kb:Math.round(kb*10)/10,bk:0,up:0,c:t.c,gain:5,senku:1});
+ }
+ senkuAfter={x:e.x,y:e.y,dir:e.dir,life:24,max:24};
+ burst(e.x,e.y,18,10,'#b0fff1',7);ring(e.x,e.y,18,17);
+ shake=Math.max(shake,14);sfxSenkuRelease();
+}
+function sfxSenkuLock(){
+ tone(1800,90,.10,.18,'sine');noiseHit(.045,.12,5600,true);tone(78,68,.5,.2,'sine');
+ tone(2200,2900,.22,.04,'sine',.13);
+}
+function sfxSenkuRelease(){
+ noiseHit(.12,.42,5800,true);tone(2500,330,.13,.12,'sawtooth');tone(82,35,.48,.38,'sine');
+ tone(1100,730,.23,.07,'triangle',.06);
+}
+function paintSenkuWorld(){
+ if(!senkuActive)return;const e=senkuActive,t=(SENKU_STOP-freezeT)/SENKU_STOP;
+ push();noStroke();fill(2,9,18,205);rect(-300,-300,stage.w+600,stage.h+600);
+ // Frozen fighters remain visible under a technical lock-on overlay.
+ for(const f of fighters){if(f.out)continue;drawFighter(f);if(e.targets.includes(f.id)){
+  const y=f.y-32*CC(f.cid).size;stroke(142,255,234,120);strokeWeight(1);noFill();rect(f.x-22,y-32,44,64);line(f.x-30,y,f.x+30,y);}}
+ const x=e.x,y=e.y,dir=e.dir;
+ if(t<.34){const q=t/.34;noFill();stroke(121,255,230,180);strokeWeight(1);circle(x,y,96-q*55);circle(x,y,124-q*80);strokeWeight(2);line(x-22,y,x+22,y);line(x,y-22,x,y+22);}
+ else{
+  const q=Math.min(1,(t-.34)/.12),end=x+dir*520*q;
+  stroke(58,255,210,35);strokeWeight(26);line(x,y,end,y-7);
+  stroke(109,255,231,130);strokeWeight(9);line(x,y,end,y-7);
+  stroke('#eefff9');strokeWeight(2);line(x-dir*18,y,end,y-7);
+  for(let i=0;i<16;i++){const xx=x+dir*(35+i*30),yy=y+Math.sin(i*9.7)*15;stroke(142,255,234,110);strokeWeight(1);line(xx,yy,xx+dir*(12+i%4*5),yy-7);}
+  noFill();stroke(170,255,241,130);strokeWeight(2);arc(x+dir*40,y,130,180,dir>0?-1.3:1.84,dir>0?1.3:4.44);
+ }
+ pop();
+}
+function paintSenkuCutin(){
+ if(!senkuActive)return;const e=senkuActive,t=(SENKU_STOP-freezeT)/SENKU_STOP;
+ push();noStroke();
+ if(t<.09){fill(181,255,235,110*(1-t/.09));rect(0,0,W,WH);}
+ const enter=Math.min(1,t/.14),exit=t>.83?(1-t)/.17:1;
+ fill('#030811');rect(0,0,W,38*enter);rect(0,WH-38*enter,W,38*enter);
+ fill('#8effdc');textStyle(BOLD);textAlign(LEFT,CENTER);textSize(11);text('S E N K U  /  S Y S T E M   L O C K',22,20*enter);
+ textAlign(RIGHT,CENTER);fill('#839eb4');text('TIME  00:00.000',W-22,WH-19*enter);
+ if(t<.55){
+  const slide=(1-enter)*250;push();translate(-slide,58);fill('#071b26');quad(0,0,320,0,270,122,0,122);
+  fill('#6bffda');quad(0,0,320,0,316,3,0,3);
+  // Original stylized swordsman portrait: tactical coat, eye highlight and long blade.
+  push();translate(85,90);rotate(-.14);fill('#d7fff3');ellipse(0,-50,29,30);fill('#1c3546');arc(0,-53,34,29,Math.PI,Math.PI*2);fill('#8bffe3');rect(3,-54,12,2);
+  fill('#122e3d');quad(-18,-35,20,-35,36,28,-31,28);stroke('#86ffe0');strokeWeight(3);line(-12,-32,-4,17);line(16,-32,6,17);
+  stroke('#2e6471');strokeWeight(11);line(10,-20,42,-39);stroke('#e9fff9');strokeWeight(3);line(42,-39,150,-70);pop();
+  fill('#d9fff2');textAlign(LEFT,CENTER);textStyle(BOLDITALIC);textSize(38);text('閃空',152,51);textStyle(NORMAL);textSize(10);fill('#8eafbb');text('S W O R D S M A N',155,88);pop();
+ }
+ if(t>.34){
+  const cut=Math.min(1,(t-.34)/.10);push();translate(W*.55,WH*.55);rotate(-.11);stroke(115,255,218,35);strokeWeight(24);line(-W,0,W*cut,0);stroke('#eafffa');strokeWeight(2);line(-W,0,W*cut,0);pop();
+  fill(204,255,241,255*exit);textStyle(BOLDITALIC);textAlign(RIGHT,CENTER);textSize(48);text('一 閃',W-34,WH-89);
+  textStyle(NORMAL);textSize(11);fill(151,232,212,255*exit);text('O N E   S T R I K E',W-34,WH-53);
+ }
+ pop();
+}
+function paintSenkuAfter(){
+ if(!senkuAfter)return;const e=senkuAfter,q=e.life/e.max;
+ push();stroke(107,255,226,50*q);strokeWeight(24*q);line(e.x,e.y,e.x+e.dir*520,e.y-7);stroke(212,255,245,230*q);strokeWeight(2*q);line(e.x-10*e.dir,e.y,e.x+e.dir*520,e.y-7);
+ for(let i=0;i<12;i++){const x=e.x+e.dir*(24+i*41),y=e.y+(1-q)*(i%2?1:-1)*(25+i*4);stroke(146,255,224,140*q);strokeWeight(1);line(x,y,x+e.dir*28*q,y-8*q);}pop();
+ if(freezeT===0&&--e.life<=0)senkuAfter=null;
+}
+
+const fighterPalette=['#f45349','#e99c48','#8171d4','#ba9376','#dc6178','#d58b4a','#55bda5','#7d9ed0','#b58b63'];
+const fighterRoles={karate:'BALANCED / 接近戦',bomber:'EXPLOSIVE / 爆破',ninja:'SPEED / 機動力',sumo:'POWER / 重量級',boxer:'KNOCKOUT / 一撃',yankee:'RAGE / 怒り',swordsman:'SENKU / 一閃',lancer:'REACH / 突撃',gunman:'SHOOTER / 射撃'};
+function updateFighterShowcase(){
+ const id=settings.cid,C=CC(id),i=Object.keys(CHARS).indexOf(id),col=fighterPalette[i];
+ const hero=document.getElementById('fighter-showcase');hero.style.setProperty('--fighter-color',col);hero.dataset.en=C.en;
+ hero.innerHTML=portrait(id)+`<span class="fighter-code">FIGHTER / 0${i+1}</span><div class="fighter-name"><small>${fighterRoles[id]}</small><b>${C.name}</b></div>`;
+ document.getElementById('char-info').style.setProperty('--fighter-color',col);
+ document.querySelectorAll('#char-grid .ci').forEach((b,n)=>{b.style.setProperty('--fighter-color',fighterPalette[n]);b.setAttribute('aria-pressed',String(n===i));});
+}
+function fighterInfo(C){return `<div class="ability-line"><b>特殊技</b>　${C.sp}</div>`+['スピード','パワー','おもさ'].map((l,i)=>`<div class="stat"><b>${l}</b><div class="gauge"><i style="width:${C.st[i]*20}%"></i></div></div>`).join('')+`<details class="ability-detail"><summary>上必殺技・キャラ特性を見る</summary><p><b>上技</b>　${C.up}</p><p><b>特性</b>　${C.ab}</p></details>`;}
+let hudKey='';
+function drawHUD(){
+ const roster=document.getElementById('battle-roster');const key=fighters.map(p=>p.id+':'+p.cid+':'+p.c).join('|');
+ if(key!==hudKey){hudKey=key;roster.style.setProperty('--columns',Math.min(4,fighters.length));
+  roster.innerHTML=fighters.map(p=>`<div class="hud-card ${p.id===myId?'me ':''}${fighters.length>4?'crowded':''}" style="--team:${p.c}"><div class="hud-portrait">${portrait(p.cid)}</div><div class="hud-info"><div class="hud-name"></div><div class="hud-damage"></div></div><div class="hud-stocks"></div><div class="hud-skill"></div><div class="hud-meter"></div></div>`).join('');
+ }
+ fighters.forEach((p,i)=>{const el=roster.children[i];if(!el)return;el.classList.toggle('out',p.out);el.querySelector('.hud-name').textContent=(p.id===myId?'P1 / ':p.cpu?'CPU / ':'')+p.label;
+ const d=el.querySelector('.hud-damage');d.textContent=Math.round(p.d)+'%';d.style.color=p.d<60?'#fff9e9':p.d<110?'#ffc363':'#ff6453';
+ const stock=el.querySelector('.hud-stocks');if(stock.childElementCount!==Math.max(0,p.s))stock.innerHTML='<i></i>'.repeat(Math.max(0,p.s));
+ let m=0,label='';if(p.cid==='boxer'){m=p.ko;label=m>=100?'KO READY':'KO';}if(p.cid==='swordsman'){m=p.senku;label=m>=100?'閃空 READY':'閃空';}if(p.cid==='yankee'){m=p.rageT>0?p.rageT/RAGE_T*100:p.rage;label=p.rageT>0?'RAGE!':m>=100?'RAGE READY':'RAGE';}if(p.cid==='gunman'){m=p.bullets/GUN_MAX*100;label=p.reloadT>0?'RELOAD':p.bullets+' / 8';}
+ el.style.setProperty('--meter',Math.max(0,Math.min(100,m))+'%');el.querySelector('.hud-skill').textContent=label;
+ });
+ document.getElementById('match-label').textContent=online?'ONLINE MATCH':'LOCAL BATTLE';document.getElementById('match-stage').textContent=stage.name;
+}
+function titleIllustration(){return `<svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="heroRed" x2="1" y2="1"><stop stop-color="#ff6550"/><stop offset="1" stop-color="#b42a31"/></linearGradient><linearGradient id="heroIce" x2="1" y2="1"><stop stop-color="#a7fff1"/><stop offset="1" stop-color="#3eacb1"/></linearGradient></defs><path d="M840-80h420L810 980H390z" fill="#ff493f09"/><path d="M1060-80h5L600 980h-5z" fill="#ff493f50"/><circle cx="1090" cy="400" r="290" fill="none" stroke="#98b3c014" stroke-width="1"/><circle cx="1090" cy="400" r="265" fill="none" stroke="#98b3c012" stroke-width="35"/><g transform="translate(1020 540) rotate(-12)"><ellipse cx="10" cy="230" rx="210" ry="20" fill="#0005"/><g stroke="#080d19" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"><path d="M0-110L20 48-100 190M20 48l140 130M-4-76l-110 20-62-80M0-80l118-48 56-56" fill="none"/></g><g stroke="url(#heroRed)" stroke-width="23" stroke-linecap="round" stroke-linejoin="round"><path d="M0-110L20 48-100 190M20 48l140 130M-4-76l-110 20-62-80M0-80l118-48 56-56" fill="none"/></g><path d="M-25-110h45L48 16H-17z" fill="#172537"/><path d="M-18-104L0-28l14-76" fill="#f0dfb2"/><circle cx="-10" cy="-156" r="42" fill="url(#heroRed)" stroke="#0c1420" stroke-width="6"/><path d="M-48-166h76M-48-166l-45 30" stroke="#f4dcc1" stroke-width="9"/><path d="M0-156h18" stroke="#ffeae0" stroke-width="5"/><circle cx="172" cy="-190" r="25" fill="#ff8b68"/></g><g transform="translate(1200 240) scale(.8) rotate(18)"><g stroke="#78dfce" stroke-width="19" stroke-linecap="round"><path d="M0-34v100l-70 83M0 66l75 67M0-22l-60 38M0-22l58 25 39-32" fill="none"/></g><path d="M-25-40h50l17 115H-39z" fill="#193d4d"/><path d="M-17-33l14 77M18-33L3 44" stroke="#8ffff0" stroke-width="3"/><circle cx="0" cy="-70" r="30" fill="url(#heroIce)"/><path d="M-30-78q20-43 58 0" fill="#102635"/><path d="M6-71h15" stroke="white" stroke-width="3"/><path d="M100-33L-160-185" stroke="#baffec" stroke-width="5"/></g><path d="M540 520L1430 50" stroke="#88ffe02a" stroke-width="60"/><path d="M540 520L1430 50" stroke="#baffe5a0" stroke-width="2"/><path d="M760 790L1430 470" stroke="#ff82642a" stroke-width="30"/></svg>`;}
+document.querySelector('.title-art').innerHTML=titleIllustration();
+function paintMatchIntro(){
+ push();noStroke();
+ if(bt.phase==='count'){
+  const t=bt.t,txt=t>140?'3':t>80?'2':t>20?'1':'GO!';const beat=t>20?(t-20)%60:t;const pulse=1+Math.max(0,(beat-40)/60);
+  fill(6,12,22,95);rect(0,0,W,WH);fill('#0a101c');quad(0,WH/2-55,W,WH/2-90,W,WH/2+65,0,WH/2+95);
+  fill(txt==='GO!'?'#ff493f':'#ffd55e');quad(0,WH/2+82,W,WH/2+52,W,WH/2+58,0,WH/2+88);
+  push();translate(W/2,WH/2);scale(pulse);textAlign(CENTER,CENTER);textStyle(BOLDITALIC);textSize(txt==='GO!'?118:130);fill('#f6f4ed');text(txt,0,-5);pop();
+  textAlign(CENTER,CENTER);textStyle(BOLD);textSize(12);fill('#a7b5ca');text(txt==='GO!'?'BREAK YOUR LIMIT':'GET READY TO FIGHT',W/2,WH/2+119);
+ }else if(bt.phase==='game'){
+  fill(7,12,22,140);rect(0,0,W,WH);fill('#ffd55e');quad(0,WH/2-75,W,WH/2-40,W,WH/2+82,0,WH/2+47);
+  textStyle(BOLDITALIC);textAlign(CENTER,CENTER);textSize(98);fill('#111724');text('GAME SET',W/2,WH/2);textSize(13);textStyle(BOLD);fill('#eef2f8');text('STICK BATTLE ONLINE',W/2,WH/2+109);
+ }pop();
+}
+// Size the arena from actual remaining space, including two-row HUDs at eight players.
+function fitArena(){
+ const shell=document.getElementById('arena-shell'),wrap=document.getElementById('wrap');
+ if(!shell.clientWidth||!shell.clientHeight)return;
+ const available=shell.clientHeight-parseFloat(getComputedStyle(shell).paddingTop)-parseFloat(getComputedStyle(shell).paddingBottom)-document.getElementById('battle-roster').offsetHeight-document.getElementById('match-info').offsetHeight-20;
+ const w=Math.max(96,Math.min(900,shell.clientWidth,Math.max(54,available)*16/9));
+ if(Math.abs(parseFloat(wrap.style.width||'0')-w)>.5)wrap.style.width=w+'px';
+}
+const arenaObserver=new ResizeObserver(fitArena);arenaObserver.observe(document.getElementById('arena-shell'));arenaObserver.observe(document.getElementById('battle-roster'));
+window.addEventListener('resize',fitArena);
+function paintImpactWorld(){
+ if(!fz)return;const a=byId(fz.att),c=byId(fz.cnt),el=freezeMax-freezeT;
+ const tint=fzType==='rage'?'#ff5549':fzType==='ko'?'#ffd55e':'#81e5ff';
+ push();noStroke();fill(3,8,17,215);rect(-300,-300,stage.w+600,stage.h+600);
+ for(let i=0;i<28;i++){const ang=i*TWO_PI/28+.12,r=65+(i%4)*12;stroke(tint+'99');strokeWeight(i%4===0?3:1);line(fz.x+cos(ang)*r,fz.y+sin(ang)*r,fz.x+cos(ang)*(r+180+el*5),fz.y+sin(ang)*(r+180+el*5));}
+ noFill();stroke(tint+'70');strokeWeight(2);circle(fz.x,fz.y,100+el*3);stroke(tint+'20');strokeWeight(18);circle(fz.x,fz.y,125+el*3);
+ if(a)drawFighter(a);if(c&&c!==a)drawFighter(c);pop();
+}
+function paintImpactText(){
+ const el=freezeMax-freezeT,t=el/freezeMax,q=Math.min(1,t/.16);
+ const theme=fzType==='rage'?['RAGE IGNITION','怒りを解き放て','#ff5549']:fzType==='ko'?['K.O. UPPERCUT','一撃で、決めろ','#ffd55e']:['COUNTER','読み勝った、その一瞬','#81e5ff'];
+ push();noStroke();fill('#050b15');rect(0,0,W,24);rect(0,WH-24,W,24);
+ if(el<3){fill(245,248,240,95*(1-el/3));rect(0,0,W,WH);}
+ const y=WH*.75;fill(theme[2]);quad(-60+(1-q)*-250,y-32,W*.78+(1-q)*-250,y-52,W*.72+(1-q)*-250,y+38,-60,y+58);
+ textAlign(LEFT,CENTER);textStyle(BOLDITALIC);textSize(fzType==='ko'?49:57);fill('#0d1725');text(theme[0],24-(1-q)*250,y);
+ textStyle(BOLD);textSize(11);fill('#e7eef9');text(theme[1],26,y+81);pop();
+}
 
 </script>
 </body>
