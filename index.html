@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -794,15 +793,29 @@ function stateOf(f) {
     d: Math.round(f.d), s: f.s, o: f.out ? 1 : 0, ko: Math.round(f.ko), g: f.g ? 1 : 0,
     rg: Math.round(f.rage || 0), rt: Math.round(f.rageT || 0), sk: Math.round(f.senku || 0), sw: Math.round(f.senkuWind || 0),
     bu:f.bowUp?1:0, bl: f.bullets ?? GUN_MAX, rl: Math.round(f.reloadT || 0),
-    stats: f.stats || null, rd: curRound, ts: Date.now() };
+    vy: Math.round((f.vy || 0) * 10) / 10, rd: curRound };
 }
 
+// 【ラグ対策の要】以前は「前の送信がサーバーに届いた返事」を待ってから次を送っていたため、
+// 実際の送信頻度が 33ms ごとではなく「往復時間ごと（シンガポール往復で約100〜200ms）」に落ちていた。
+// Firebaseは送信を順番どおりに流してくれるので、返事を待たずに送ってよい（詰まり過ぎ防止に上限だけ設ける）。
+let sendInflight=0,lastSentKey='',lastSentAt=0,lastStatsAt=0,netRtt=0;
 function sendLocal() {
-  if(!online||!battleSessionActive()||!roomRef||sendPending)return;
-  const upd={};for(const f of fighters)if(isLocal(f))upd[f.id]=stateOf(f);
-  sendPending=true;
-  try{Promise.resolve(roomRef.child('p').update(safeWire(upd))).then(()=>{netIssue='';}).catch(networkError).finally(()=>{sendPending=false;});}
-  catch(err){sendPending=false;networkError(err);}
+  if(!online||!battleSessionActive()||!roomRef)return;
+  if(sendInflight>=4)return;                       // 回線が詰まっている時だけ間引く
+  const now=Date.now(),upd={};let key='';
+  for(const f of fighters)if(isLocal(f)){const st=stateOf(f);upd[f.id]=st;key+=JSON.stringify(st);}
+  if(!key)return;
+  if(key===lastSentKey&&now-lastSentAt<250)return; // 止まっている時は送信を減らして回線を空ける
+  const withStats=now-lastStatsAt>1000||bt.phase!=='play';
+  for(const id in upd){upd[id].ts=now;if(withStats)upd[id].stats=byId(id)?.stats||null;}
+  if(withStats)lastStatsAt=now;
+  lastSentKey=key;lastSentAt=now;sendInflight++;
+  const started=performance.now();
+  try{Promise.resolve(roomRef.child('p').update(safeWire(upd)))
+    .then(()=>{netIssue='';const r=performance.now()-started;netRtt=netRtt?netRtt*0.85+r*0.15:r;})
+    .catch(networkError).finally(()=>{sendInflight=Math.max(0,sendInflight-1);});}
+  catch(err){sendInflight=Math.max(0,sendInflight-1);networkError(err);}
 }
 
 function onP(s) {
@@ -814,15 +827,21 @@ function onP(s) {
   const lat = Date.now() - v.ts;
   if (f.off === null || lat < f.off) f.off = lat;
   else f.off += (lat - f.off) * 0.02;
+  const arr=Date.now();
+  if(f.lastRecv){const gap=Math.min(arr-f.lastRecv,500);f.gapAvg=f.gapAvg?f.gapAvg*0.9+gap*0.1:gap;f.jit=(f.jit||0)*0.9+Math.abs(gap-f.gapAvg)*0.1;}
+  f.lastRecv=arr;
   f.buf.push(v);
-  if (f.buf.length > 40) f.buf.shift();
+  if (f.buf.length > 60) f.buf.shift();
 }
 
 function updateRemote() {
   const now = Date.now();
   for (const f of fighters) {
     if (!f.remote || !f.buf.length) continue;
-    const rt = now - f.off - INTERP;
+    // 届く間隔＋揺れに合わせて「表示を遅らせる幅」を自動調整（固定80msだと間に合わずカクつく）
+    const want=constrain((f.gapAvg||SEND_MS)+(f.jit||0)*2.5+12,50,220);
+    f.interp=f.interp?f.interp+(want-f.interp)*0.04:want;
+    const rt = now - f.off - f.interp;
     let a = null, b = null;
     for (let i = f.buf.length - 1; i >= 0; i--) {
       if (f.buf[i].ts <= rt) { a = f.buf[i]; b = f.buf[i + 1] || null; break; }
@@ -835,8 +854,12 @@ function updateRemote() {
       else { x = lerp(a.x, b.x, t); y = lerp(a.y, b.y, t); r = a.r + (b.r - a.r) * t; }
     } else if (a && !b) {
       // 通信が遅れた時は、最後の向きに少し進めておく（止まって見えない）
-      x = a.x + (a.vx || 0) * Math.min((rt - a.ts) / 16.7, 5);
+      const k=Math.min((rt - a.ts) / 16.7, 6);
+      x = a.x + (a.vx || 0) * k;
+      if(!a.g&&Number.isFinite(a.vy)) y = a.y + a.vy * k + 0.5 * GRAV * k * k;
     }
+    if(f.dispX!==undefined&&Math.hypot(x-f.dispX,y-f.dispY)<60){x=f.dispX+(x-f.dispX)*0.55;y=f.dispY+(y-f.dispY)*0.55;}
+    f.dispX=x;f.dispY=y;
     Object.assign(f, { x, y, r, vx: s.vx, f: s.f, a: s.a, ch: s.ch, ct: s.ct, cs: s.cs, stn: s.stn, dg: s.dg,
       ivf: s.iv, kb: s.kb, w: s.w || null, sh: s.sh, sph: s.sph, rise: s.ri, arm: s.am || 0, cid: s.cid || f.cid,
       d: s.d, s: s.s, ko: s.ko, g: s.g, rage: s.rg || 0, rageT: s.rt || 0, senku: s.sk || 0, senkuWind: s.sw || 0,
@@ -2793,14 +2816,14 @@ function portrait(id){
 function updateControlUI(){
  const p=fighters.find(f=>f.id===myId);if(!p)return;
  const attack=document.getElementById('btn-a'),special=document.getElementById('btn-s');
- attack.style.setProperty('--charge',Math.min(100,p.ch/CH_FULL*100)+'%');
+ {const cv=Math.round(Math.min(100,p.ch/CH_FULL*100))+'%';if(attack._cv!==cv){attack._cv=cv;attack.style.setProperty('--charge',cv);}}
  let text=p.ch>=CH_WARN?'溜めすぎ注意！ 離して攻撃':p.ch>=CH_FULL?'CHARGE READY — 指を離して攻撃':'スティック↑でジャンプ ／ 攻撃：長押しで溜め';
  let ready=(p.cid==='boxer'&&p.ko>=100)||(p.cid==='yankee'&&p.rage>=100)||(p.cid==='swordsman'&&p.senku>=100);
  special.classList.toggle('ready',ready);
  const label=p.cid==='gunman'?(p.reloadT>0?'装填中':p.bullets+' / '+GUN_MAX):ready?'READY':p.cid==='archer'?(p.sph>=36?'3本 READY':p.spc>0?'準備中':'長押し：3本'):p.cid==='berserker'?(p.spc>0?'再使用待ち':'断頭斬'):p.cid==='lancer'?'長押し→離す':p.cid==='bomber'?'長押し：地雷':'キャラ固有';
- special.querySelector('small').textContent=label;
+ if(special.querySelector('small').textContent!==label)special.querySelector('small').textContent=label;
  if(p.out)text='観戦中 — バトルの決着を待とう';else if(ready)text='特殊技 READY ／ '+CC(p.cid).name;
- document.getElementById('combat-hint').textContent=netIssue||text;
+ {const h=document.getElementById('combat-hint'),v=netIssue||text;if(h.textContent!==v)h.textContent=v;}
  document.getElementById('btn-x').style.opacity=p.w?'1':'.45';
 }
 function applyPrefs(){document.body.classList.toggle('left-handed',prefs.left);audioBus();try{localStorage.setItem('sbo.preferences',JSON.stringify(prefs));}catch(_){}}
@@ -2955,23 +2978,26 @@ function updateFighterShowcase(){
 }
 function fighterInfo(C){return `<div class="ability-line"><b>特殊技</b>　${C.sp}</div>`+['スピード','パワー','おもさ'].map((l,i)=>`<div class="stat"><b>${l}</b><div class="gauge"><i style="width:${C.st[i]*20}%"></i></div></div>`).join('')+`<details class="ability-detail"><summary>上必殺技・キャラ特性を見る</summary><p><b>上技</b>　${C.up}</p><p><b>特性</b>　${C.ab}</p></details>`;}
 let hudKey='';
+function setTxt(el,v){if(el&&el.textContent!==v)el.textContent=v;}
+function setVar(el,k,v){if(el&&el['_'+k]!==v){el['_'+k]=v;el.style.setProperty(k,v);}}
 function drawHUD(){
  const roster=document.getElementById('battle-roster');const key=fighters.map(p=>p.id+':'+p.cid+':'+p.c).join('|');
  if(key!==hudKey){hudKey=key;roster.style.setProperty('--columns',Math.min(4,fighters.length));
   roster.innerHTML=fighters.map(p=>`<div class="hud-card ${p.id===myId?'me ':''}${fighters.length>4?'crowded':''}" style="--team:${p.c}"><div class="hud-portrait">${portrait(p.cid)}</div><div class="hud-info"><div class="hud-name"></div><div class="hud-damage"></div></div><div class="hud-stocks"></div><div class="hud-skill"></div><div class="hud-meter"></div></div>`).join('');
  }
- fighters.forEach((p,i)=>{const el=roster.children[i];if(!el)return;el.classList.toggle('out',p.out);el.querySelector('.hud-name').textContent=(p.id===myId?'P1 / ':p.cpu?'CPU / ':'')+p.label;
- const d=el.querySelector('.hud-damage');d.textContent=Math.round(p.d)+'%';d.style.color=p.d<60?'#fff9e9':p.d<110?'#ffc363':'#ff6453';
+ fighters.forEach((p,i)=>{const el=roster.children[i];if(!el)return;el.classList.toggle('out',p.out);setTxt(el.querySelector('.hud-name'),(p.id===myId?'P1 / ':p.cpu?'CPU / ':'')+p.label);
+ const d=el.querySelector('.hud-damage');setTxt(d,Math.round(p.d)+'%');d._c=d._c||'';const dc=p.d<60?'#fff9e9':p.d<110?'#ffc363':'#ff6453';if(d._c!==dc){d._c=dc;d.style.color=dc;}
  const stock=el.querySelector('.hud-stocks');if(stock.childElementCount!==Math.max(0,p.s))stock.innerHTML='<i></i>'.repeat(Math.max(0,p.s));
  let m=0,label='';if(p.cid==='boxer'){m=p.ko;label=m>=100?'KO READY':'KO';}if(p.cid==='swordsman'){m=p.senku;label=m>=100?'旋空 READY':'旋空';}if(p.cid==='yankee'){m=p.rageT>0?p.rageT/RAGE_T*100:p.rage;label=p.rageT>0?'RAGE!':m>=100?'RAGE READY':'RAGE';}if(p.cid==='gunman'){m=p.bullets/GUN_MAX*100;label=p.reloadT>0?'RELOAD':p.bullets+' / '+GUN_MAX;}
  if(p.cid==='archer'){m=p.sph>0?Math.min(100,p.sph/36*100):Math.max(0,100-p.spc/52*100);label=p.sph>=36?'3 ARROWS':p.sph>0?'DRAW':p.spc>0?'WAIT':'BOW';}
  if(p.cid==='berserker'){m=Math.max(0,100-p.spc/180*100);label=p.spc>0?'AXE WAIT':'AXE READY';}
  if(p.cid==='sumo'&&isArmored(p))label='ARMOR';
  el.classList.toggle('ko-armed',p.cid==='boxer'&&p.ko>=100&&!p.out);el.classList.toggle('rage-active',rageOn(p)&&!p.out);
- el.style.setProperty('--meter',Math.max(0,Math.min(100,m))+'%');el.querySelector('.hud-skill').textContent=label;
+ setVar(el,'--meter',Math.round(Math.max(0,Math.min(100,m)))+'%');setTxt(el.querySelector('.hud-skill'),label);
  });
- roster.style.setProperty('--pc-columns',Math.max(1,fighters.length));
- document.getElementById('match-label').textContent=online?'ONLINE MATCH':'LOCAL BATTLE';document.getElementById('match-stage').textContent=stage.name;
+ setVar(roster,'--pc-columns',String(Math.max(1,fighters.length)));
+ setTxt(document.getElementById('match-label'),online?'ONLINE MATCH':'LOCAL BATTLE');
+ setTxt(document.getElementById('match-stage'),stage.name+(online&&netRtt?'　通信 '+Math.round(netRtt/10)*10+'ms':''));
 }
 function titleIllustration(){return `<svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="heroRed" x2="1" y2="1"><stop stop-color="#ff6550"/><stop offset="1" stop-color="#b42a31"/></linearGradient><linearGradient id="heroIce" x2="1" y2="1"><stop stop-color="#a7fff1"/><stop offset="1" stop-color="#3eacb1"/></linearGradient></defs><path d="M840-80h420L810 980H390z" fill="#ff493f09"/><path d="M1060-80h5L600 980h-5z" fill="#ff493f50"/><circle cx="1090" cy="400" r="290" fill="none" stroke="#98b3c014" stroke-width="1"/><circle cx="1090" cy="400" r="265" fill="none" stroke="#98b3c012" stroke-width="35"/><g transform="translate(1020 540) rotate(-12)"><ellipse cx="10" cy="230" rx="210" ry="20" fill="#0005"/><g stroke="#080d19" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"><path d="M0-110L20 48-100 190M20 48l140 130M-4-76l-110 20-62-80M0-80l118-48 56-56" fill="none"/></g><g stroke="url(#heroRed)" stroke-width="23" stroke-linecap="round" stroke-linejoin="round"><path d="M0-110L20 48-100 190M20 48l140 130M-4-76l-110 20-62-80M0-80l118-48 56-56" fill="none"/></g><path d="M-25-110h45L48 16H-17z" fill="#172537"/><path d="M-18-104L0-28l14-76" fill="#f0dfb2"/><circle cx="-10" cy="-156" r="42" fill="url(#heroRed)" stroke="#0c1420" stroke-width="6"/><path d="M-48-166h76M-48-166l-45 30" stroke="#f4dcc1" stroke-width="9"/><circle cx="172" cy="-190" r="25" fill="#ff8b68"/></g><g transform="translate(1200 240) scale(.8) rotate(18)"><g stroke="#78dfce" stroke-width="19" stroke-linecap="round"><path d="M0-34v100l-70 83M0 66l75 67M0-22l-60 38M0-22l58 25 39-32" fill="none"/></g><path d="M-25-40h50l17 115H-39z" fill="#232d40"/><path d="M-17-33l14 77M18-33L3 44" stroke="#b34d5b" stroke-width="3"/><circle cx="0" cy="-70" r="30" fill="url(#heroIce)"/><path d="M-30-78q20-43 58 0" fill="#102635"/><path d="M100-33L-160-185" stroke="#baffec" stroke-width="5"/></g><path d="M540 520L1430 50" stroke="#88ffe02a" stroke-width="60"/><path d="M540 520L1430 50" stroke="#baffe5a0" stroke-width="2"/><path d="M760 790L1430 470" stroke="#ff82642a" stroke-width="30"/></svg>`;}
 document.querySelector('.title-art').innerHTML=titleIllustration();
@@ -3232,12 +3258,12 @@ function stageBackdropSVG(id){
 }
 
 // Ordered cinematic commands: the host assigns a sequence; all owners finish one before the next.
-const NET_PROTOCOL='SBO_NET_8';
+const NET_PROTOCOL='SBO_NET_9';
 let netSeq=0,sendPending=false,netIssue='',eventSeen=new Set(),cinRequests=new Set();
 let cinSerial=0,cinExpected=1,cinInbox=new Map(),cinQueue=[],activeCinematic=null,cinDispatching=false;
 let deferredHits=[],replayPending=false,lastReplayAt=0;
 function battleSessionActive(){return bt&&['count','play','game'].includes(bt.phase)&&(scene==='battle'||(online&&gmCache&&['play','end'].includes(gmCache.ph)));}
-function resetNetRound(){cinSerial=0;cinExpected=1;cinInbox.clear();cinQueue=[];activeCinematic=null;cinDispatching=false;deferredHits=[];eventSeen.clear();cinRequests.clear();sendPending=false;}
+function resetNetRound(){cinSerial=0;cinExpected=1;cinInbox.clear();cinQueue=[];activeCinematic=null;cinDispatching=false;deferredHits=[];eventSeen.clear();cinRequests.clear();sendPending=false;sendInflight=0;lastSentKey='';lastStatsAt=0;}
 function safeWire(value){return JSON.parse(JSON.stringify(value,(k,v)=>v===undefined?null:typeof v==='number'&&!Number.isFinite(v)?null:v));}
 function remember(set,id,max=4096){if(!id||set.has(id))return false;set.add(id);if(set.size>max)set.delete(set.values().next().value);return true;}
 function networkError(e){netIssue='通信が不安定です。接続を確認してください';console.warn('SBO network:',e?.message||e);}
