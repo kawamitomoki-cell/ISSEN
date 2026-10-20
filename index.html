@@ -141,7 +141,7 @@ input,textarea,select{touch-action:manipulation}#room-code-input{font-size:20px}
   <div id="res-list"></div>
   <div id="res-wait" class="wait" style="display:none">ホストの操作を待っています…</div>
   <div class="nav" id="res-nav1"><button class="next" id="res-again">もう一度</button></div>
-  <div class="nav" id="res-nav2"><button class="back" id="res-chars">キャラ選択へ</button><button class="back" id="res-title">タイトルへ</button></div>
+  <div class="nav" id="res-nav2"><button class="next" id="res-pick">キャラを変える</button><button class="back" id="res-chars">キャラ選択へ</button><button class="back" id="res-title">タイトルへ</button></div>
 </div>
 
 <div id="sc-howto" class="screen" style="z-index:8">
@@ -202,7 +202,7 @@ input,textarea,select{touch-action:manipulation}#room-code-input{font-size:20px}
 <label class="setting-row">バトルBGM<input id="pref-music" type="checkbox"></label>
 <label class="setting-row">画面の揺れ<input id="pref-shake" type="checkbox"></label>
 <label class="setting-row">左右の操作を入れ替え<input id="pref-left" type="checkbox"></label>
-<p>移動エリアは触れた場所が中心になります。上技ボタンで「上＋特殊」を入力。槍使いとガンマンの上技は、元の仕様どおり上昇しません。<br>オンライン対戦中は設定を開いてもバトルが進行します。</p>
+<p>移動エリアは触れた場所が中心になります。上技ボタンで「上＋特殊」を入力。弓使いと狂戦士の上技は上昇しません。<br>オンライン対戦中は設定を開いてもバトルが進行します。</p>
 <button id="settings-close">閉じる</button></dialog>
 
 <script>
@@ -278,11 +278,11 @@ const CHARS = {
             ab: '通常攻撃が剣。拳より長いリーチと少し高い火力を持つ' },
   lancer: { name: '槍使い', en: 'LANCER', mark: '槍', spd: 0.92, jump: 0.96, jumps: 2, wt: 0.92, pow: 1.02, size: 1.0,
             ctx: 0, back: false, ctc: 1.0, dgc: 1.05, dgs: 0.98, st: [2, 4, 5],
-            sp: '突撃：特殊を長押しして溜め、離すと槍を構えて突進。溜めるほど強い', up: '上薙ぎ：ジャンプせず、槍の長いリーチで頭上を薙ぎ払う',
+            sp: '突撃：特殊を長押しして溜め、離すと槍を構えて長距離を突進。突進中はアーマー。溜めるほど遠く強く', up: '昇槍：槍を突き上げて高く飛び上がる復帰技。頭上を攻撃',
             ab: '通常・溜め攻撃のリーチが非常に長い。突撃は最大チャージで自動発動する' },
   gunman: { name: 'ガンマン', en: 'GUNMAN', mark: '銃', spd: 1.02, jump: 1.0, jumps: 2, wt: 1.03, pow: 0.96, size: 1.0,
             ctx: 0, back: false, ctc: 1.0, dgc: 0.95, dgs: 1.0, st: [3, 4, 5],
-            sp: 'リボルバー：6発装填・1発19ダメージ。射撃間隔0.6秒。空で自動、長押しで装填（1.8秒）', up: '上方射撃：1発消費して頭上を撃つ。通常射撃と待ち時間を共有',
+            sp: 'リボルバー：6発装填・1発19ダメージ。射撃間隔0.6秒。空で自動、長押しで装填（1.8秒）', up: 'ガンジャンプ：足元へ撃ち込んだ爆風で大ジャンプ。周りも吹っ飛ぶ（弾は消費しない）',
             ab: '弾数管理型の遠距離キャラ。リロードの隙をどう作るかが重要' },
   archer: {name:'弓使い',en:'ARCHER',mark:'弓',spd:1.12,jump:1.05,jumps:3,wt:0.95,pow:1.0,size:1.0,
     ctx:0,back:false,ctc:0.8,dgc:0.85,dgs:1.1,st:[4,4,3],
@@ -290,8 +290,8 @@ const CHARS = {
     up:'天射ち：真上へ3本の矢を放つ。上昇しない',ab:'3段ジャンプ。矢はすべて敵を貫通。弓を引きながらでも素早く動ける'},
   berserker: {name:'狂戦士',en:'BERSERKER',mark:'斧',spd:0.66,jump:0.85,jumps:2,wt:0.58,pow:1.35,size:1.16,
     ctx:0,back:false,ctc:1.2,dgc:1.35,dgs:0.8,st:[1,5,5],
-    sp:'断頭斬：巨大斧の一撃で48ダメージと超強力な吹っ飛ばし。クールタイムなし（ただし振りは遅く後隙大）',
-    up:'天断ち：その場で頭上を薙ぎ払う。42ダメージ。上昇しない',ab:'非常に遅いが、とても吹っ飛びにくい。特殊にクールタイムはない。空振りとカウンターに注意'}
+    sp:'断頭斬：巨大斧の一撃で48ダメージと超強力な吹っ飛ばし。カウンターで返されない。クールタイムなし（振りは遅く後隙大）',
+    up:'天断ち：その場で頭上を薙ぎ払う。42ダメージ。上昇しない',ab:'非常に遅いが、とても吹っ飛びにくい。重い鎧で受けるダメージが半分。特殊はカウンター無効でクールタイムなし'}
 };
 const CC = id => CHARS[id] || CHARS.karate;
 function clampInt(v, lo, hi, fallback) { const n = parseInt(v, 10); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : fallback; }
@@ -357,9 +357,10 @@ const MOVE_DEF = {
   swordup:{ type: 'normal', act0: 2, act1: 13, end: 20, reach: 2,  R: 36, yo: 68, cd: 5 },
   lanceup:{ type: 'heavy',  act0: 5, act1: 14, end: 22, reach: 2,  R: 42, yo: 72, cd: 7 },
   shotgunup:{ type: 'special', act0: 5, act1: 9, end: 20, reach: 0, R: 52, yo: 76, cd: 8, blockOnly: true },
+  gunjump:{ type: 'normal', act0: 1, act1: 5, end: 14, reach: 0, R: 48, yo: 2, cd: 4 },
   lancerush:{ type: 'heavy', act0: 7, act1: 18, end: 27, reach: 58, R: 26, yo: 34, cd: 8, glow: 6 }
 };
-const RISE_KINDS = ['shoryu', 'jupper', 'tsuki', 'blastj', 'gutsj', 'swordup', 'lanceup', 'shotgunup'];
+const RISE_KINDS = ['shoryu', 'jupper', 'tsuki', 'blastj', 'gutsj', 'swordup', 'lanceup', 'shotgunup', 'gunjump'];
 function mkMv(kind, w) {
   if (!kind || !MOVE_DEF[kind]) return null;
   const m = { ...MOVE_DEF[kind], kind };
@@ -369,7 +370,7 @@ function mkMv(kind, w) {
 
 const myId = Math.random().toString(36).slice(2, 10);
 const urlRoom = new URLSearchParams(location.search).get('room');
-let settings = { cid: 'karate', cpuN: 1, cpuLv: 1, map: 'std', wpn: true, stocks: DEFAULT_STOCK, name: 'PLAYER' };
+let settings = { cid: 'karate', cpuN: 1, cpuLv: 1, map: 'std', wpn: false, stocks: DEFAULT_STOCK, name: 'PLAYER' };
 let scene = 'title', howtoFrom = 'sc-mode', charMode = 'cpu';
 let online = false, isHost = false, roomId = null, roomRef = null;
 let memCache = {}, gmCache = null, curRound = 0, skipRound = -1, gmFirst = true;
@@ -549,7 +550,7 @@ async function createRoom() {
   }
   if (!roomRef) { alert('部屋コードを作れませんでした。もう一度お試しください。'); return; }
   roomRef.onDisconnect().remove();
-  await roomRef.child('gm').set({ protocol:NET_PROTOCOL,hostId:myId,ph: 'lobby', round: 0, map: 'std', wpn: 1, stocks: settings.stocks, cpuN: 0, cpuLv: 1, w: '' });
+  await roomRef.child('gm').set({ protocol:NET_PROTOCOL,hostId:myId,ph: 'lobby', round: 0, map: 'std', wpn: 0, stocks: settings.stocks, cpuN: 0, cpuLv: 1, w: '' });
   await joinCommon();
   netTimers.push(setInterval(hostTick, 200));
   netTimers.push(setInterval(hostSpawn, 1000));
@@ -725,8 +726,8 @@ function renderLobby() {
       '<div class="optrow" style="margin-top:8px"><span>残機</span><div class="seg" id="lb-stock"></div></div>' +
       '<div class="optrow" style="margin-top:8px"><span>CPUを足す</span><div class="seg" id="lb-cpun"></div></div>' +
       '<div class="optrow" style="margin-top:8px"><span>CPUの強さ</span><div class="seg" id="lb-cpulv"></div></div>';
-    renderStageGrid('lb-stage', g.map, id => roomRef.child('gm').update({ map: id, wpn: MAPS[id].wpn ? 1 : 0 }));
-    seg('lb-wpn', ['あり', 'なし'], () => g.wpn ? 0 : 1, i => roomRef.child('gm').update({ wpn: i === 0 ? 1 : 0 }));
+    renderStageGrid('lb-stage', g.map, id => roomRef.child('gm').update({ map: id }));
+    seg('lb-wpn', ['なし', 'あり'], () => g.wpn ? 1 : 0, i => roomRef.child('gm').update({ wpn: i === 1 ? 1 : 0 }));
     seg('lb-stock', ['1', '2', '3', '4', '5'], () => clampInt(g.stocks, 1, MAX_STOCK, DEFAULT_STOCK) - 1, i => roomRef.child('gm').update({ stocks: i + 1 }));
     const maxCpu = Math.max(0, Math.min(7, MAX_PLAYERS - mem.length));
     const labels = []; for (let i = 0; i <= maxCpu; i++) labels.push(i === 0 ? 'なし' : i + '体');
@@ -994,11 +995,13 @@ function showResult() {
     document.getElementById('res-wait').style.display = isHost ? 'none' : 'block';
     document.getElementById('res-nav1').style.display = isHost ? 'flex' : 'none';
     rc.innerText = 'ロビーへ'; rc.style.display = isHost ? '' : 'none';
+    document.getElementById('res-pick').style.display = '';
     rt.innerText = '退出する';
   } else {
     document.getElementById('res-wait').style.display = 'none';
     document.getElementById('res-nav1').style.display = 'flex';
     rc.innerText = 'キャラ選択へ'; rc.style.display = '';
+    document.getElementById('res-pick').style.display = 'none';
     rt.innerText = 'タイトルへ';
   }
   show('sc-result');
@@ -1056,6 +1059,8 @@ function isInvuln(p) { return p.remote ? !!p.ivf : (p.inv > 0 || (p.dg >= DG_INV
 function isArmored(p) { return p.ch > 0 || p.arm > 0; }
 function inCounter(p) { return p.ct >= CT_ON && p.ct <= CT_OFF + CC(p.cid).ctx; }
 function isActive(p) { return p.mv && p.a >= p.mv.act0 && p.a <= p.mv.act1; }
+const AXE_KINDS = ['axeheavy', 'axeup'];
+const armorCut = (t, dm) => t && t.cid === 'berserker' ? dm * 0.5 : dm; // 狂戦士の鎧：被ダメ半減
 const fromFront = (t, ax) => Math.abs(ax - t.x) < 6 || Math.sign(ax - t.x) === t.f;
 
 function gainKO(p, n) {
@@ -1153,9 +1158,9 @@ function doRageTransform(e, remote) {
 
 function fireLanceRush(p, hold) {
   const C = CC(p.cid), pw = constrain((hold - 1) / 55, 0, 1);
-  p.mv = { ...mkMv('lancerush'), dm: (11 + 15 * pw) * C.pow, k0: (8 + 11 * pw) * C.pow,
-    ks: 0.085 + 0.035 * pw, up: 0.42, lunge: 9 + 16 * pw, reach: 58 + 16 * pw, glow: 5 };
-  p.a = 1; p.hit = {}; p.sph = 0; p.spc = 24; sfxWindup();
+  p.mv = { ...mkMv('lancerush'), dm: (13 + 17 * pw) * C.pow, k0: (9 + 13 * pw) * C.pow,
+    ks: 0.09 + 0.04 * pw, up: 0.42, lunge: 10 + 18 * pw, reach: 62 + 26 * pw, glow: 5, rush: 1 };
+  p.a = 1; p.hit = {}; p.sph = 0; p.spc = 24; p.arm = 18; sfxWindup();
 }
 function fireGunmanShot(p) {
   if(p.spc>0)return;
@@ -1169,8 +1174,7 @@ function fireGunmanShot(p) {
 // 上＋特殊：キャラごとの上必殺技（空中で1回まで、着地で回復）
 function upSpecial(p, dir) {
   const C = CC(p.cid);
-  if(p.cid==='gunman'){if(p.reloadT>0||p.spc>0)return;if(p.bullets<=0){beginReload(p);return;}}
-  const noJump = ['lancer','gunman','archer','berserker'].includes(p.cid);
+  const noJump = ['archer','berserker'].includes(p.cid);
   if(['archer','berserker'].includes(p.cid)&&p.spc>0)return;
   p.rec = true; p.hit = {};
   if (!noJump) { p.jn = C.jumps; p.rise = 20; p.g = false; }
@@ -1199,12 +1203,13 @@ function upSpecial(p, dir) {
     p.vy = -13.8; p.vx += p.f * 1.2;
     p.mv = { ...mkMv('swordup'), dm: 10 * C.pow, k0: 7.5 * C.pow, ks: 0.075, up: 1.25, charSword: true }; p.a = 1; sfxSlash();
   } else if (p.cid === 'lancer') {
-    p.mv = { ...mkMv('lanceup'), dm: 11 * C.pow, k0: 8 * C.pow, ks: 0.07, up: 1.10, charSpear: true }; p.a = 1; sfxSlash();
+    p.vy = -15.2; p.vx += p.f * 1.5;
+    p.mv = { ...mkMv('lanceup'), dm: 12 * C.pow, k0: 9 * C.pow, ks: 0.08, up: 1.25, charSpear: true }; p.a = 1; sfxSlash(); sfxRise();
+    burst(p.x, p.y - 6, 10, 4, '#e2f4ff', 8);
   } else if (p.cid === 'gunman') {
-    p.bullets--;p.spc=GUN_COOLDOWN;
-    p.mv = { ...mkMv('shotgunup'), dm: 19, k0: 12, ks: 0.085, up: 1.35, blockOnly: true }; p.a = 1; p.sh = 12; sfxRevolver();
-    if(p.bullets<=0)beginReload(p);
-    burst(p.x, p.y - 80, 18, 7, '#ffd166', 8);
+    p.vy = -15.5; p.sph = 0;
+    p.mv = { ...mkMv('gunjump'), dm: 9, k0: 8, ks: 0.075, up: 0.95 }; p.a = 1; p.sh = 10;
+    const e = { k: 'vfx', v: 'gunjump', x: Math.round(p.x), y: Math.round(p.y) }; vfx(e); send(e);
   }
 }
 
@@ -1213,6 +1218,11 @@ function vfx(e) {
   if(e.v==='axeSwing'){sfxAxeSwing();shake=Math.max(shake,4);specialNotices.push({kind:'axeDust',x:e.x,y:e.y,life:20});burst(e.x,e.y,10,3,'#d4b99a',6);return;}
   if(e.v==='sumoLift'){specialNotices.push({kind:'sumoLift',x:e.x,y:e.y,life:24});burst(e.x,e.y+4,9,2,'#d9dddc',4);return;}
   if(e.v==='koReady'){specialNotices.push({id:e.id,life:70});sfxKOArmed();ring(e.x,e.y,9,18);return;}
+  if (e.v === 'gunjump') {
+    burst(e.x, e.y + 4, 20, 8, '#ffd166', 10); burst(e.x, e.y + 4, 10, 5, '#ffffff', 7);
+    ring(e.x, e.y + 4, 12, 12); shake = Math.max(shake, 6); sfxRevolver(); noiseHit(0.25, 0.3, 800);
+    return;
+  }
   if (e.v === 'blast') {
     burst(e.x, e.y, 26, 9, '#f4a261', 12); burst(e.x, e.y, 12, 6, '#ffffff', 8);
     ring(e.x, e.y, 14, 14);
@@ -1288,7 +1298,8 @@ function stepFighter(p, inp) {
     const slow = axeLocked?0.06:(p.cid==='archer'&&p.sph>0)?0.7:p.ch > 0 ? 0.35 : (p.cid === 'lancer' && p.sph > 0 ? 0.12 : (p.a > 0 ? 0.5 : 1));
     const moveSpd = C.spd * (rageOn(p) ? RAGE_SPD : 1);
     p.vx += dir * (p.g ? 1.0 : 0.65) * slow * moveSpd;
-    p.vx *= p.g ? 0.80 : 0.90;
+    const rushing = p.mv && p.mv.rush && p.a >= p.mv.act0 && p.a <= p.mv.act1;
+    p.vx *= rushing ? 0.95 : (p.g ? 0.80 : 0.90);
     if (dir !== 0 && p.a === 0) p.f = dir;
 
     // S / ↓ / Proコンの下入力だけで上段足場をすり抜ける。最下段は床扱い。
@@ -1435,7 +1446,7 @@ function meleeCheck(a) {
         send({ k: 'mh', to: t.id, a: a.id, ax: A.x, f: a.f, c: a.c, mv: A.mv });
         // 予測：返事を待たずに手応えを出す
         const front = fromFront(t, a.x) || CC(t.cid).back;
-        const willCounter = mv.type === 'heavy' && mv.kind !== 'upper' && inCounter(t) && front;
+        const willCounter = mv.type === 'heavy' && mv.kind !== 'upper' && !AXE_KINDS.includes(mv.kind) && inCounter(t) && front;
         if (mv.kind === 'upper' && !t.ivf) requestCinematic('ko', { x: Math.round(t.x), y: Math.round(t.y - 30 * tsz), a: a.id, t: t.id });
         if (!willCounter && !t.ivf && mv.kind !== 'upper') {
           const est = (A.mv.k0 + (t.d + A.mv.dm) * A.mv.ks) * weightFactor(t);
@@ -1452,9 +1463,9 @@ function resolveMelee(A, t) {
   if (isInvuln(t)) { if (t.dg > 0) emitFx({ res: 'evade', t: t.id, a: A.id, x: t.x, y: t.y - 110 }); return; }
   const front = fromFront(t, A.x) || CC(t.cid).back;
   if (mv.blockOnly && inCounter(t) && front) { emitFx({ res:'block', t:t.id, a:A.id, x:t.x, y:ty }); return; }
-  if (mv.type === 'heavy' && mv.kind !== 'upper' && inCounter(t) && front) { startCounter(A, t, mv); return; }
+  if (mv.type === 'heavy' && mv.kind !== 'upper' && !AXE_KINDS.includes(mv.kind) && inCounter(t) && front) { startCounter(A, t, mv); return; }
   const h = { dm: mv.dm, k0: mv.k0, ks: mv.ks, up: mv.up, f: A.f, ko: !!mv.ko, ragePunch: !!mv.ragePunch };
-  const bk = mv.kind !== 'upper' && t.ct > 0 && (mv.type === 'normal' || !front);
+  const bk = mv.kind !== 'upper' && t.ct > 0 && (mv.type === 'normal' || !front || AXE_KINDS.includes(mv.kind));
   if (!bk && mv.type === 'normal' && isArmored(t)) {
     armorHit(t, h, A.id);
     emitFx({ res: 'armor', t: t.id, a: A.id, x: t.x, y: ty, gain: 4 });
@@ -1483,13 +1494,14 @@ function resolveProj(Q, t) {
 function addDealt(attackerId, dm) { const a = byId(attackerId); if (a && a.stats) a.stats.dealt += Math.max(0, dm || 0); }
 
 function armorHit(t, h, attackerId) {
-  t.d += h.dm; addDealt(attackerId, h.dm);
+  const dm = armorCut(t, h.dm);
+  t.d += dm; addDealt(attackerId, dm);
   gainKO(t, h.dm * 1.2); gainRage(t, h.dm);
 }
 
 function applyHit(t, h, bk, attackerId) {
   const m = bk ? 1.4 : 1;
-  const dealt = h.dm * m;
+  const dealt = armorCut(t, h.dm * m);
   t.d += dealt; addDealt(attackerId, dealt);
   gainKO(t, h.dm * 1.2); gainRage(t, dealt);
   let kb = (h.k0 + t.d * h.ks) * m * weightFactor(t);
@@ -1591,7 +1603,7 @@ function endFreeze() {
   }
   if (pending) {
     const a = pending.att;
-    a.d += pending.dm;
+    a.d += armorCut(a, pending.dm);
     const kb = (pending.kb0 + a.d * 0.07) * weightFactor(a);
     a.vx = pending.dir * kb; a.vy = -kb * 0.55 - 3;
     a.kb = Math.floor(12 + kb * 1.8);
@@ -2224,7 +2236,9 @@ function drawFighter(p) {
   } else if (p.a > 0 && mv && RISE_KINDS.includes(mv.kind)) {
     // 上必殺技のポーズ
     const act = p.a >= mv.act0 && p.a <= mv.act1;
-    if(mv.kind==='tsuki'){
+    if(mv.kind==='gunjump'){
+      line(0,-8,p.f*6,14);line(0,-8,-p.f*12,-18);hand={x:p.f*6,y:14};
+    } else if(mv.kind==='tsuki'){
       line(0,-8,-14,6);line(0,-8,14,6);hand={x:14,y:6};
     } else if (mv.kind === 'blastj') {
       line(0, -8, -14, -22); line(0, -8, 14, -22);
@@ -2252,6 +2266,8 @@ function drawFighter(p) {
           stroke('#eef3f6'); strokeWeight(8); arc(0,-42,82,64,-PI,0); stroke('#90e0ef'); strokeWeight(3); arc(0,-42,92,72,-PI,0);
         } else if (mv.kind === 'lanceup') {
           stroke('#eef3f6'); strokeWeight(6); arc(0,-52,105,70,-PI*0.95,-PI*0.05);
+        } else if (mv.kind === 'gunjump') {
+          stroke('#ffd166'); strokeWeight(5); line(p.f*4,14,p.f*10,46); line(p.f*4,14,-p.f*14,40); line(p.f*4,14,p.f*26,38);
         } else if (mv.kind === 'shotgunup') {
           stroke('#ffd166'); strokeWeight(5); line(-24,-44,-50,-86); line(0,-48,0,-96); line(24,-44,50,-86);
         } else {
@@ -2558,6 +2574,12 @@ function readHuman() {
 // ========================================================
 // ⑭ メニュー
 // ========================================================
+function popNote(msg) {
+  const w = document.getElementById('res-wait');
+  if (!w) return;
+  w.style.display = 'block'; w.innerText = msg;
+  setTimeout(() => { if (w.innerText === msg) { w.innerText = 'ホストの操作を待っています…'; w.style.display = (online && !isHost) ? 'block' : 'none'; } }, 2500);
+}
 function show(id) {
   resetTouch();
   document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
@@ -2604,8 +2626,9 @@ function openChars(mode) {
   document.getElementById('cpu-opts').style.display = mode === 'cpu' ? 'flex' : 'none';
   document.getElementById('chars-next').innerText = mode === 'cpu' ? 'ステージへ' : '変更する';
   renderChars();
-  if (mode === 'battle') {
+  if (mode === 'battle' || mode === 'result') {
     document.getElementById('sc-chars').style.display = 'flex';
+    if (mode === 'result') { document.getElementById('chars-next').innerText = '決定'; return; }
     if (!online) scene = 'pause';
   } else show('sc-chars');
 }
@@ -2624,7 +2647,7 @@ function buildMenus() {
       b.className = 'ci' + (settings.cid === id ? ' sel' : '');
       b.innerHTML = `<span class="fighter-number">${String(Object.keys(CHARS).indexOf(id)+1).padStart(2,'0')}</span>${portrait(id)}<small>${C.name}</small>`;
       b.setAttribute("aria-label",C.name);
-      b.onclick = () => { settings.cid = id; renderChars(); };
+      b.onclick = () => { settings.cid = id; if (charMode === 'result' && online && roomRef) roomRef.child('mem/' + myId).update({ cid: id }); renderChars(); };
       grid.appendChild(b);
     }
     const C = CC(settings.cid);
@@ -2636,10 +2659,10 @@ function buildMenus() {
   seg('seg-cpulv', LV_NAME, () => settings.cpuLv, i => settings.cpuLv = i);
 
   const renderStages = () => renderStageGrid('stage-grid', settings.map, id => {
-    settings.map = id; settings.wpn = MAPS[id].wpn; renderStages(); renderWpnSeg();
+    settings.map = id; renderStages();
   });
   renderStages();
-  renderWpnSeg = seg('seg-wpn', ['あり', 'なし'], () => settings.wpn ? 0 : 1, i => settings.wpn = i === 0);
+  renderWpnSeg = seg('seg-wpn', ['なし', 'あり'], () => settings.wpn ? 1 : 0, i => settings.wpn = i === 1);
   renderStockSeg = seg('seg-stock', ['1', '2', '3', '4', '5'], () => settings.stocks - 1, i => settings.stocks = i + 1);
 
   const nameInput = document.getElementById('player-name');
@@ -2685,10 +2708,16 @@ function buildMenus() {
   document.getElementById('go-howto').onclick = () => { howtoFrom = 'sc-mode'; show('sc-howto'); };
   document.getElementById('chars-back').onclick = () => {
     if (charMode === 'battle') closeBattleChars();
+    else if (charMode === 'result') document.getElementById('sc-chars').style.display = 'none';
     else show('sc-mode');
   };
   document.getElementById('chars-next').onclick = () => {
     if (charMode === 'battle') { applyCharChange(settings.cid); closeBattleChars(); }
+    else if (charMode === 'result') {
+      if (online && roomRef) roomRef.child('mem/' + myId).update({ cid: settings.cid });
+      document.getElementById('sc-chars').style.display = 'none';
+      popNote('次のバトルは ' + CC(settings.cid).name + ' で出撃！');
+    }
     else show('sc-stage');
   };
   document.getElementById('stage-back').onclick = () => openChars('cpu');
@@ -2697,6 +2726,7 @@ function buildMenus() {
   document.getElementById('lb-start').onclick = () => { if (isHost) hostStart(); };
   document.getElementById('lb-leave').onclick = () => { if (confirm('部屋から退出しますか？')) leaveRoom(); };
 
+  document.getElementById('res-pick').onclick = () => openChars('result');
   document.getElementById('res-again').onclick = () => {
     if (!online) startBattleOffline();
     else if (isHost) hostStart();
@@ -2999,7 +3029,7 @@ function drawHUD(){
  const d=el.querySelector('.hud-damage');setTxt(d,Math.round(p.d)+'%');d._c=d._c||'';const dc=p.d<60?'#fff9e9':p.d<110?'#ffc363':'#ff6453';if(d._c!==dc){d._c=dc;d.style.color=dc;}
  const stock=el.querySelector('.hud-stocks');if(stock.childElementCount!==Math.max(0,p.s))stock.innerHTML='<i></i>'.repeat(Math.max(0,p.s));
  let m=0,label='';if(p.cid==='boxer'){m=p.ko;label=m>=100?'KO READY':'KO';}if(p.cid==='swordsman'){m=p.senku;label=m>=100?'旋空 READY':'旋空';}if(p.cid==='yankee'){m=p.rageT>0?p.rageT/RAGE_T*100:p.rage;label=p.rageT>0?'RAGE!':m>=100?'RAGE READY':'RAGE';}if(p.cid==='gunman'){m=p.bullets/GUN_MAX*100;label=p.reloadT>0?'RELOAD':p.bullets+' / '+GUN_MAX;}
- if(p.cid==='archer'){m=p.sph>0?Math.min(100,p.sph/BOW_FULL*100):Math.max(0,100-p.spc/32*100);label=p.sph>=BOW_FULL?'5 ARROWS':p.sph>0?'DRAW':p.spc>0?'WAIT':'BOW';}
+ if(p.cid==='archer'){m=p.sph>0?Math.min(100,p.sph/BOW_FULL*100):Math.max(0,100-p.spc/30*100);label=p.sph>=BOW_FULL?'5 ARROWS':p.sph>0?'DRAW':p.spc>0?'WAIT':'BOW';}
  if(p.cid==='berserker'){m=100;label=p.a>0&&p.mv&&['axeheavy','axeup'].includes(p.mv.kind)?'SWING':'AXE READY';}
  if(p.cid==='sumo'&&p.arm>0)label='ARMOR';
  el.classList.toggle('ko-armed',p.cid==='boxer'&&p.ko>=100&&!p.out);el.classList.toggle('rage-active',rageOn(p)&&!p.out);
@@ -3268,7 +3298,7 @@ function stageBackdropSVG(id){
 }
 
 // Ordered cinematic commands: the host assigns a sequence; all owners finish one before the next.
-const NET_PROTOCOL='SBO_NET_10';
+const NET_PROTOCOL='SBO_NET_11';
 let netSeq=0,sendPending=false,netIssue='',eventSeen=new Set(),cinRequests=new Set();
 let cinSerial=0,cinExpected=1,cinInbox=new Map(),cinQueue=[],activeCinematic=null,cinDispatching=false;
 let deferredHits=[],replayPending=false,lastReplayAt=0;
@@ -3382,7 +3412,7 @@ function fireArrows(p,held,up){
    dm:volley?14:up?16:20,k0:volley?8:up?9:10,ks:volley?.085:.09,up:up?1.2:.45,rot:0,sound:i===0?1:0});
  });
  send({k:'projs',list});for(const q of list)projs.push({...q,local:true,hitIds:{}});
- p.sph=0;p.spc=volley?32:up?24:14;p.sh=14;p.bowUp=!!up;
+ p.sph=0;p.spc=volley?30:up?28:24;p.sh=14;p.bowUp=!!up;
  sfxBowRelease();if(volley){tone(1500,700,.12,.07,'triangle');shake=Math.max(shake,3);}
  burst(p.x+(up?0:p.f*29),p.y-(up?68:36),volley?14:5,volley?4:2,'#d8edb9',4);
 }
